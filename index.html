@@ -1,462 +1,192 @@
-<!--
-	作者：Sariay
-	时间：2018-09-25
-	描述：There may be a bug, but don't worry, QiLing(器灵) says that it can work normally!
--->
-<!DOCTYPE html>
-<html class="html-loading">
-		
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>李亦 | 计算社会科学</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com"
+    />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Spline+Sans:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="mesh"></div>
+    <header class="hero">
+      <nav class="nav">
+        <span class="logo">Li Yi</span>
+        <div class="nav-links">
+          <a href="#research">研究</a>
+          <a href="#publications">论文</a>
+          <a href="#teaching">教学</a>
+          <a href="#contact">联系</a>
+        </div>
+      </nav>
+      <section class="hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">计算社会科学 · 数据叙事 · 城市韧性</p>
+          <h1>李亦</h1>
+          <p class="subhead">
+            复旦大学社会学系助理教授，关注城市风险治理、数字平台与社会网络结构。
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#publications">最新论文</a>
+            <a class="button ghost" href="#contact">预约交流</a>
+          </div>
+          <div class="meta-row">
+            <span>邮箱: liy@fudan.edu.cn</span>
+            <span>办公室: 文科楼 312</span>
+          </div>
+        </div>
+        <div class="hero-card">
+          <div class="portrait"></div>
+          <div class="card-body">
+            <h3>研究方向</h3>
+            <ul>
+              <li>城市风险与韧性治理</li>
+              <li>平台劳动与算法协作</li>
+              <li>数字足迹数据与社会网络</li>
+            </ul>
+            <p class="note">
+              当前课题: “韧性城市的算法协同” (2024-2027)
+            </p>
+          </div>
+        </div>
+      </section>
+    </header>
 
-<head><meta name="generator" content="Hexo 3.8.0">
-	<meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
-  <title>
-    
-      执壹
-    
-  </title>
-  <meta name="author" content="samule">
-  <meta name="keywords" content>
-  <meta name="description" content>
-	<!-- favicon -->
-  <link rel="shortcut icon" href="/img/favicon.ico">
+    <main>
+      <section id="research" class="section">
+        <div class="section-head">
+          <h2>研究与方法</h2>
+          <p>
+            我将定量模型与定性访谈并行，关注算法驱动的社会结构变化与政策设计。
+          </p>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <h3>城市风险谱系</h3>
+            <p>
+              构建多尺度风险地图，用于解释应急资源在社区层级的配置逻辑。
+            </p>
+          </article>
+          <article class="card">
+            <h3>平台劳动生态</h3>
+            <p>
+              结合配送平台日志与访谈，分析算法激励如何塑造劳动者行为。
+            </p>
+          </article>
+          <article class="card">
+            <h3>社会网络建模</h3>
+            <p>
+              使用时序网络与因果推断，研究信息传播与群体动员机制。
+            </p>
+          </article>
+        </div>
+      </section>
 
-  <!-- css -->
-  <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css">
-<link rel="stylesheet" href="/css/Annie.css">
-  
-  <!-- jquery -->
-	<script src="/js/jquery.min.js"></script>
+      <section id="publications" class="section alt">
+        <div class="section-head">
+          <h2>代表性论文</h2>
+          <p>近五年发表，更多请见 Google Scholar / CNKI。</p>
+        </div>
+        <div class="pub-list">
+          <article>
+            <span class="year">2024</span>
+            <div>
+              <h3>Algorithmic Resilience in Urban Mobility Platforms</h3>
+              <p>
+                Li, Y. &amp; Chen, W. <em>Journal of Urban Studies</em>, 61(4).
+              </p>
+            </div>
+          </article>
+          <article>
+            <span class="year">2023</span>
+            <div>
+              <h3>Risk Narratives and Community Governance</h3>
+              <p>
+                Li, Y. <em>Social Science Quarterly</em>, 104(2).
+              </p>
+            </div>
+          </article>
+          <article>
+            <span class="year">2022</span>
+            <div>
+              <h3>Networks of Assistance in Crisis Response</h3>
+              <p>
+                Li, Y., Zhao, H. <em>Computational Social Science</em>, 8(1).
+              </p>
+            </div>
+          </article>
+        </div>
+      </section>
 
-  <!-- leancloud -->
-  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
-<script src="/js/leancloud.js"></script>
-</head>
-	<body>
-		<!-- Preloader -->
+      <section id="teaching" class="section">
+        <div class="section-head">
+          <h2>教学与指导</h2>
+          <p>欢迎有兴趣的同学加入研究小组。</p>
+        </div>
+        <div class="split">
+          <div class="panel">
+            <h3>本科课程</h3>
+            <ul>
+              <li>社会网络分析</li>
+              <li>数据化社会学导论</li>
+              <li>城市社会研究方法</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>研究生课程</h3>
+            <ul>
+              <li>复杂系统与社会模拟</li>
+              <li>平台治理与政策评估</li>
+              <li>混合方法研究设计</li>
+            </ul>
+          </div>
+        </div>
+      </section>
 
-	<div id="preloader">
-		<div class="pre-container">
-			
-				<div class="spinner">
-					<div class="double-bounce1"></div>
-					<div class="double-bounce2"></div>
-				</div>
-						
-		</div>
-	</div>
+      <section id="contact" class="section alt">
+        <div class="section-head">
+          <h2>联系与合作</h2>
+          <p>欢迎交流、合作或邀请报告。</p>
+        </div>
+        <div class="contact-grid">
+          <div class="contact-card">
+            <h3>学术合作</h3>
+            <p>科研合作、联合申请课题、数据共享。</p>
+            <a class="button primary small" href="mailto:liy@fudan.edu.cn">发送邮件</a>
+          </div>
+          <div class="contact-card">
+            <h3>学生申请</h3>
+            <p>请附上简历与研究兴趣，注明申请项目。</p>
+            <a class="button ghost small" href="mailto:liy@fudan.edu.cn">投递材料</a>
+          </div>
+          <div class="contact-card">
+            <h3>媒体与咨询</h3>
+            <p>城市治理、平台劳动与公共政策咨询。</p>
+            <a class="button ghost small" href="mailto:liy@fudan.edu.cn">预约时间</a>
+          </div>
+        </div>
+      </section>
+    </main>
 
-
-<!-- header -->
-<header class="fixbackground" data-img-mode="random" data-normal-src="/img/1.jpg" data-random-max="110" data-random-src="https://sariay.github.io/Random-img/">
-	<div class="mask">
-		<!-- Logo and navigation -->
-		<div class="h-header">
-			<div id="logo">
-				<a href="/">
-						
-						<img src="/img/logo.png" alt="Logo">
-					
-				</a>
-			</div>
-			
-			<div id="navigation-show">
-				<ul>
-	
-		<li class="menu-home">
-			<a href="/" class="menu-item-home">主页</a>
-		</li>
-	
-		<li class="menu-archive">
-			<a href="/archives" class="menu-item-archive">归档</a>
-		</li>
-	
-		<li class="menu-categories">
-			<a href="/categories" class="menu-item-categories">分类</a>
-		</li>
-	
-		<li class="menu-tags">
-			<a href="/tags" class="menu-item-tags">标签</a>
-		</li>
-	
-		<li class="menu-about">
-			<a href="/about" class="menu-item-about">关于</a>
-		</li>
-	
-		<li class="menu-gallery">
-			<a href="/gallery" class="menu-item-gallery">相册</a>
-		</li>
-	
-
-	
-</ul>
-			</div>				
-		</div>
-
-		<!-- motto -->
-		<div class="h-body">	
-			
-				<p class="motto"></p>
-			
-		</div>
-		
-		<!-- others: such as time... -->			
-		<div class="h-footer">
-			<a href="javascript:;" id="read-more"><i class="fa fa-angle-double-down" aria-hidden="true"></i>
-			</a>
-
-			
-				<!-- 
-	This is only a demo, please go to "https://time.is" to set your city time! 
--->
-<style type="text/css">
-	.header-date {
-		font-size: 1.6rem;
-		color: #fff;
-		position: absolute;
-		bottom: 5px;
-		right: 1rem;
-		writing-mode: tb-rl;
-	}	
-	
-	.header-date a {
-		border-bottom: none;
-	}
-
-	@media only screen and (max-width: 768 ) {
-		.header-date {
-			font-size: 1rem;
-		}			
-	}
-</style>
-<div class="header-date">
-	<a href="https://time.is/Beijing" id="time_is_link" rel="nofollow"></a>
-	<span id="Beijing_z43d"></span>
-</div>
-<script src="//widget.time.is/zh.js"></script>
-<script>
-	time_is_widget.init({
-		Beijing_z43d:{
-			template:"DATE", 
-			date_format:"year年 monthname dnum日"
-		}
-	});
-</script>
-			
-		</div>
-	</div>
-</header>
-
-<div id="navigation-hide">
-	<!-- Progress bar -->
-	<div id="progress-bar"></div>
-
-	<!-- Progress percent -->
-	<div id="progress-percentage"><h1>0.0%</h1></div>
-
-	<div class="toc-switch"><span class="switch-button">目录</span></div>
-
-	<!-- Page title -->
-	<p>
-		
-			主页
-		
-	</p>
-
-	<!-- Nav trigger for navigation-H-->
-	<a class="nav-trigger"><span></span></a>
-</div>
-
-<!-- Navigation in div(id="navigation-H") -->
-<nav class="nav-container" id="cd-nav">
-	<div class="nav-header">
-		<h3>Navigation</h3>
-		<a href="javascript:;" class="nav-close"></a>
-	</div>
-	<div class="nav-body">
-		<ul>
-	
-		<li class="menu-home">
-			<a href="/" class="menu-item-home">主页</a>
-		</li>
-	
-		<li class="menu-archive">
-			<a href="/archives" class="menu-item-archive">归档</a>
-		</li>
-	
-		<li class="menu-categories">
-			<a href="/categories" class="menu-item-categories">分类</a>
-		</li>
-	
-		<li class="menu-tags">
-			<a href="/tags" class="menu-item-tags">标签</a>
-		</li>
-	
-		<li class="menu-about">
-			<a href="/about" class="menu-item-about">关于</a>
-		</li>
-	
-		<li class="menu-gallery">
-			<a href="/gallery" class="menu-item-gallery">相册</a>
-		</li>
-	
-
-	
-</ul>
-	</div>
-	<div class="nav-footer">
-		<ul>
-	
-		<li>
-			<a href="http://github.com/" target="_blank">
-				<i class="fa fa-github"></i>
-			</a>
-		</li>
-	
-		<li>
-			<a href="http://github.com/" target="_blank">
-				<i class="fa fa-weibo"></i>
-			</a>
-		</li>
-	
-		<li>
-			<a href="http://github.com/" target="_blank">
-				<i class="fa fa-pinterest"></i>
-			</a>
-		</li>
-	
-		<li>
-			<a href="http://github.com/" target="_blank">
-				<i class="fa fa-instagram"></i>
-			</a>
-		</li>
-	
-		<li>
-			<a href="http://github.com/" target="_blank">
-				<i class="fa fa-twitter"></i>
-			</a>
-		</li>
-	
-		<li>
-			<a href="/atom.xml" target="_blank">
-				<i class="fa fa-rss"></i>
-			</a>
-		</li>
-			
-</ul>
-
-	</div>
-</nav>
-			
-		<!--main-->
-		<main>
-			
-
-
-
-	<!--cart style-->
-	<div class="layout-cart">
-	<div id="layout-cart">
-		
-		<div class="post" id="post">
-			<a class="post-cover" href="/2019/05/30/hello-world/" title=" Hello World ">
-				
-				<img class="lazy" src="/img/placeholder.jpg" data-src="/img/cart_cover.jpg">
-			</a>
-
-			<div class="post-text">
-				<p class="post-time">
-					五月 30日, 2019
-				</p>	
-				<h3 class="post-title" id="post-title-index">
-					<a href="/2019/05/30/hello-world/" title="Hello World">
-						<i class="fa fa-paper-plane-o" aria-hidden="true"></i>
-						
-	<a href="/2019/05/30/hello-world/" itemprop="url">
-		Hello World
-	</a>
-
-					</a>
-				</h3>
-				<p class="post-content">
-					
-						Welcome to Hexo! This is your very first post. Check documentation for more i...
-					
-				</p>
-				<p class="post-meta">
-					
-
-
-
-					
-
-	<!-- leancloud -->
-	<!--
-	时间：2018-11-27
-	描述：
-		文章访问量：visitors
-		文章喜欢量：likes	
-		文章排行榜：topNPost
-		其他得说明：
-			01-Cookie相关的函数 
-				https://blog.csdn.net/somehow1002/article/details/78511541（Author：somehow1002）
-			02-visitors相关的函数 
-				https://blog.csdn.net/u013553529/article/details/63357382（Author：爱博客大伯）
-				https://notes.doublemine.me/2015-10-21-为NexT主题添加文章阅读量统计功能.html（Author：夏末）
-			03-topNPost相关的函数
-				https://hoxis.github.io/hexo-next-read-rank.html（Author：hoxis）
-			04-likes相关的函数，
-				参考了01 & 02进行简单的设计与实现
--->
-
-
-	
-
-				</p>
-			</div>
-		</div>
-		
-	</div>
-	
-	
-	<div id="pagination">
-		
-	</div>
-
-	
-
-</div>
-	
-
-		</main>
-
-		<!--footer-->
-		<footer>
-	<div class="social">
-		<ul>
-	
-		<li>
-			<a href="http://github.com/" target="_blank">
-				<i class="fa fa-github"></i>
-			</a>
-		</li>
-	
-		<li>
-			<a href="http://github.com/" target="_blank">
-				<i class="fa fa-weibo"></i>
-			</a>
-		</li>
-	
-		<li>
-			<a href="http://github.com/" target="_blank">
-				<i class="fa fa-pinterest"></i>
-			</a>
-		</li>
-	
-		<li>
-			<a href="http://github.com/" target="_blank">
-				<i class="fa fa-instagram"></i>
-			</a>
-		</li>
-	
-		<li>
-			<a href="http://github.com/" target="_blank">
-				<i class="fa fa-twitter"></i>
-			</a>
-		</li>
-	
-		<li>
-			<a href="/atom.xml" target="_blank">
-				<i class="fa fa-rss"></i>
-			</a>
-		</li>
-			
-</ul>
-
-	</div>
-		
-	<div class="copyright">
-		<p>
-			 
-				&copy;2017 - 2019, content by samule. All Rights Reserved.
-			
-			
-			
-
-	<!-- busuanzi -->
-	<!-- busuanzi -->
-
-		
-	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-	
-
-		<span id="busuanzi_container_site_pv">
-	    	本站总访问量<span id="busuanzi_value_site_pv"></span>次
-		</span>
-
-		<span id="busuanzi_container_site_uv">
-	  		本站访客数<span id="busuanzi_value_site_uv"></span>人次
-		</span>
-		
-	
-
-
-
-
-		</p>
-		<p>
-			<a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a> Theme <a href="https://github.com/Sariay/hexo-theme-Annie" title="Annie" target="_blank" rel="noopener">Annie</a> by Sariay.
-			<a href="javascript:zh_tran('s');" class="zh_click" id="zh_click_s">简体</a> 
-			<a href="javascript:zh_tran('t');" class="zh_click" id="zh_click_t">繁體</a>				
-		</p>
-	</div>		
-</footer>
-		
-	<!-- set '1' to show motto in all pages! -->
-
-	<script src="/plugin/motto/motto.js"></script>
-	
-	<script type="text/javascript">
-		$(".motto").html( getMingYanContent() );
-	</script>	
-
-
-
-
-
-<!-- love effect -->
-
-	<script src="/plugin/love/love.js"></script>
-
-
-<!-- back to top -->
-
-	
-	<div id="totop">
-  		<a href="javascript:;" name="TOTOP" class="fa fa-arrow-up"></a>
-	</div>
-
-
-
-
-<!-- site analysis -->
-
-
-	<!-- site-analysis -->
-	
-	
-	
-	
-	
- 
-
-<script src="/plugin/vibrant/vibrant.js"></script>
-<script src="/plugin/chinese/chinese.js"></script>
-<script src="/plugin/imgLazyLoader/yall.min.js"></script>
-<script src="/plugin/imgResize/jquery.resizeimagetoparent.min.js"></script>
-<script src="/plugin/nicescroll/jquery.nicescroll.js"></script>
-<script src="/js/resizediv.js"></script>
-<script src="/js/main.js"></script>
-	</body>	
+    <footer class="footer">
+      <p>© 2024 Li Yi. Updated Oct 2024.</p>
+      <div class="footer-links">
+        <a href="#">Google Scholar</a>
+        <a href="#">ResearchGate</a>
+        <a href="#">CV (PDF)</a>
+      </div>
+    </footer>
+  </body>
 </html>
