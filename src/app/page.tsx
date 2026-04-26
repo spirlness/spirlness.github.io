@@ -1,6 +1,17 @@
 import { Calendar, Award, BookOpen, GraduationCap } from "lucide-react";
 
 export default function Home() {
+  const links = [
+    {
+      label: "Google Scholar",
+      href: "https://scholar.google.com/scholar?q=Li+Fuying",
+    },
+    {
+      label: "GitHub",
+      href: "https://github.com/spirlness",
+    },
+  ];
+
   const updates = [
     {
       date: "2024-04",
@@ -24,6 +35,9 @@ export default function Home() {
       <div />
       <main>
         <section className="mb-24">
+          <p className="font-display text-sm font-bold tracking-widest text-accent uppercase mb-5">
+            Li Fuying
+          </p>
           <h1 className="font-display text-6xl font-bold tracking-tight mb-8 text-gray-900">
             Physics, Intelligence, <br />
             & Complexity.
@@ -72,11 +86,18 @@ export default function Home() {
           <p className="text-gray-600 mb-8 leading-relaxed">
             I am always open to discussions on physics-informed ML, symbolic AI, or complex systems.
           </p>
-          <div className="flex gap-6 font-display text-sm font-medium text-gray-500">
-            <a href="#" className="hover:text-accent underline underline-offset-4 decoration-gray-200">Email</a>
-            <a href="#" className="hover:text-accent underline underline-offset-4 decoration-gray-200">Google Scholar</a>
-            <a href="#" className="hover:text-accent underline underline-offset-4 decoration-gray-200">GitHub</a>
-            <a href="#" className="hover:text-accent underline underline-offset-4 decoration-gray-200">Twitter / X</a>
+          <div className="flex flex-wrap gap-6 font-display text-sm font-medium text-gray-500">
+            {links.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-accent underline underline-offset-4 decoration-gray-200"
+              >
+                {link.label}
+              </a>
+            ))}
           </div>
         </section>
       </main>

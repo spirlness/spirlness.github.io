@@ -21,3 +21,13 @@ body {
   display: grid;
   grid-template-columns: 1fr min(800px, 100%) 1fr;
 }
+
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.25rem;
+}
+
+.katex-display > .katex {
+  min-width: max-content;
+}

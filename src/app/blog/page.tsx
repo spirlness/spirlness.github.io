@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getAllPosts } from "@/lib/posts";
 
 export default async function BlogPage() {
@@ -19,7 +18,7 @@ export default async function BlogPage() {
           {posts.length > 0 ? (
             posts.map((post) => (
               <article key={post.slug} className="group">
-                <Link href={`/blog/${post.slug}`}>
+                <a href={`/blog/${post.slug}/`}>
                   <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-2">
                     <h2 className="text-2xl font-bold font-display group-hover:text-accent transition-colors">
                       {post.title}
@@ -34,7 +33,7 @@ export default async function BlogPage() {
                   <div className="mt-4 flex items-center gap-1 text-sm font-display font-bold text-accent opacity-0 group-hover:opacity-100 transition-opacity">
                     READ MORE <span>→</span>
                   </div>
-                </Link>
+                </a>
               </article>
             ))
           ) : (

@@ -1,15 +1,14 @@
 import { getAllPublications, groupPublicationsByYear, Publication } from '@/lib/bibtex';
 import { FileText, Code, ExternalLink, Link as LinkIcon } from 'lucide-react';
 
-const ME = "Li, Yi";
+const ME = "Li, Fuying";
 
 function HighlightAuthors({ authors }: { authors: string }) {
-  // Simple highlight logic: find "Li, Yi" and wrap it
   const parts = authors.split(' and ');
   return (
     <span>
       {parts.map((author, index) => {
-        const isMe = author.trim() === ME || author.trim() === "Yi Li";
+        const isMe = author.trim() === ME || author.trim() === "Fuying Li" || author.trim() === "Li Fuying";
         return (
           <span key={index}>
             {isMe ? <strong className="text-orange-700 font-semibold">{author}</strong> : author}

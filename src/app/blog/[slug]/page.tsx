@@ -60,10 +60,10 @@ export default async function PostPage({ params }: PostPageProps) {
           <div className="border-t border-gray-100 pt-12 flex justify-between items-center">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center font-display font-bold text-orange-600">
-                S
+                L
               </div>
               <div>
-                <p className="font-bold text-gray-900">Spirlness</p>
+                <p className="font-bold text-gray-900">Li Fuying</p>
                 <p className="text-sm text-gray-500">Physics & Deep Learning Researcher</p>
               </div>
             </div>
