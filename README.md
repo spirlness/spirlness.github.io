@@ -16,6 +16,23 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## GitHub Pages Deployment
+
+This repository is configured as a static Next.js export for GitHub Pages.
+
+Required repository setting:
+
+- Settings -> Pages -> Build and deployment -> Source: GitHub Actions
+
+The deployment workflow runs on pushes to `master` and can also be started from the Actions tab. It installs dependencies with `npm ci`, runs lint, builds with `next build`, uploads `out/`, and deploys the artifact with the official GitHub Pages actions.
+
+Local production build check:
+
+```bash
+npm run lint
+npm run build
+```
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
