@@ -1,53 +1,120 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Li Fuying Academic Website
 
-## Getting Started
+This repository contains the source code for the static personal academic site published at:
 
-First, run the development server:
+https://spirlness.github.io/
+
+The site is built with Next.js App Router and exported as static HTML for GitHub Pages. It includes a home page, publication list generated from BibTeX, and MDX-based blog posts with math support.
+
+## Project Structure
+
+- `src/app/` - Next.js routes and page layouts.
+- `src/components/` - Shared UI components.
+- `src/content/site.ts` - Central profile, navigation, contact links, homepage updates, and publication display settings.
+- `content/references.bib` - Publication data source.
+- `content/posts/` - Blog posts written as `.mdx`.
+- `.github/workflows/deploy.yml` - GitHub Pages build and deployment workflow.
+
+## Local Development
+
+Install dependencies:
+
+```bash
+npm ci
+```
+
+Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-## GitHub Pages Deployment
-
-This repository is configured as a static Next.js export for GitHub Pages.
-
-Required repository setting:
-
-- Settings -> Pages -> Build and deployment -> Source: GitHub Actions
-
-The deployment workflow runs on pushes to `master` and can also be started from the Actions tab. It installs dependencies with `npm ci`, runs lint, builds with `next build`, uploads `out/`, and deploys the artifact with the official GitHub Pages actions.
-
-Local production build check:
+Run quality checks before committing:
 
 ```bash
 npm run lint
 npm run build
 ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`npm run build` creates the static export in `out/`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## GitHub Pages Deployment
 
-## Learn More
+Repository setting required:
 
-To learn more about Next.js, take a look at the following resources:
+- `Settings` -> `Pages` -> `Build and deployment` -> `Source`: `GitHub Actions`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Deployment behavior:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Pushes to `master` trigger `.github/workflows/deploy.yml`.
+- The workflow installs dependencies with `npm ci`.
+- It runs ESLint.
+- It builds the static export with `next build`.
+- It verifies that these required pages exist:
+  - `out/index.html`
+  - `out/blog/index.html`
+  - `out/publications/index.html`
+- It uploads `out/` as a GitHub Pages artifact and deploys it.
 
-## Deploy on Vercel
+The site uses `output: "export"` and `trailingSlash: true` in `next.config.ts`, so routed pages are emitted as directory `index.html` files that work reliably on GitHub Pages.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Updating Site Content
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Profile, Navigation, and Homepage
+
+Edit `src/content/site.ts` to update:
+
+- Display name and metadata.
+- Navigation links.
+- Contact links.
+- Homepage research summary.
+- Latest updates.
+- Author names used for publication highlighting.
+- Publications intro text.
+
+Keep durable public links in this file. Avoid placeholder `#` links because they create dead links on the deployed site.
+
+### Publications
+
+Add or edit entries in `content/references.bib`.
+
+Supported fields include:
+
+- `title`
+- `author`
+- `year`
+- `journal`
+- `booktitle`
+- `url`
+- `pdf`
+- `code`
+- `arxiv`
+
+Author highlighting is controlled by `publicationAuthorNames` in `src/content/site.ts`.
+
+### Blog Posts
+
+Create a new `.mdx` file under `content/posts/`.
+
+Each post needs frontmatter:
+
+```mdx
+---
+title: "Post Title"
+date: "2026-04-26"
+excerpt: "Short summary shown on the blog index."
+---
+```
+
+The filename becomes the URL slug. For example:
+
+- `content/posts/my-note.mdx`
+- `/blog/my-note/`
+
+The blog supports MDX content and the local MDX components wired through `src/lib/posts.ts`.
+
+## Notes for Static Hosting
+
+Internal navigation uses full static page loads for reliability on GitHub Pages. If you change routing behavior, verify the exported site with a static server before pushing.

@@ -1,4 +1,5 @@
 import { getPostBySlug, getAllPosts } from "@/lib/posts";
+import { siteProfile } from "@/content/site";
 import { notFound } from "next/navigation";
 
 interface PostPageProps {
@@ -60,11 +61,11 @@ export default async function PostPage({ params }: PostPageProps) {
           <div className="border-t border-gray-100 pt-12 flex justify-between items-center">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center font-display font-bold text-orange-600">
-                L
+                {siteProfile.authorInitial}
               </div>
               <div>
-                <p className="font-bold text-gray-900">Li Fuying</p>
-                <p className="text-sm text-gray-500">Physics & Deep Learning Researcher</p>
+                <p className="font-bold text-gray-900">{siteProfile.name}</p>
+                <p className="text-sm text-gray-500">{siteProfile.authorRole}</p>
               </div>
             </div>
           </div>

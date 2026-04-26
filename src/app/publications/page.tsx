@@ -1,14 +1,15 @@
 import { getAllPublications, groupPublicationsByYear, Publication } from '@/lib/bibtex';
 import { FileText, Code, ExternalLink, Link as LinkIcon } from 'lucide-react';
-
-const ME = "Li, Fuying";
+import { siteProfile } from '@/content/site';
 
 function HighlightAuthors({ authors }: { authors: string }) {
   const parts = authors.split(' and ');
   return (
     <span>
       {parts.map((author, index) => {
-        const isMe = author.trim() === ME || author.trim() === "Fuying Li" || author.trim() === "Li Fuying";
+        const isMe = siteProfile.publicationAuthorNames.includes(
+          author.trim() as (typeof siteProfile.publicationAuthorNames)[number]
+        );
         return (
           <span key={index}>
             {isMe ? <strong className="text-orange-700 font-semibold">{author}</strong> : author}
@@ -73,7 +74,7 @@ export default function PublicationsPage() {
         <header className="mb-12">
           <h1 className="text-4xl font-display font-bold text-gray-900 mb-4">Publications</h1>
           <p className="text-lg text-gray-600 max-w-2xl">
-            Selected works in physics-informed machine learning and fluid simulation.
+            {siteProfile.publicationsIntro}
           </p>
         </header>
 

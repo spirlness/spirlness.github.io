@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { inter, serif, display } from "@/lib/fonts";
 import Navbar from "@/components/layout/Navbar";
+import { siteProfile } from "@/content/site";
 import 'katex/dist/katex.min.css';
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Li Fuying",
-  description: "Personal academic website for Li Fuying",
+  title: siteProfile.title,
+  description: siteProfile.description,
 };
 
 export default function RootLayout({
@@ -25,7 +26,7 @@ export default function RootLayout({
         <footer className="distill-grid py-16 border-t border-gray-100 mt-16 text-gray-400 text-sm">
           <div />
           <div>
-            © {new Date().getFullYear()} Li Fuying. Built with Next.js and Distill aesthetics.
+            © {new Date().getFullYear()} {siteProfile.name}. Built with Next.js and Distill aesthetics.
           </div>
           <div />
         </footer>

@@ -68,6 +68,22 @@ jobs:
       - name: Build with Next.js
         run: ${{ steps.detect-package-manager.outputs.manager }} run build
 
+      - name: Verify static export
+        shell: bash
+        run: |
+          required_files=(
+            "out/index.html"
+            "out/blog/index.html"
+            "out/publications/index.html"
+          )
+
+          for file in "${required_files[@]}"; do
+            if [[ ! -f "$file" ]]; then
+              echo "::error file=$file,title=Missing static export file::$file was not generated"
+              exit 1
+            fi
+          done
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
