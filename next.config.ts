@@ -2,10 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: 'export',
+  // 显式指定导出目录为 out
+  distDir: 'out',
   images: {
     unoptimized: true,
   },
-  // 显式禁用 telemetry 警告并确保 experimental 干净
   experimental: {}
 };
 
