@@ -1,0 +1,44 @@
+---
+title: "Algorithmic Resilience in Neural Physical Systems"
+date: "2024-04-26"
+excerpt: "Exploring the intersection of dynamical systems and machine learning to build more robust neural architectures."
+---
+
+# Introduction
+
+In recent years, the integration of physical principles into neural network design has yielded significant improvements in robustness and generalization. We refer to this property as **Algorithmic Resilience**.
+
+<SideNote>
+Algorithmic Resilience is defined here as the ability of a model to maintain performance under out-of-distribution shifts that respect the underlying physical symmetries.
+</SideNote>
+
+# Theoretical Framework
+
+Consider a system governed by the following differential equation:
+
+<MathBlock>
+\frac{d\mathbf{x}}{dt} = \mathbf{f}(\mathbf{x}, t) + \sigma(\mathbf{x}) \cdot \mathbf{w}(t)
+</MathBlock>
+
+Where $\mathbf{w}(t)$ represents stochastic noise. In a traditional neural network, this noise can lead to catastrophic failure. However, by imposing Hamiltonian constraints:
+
+<MathBlock>
+H(\mathbf{q}, \mathbf{p}) = \frac{1}{2}\mathbf{p}^T \mathbf{M}^{-1} \mathbf{p} + V(\mathbf{q})
+</MathBlock>
+
+We can ensure that the total energy is conserved, which significantly stabilizes the learning process.
+
+# Interactive Demonstration
+
+Below is a live simulation of a double pendulum system, which exhibits chaotic behavior but follows strict conservation laws.
+
+<PhysicsDemo />
+
+# Conclusion
+
+By embedding physical priors into our architectures, we don't just achieve better metrics; we gain a structural guarantee of stability.
+
+## References
+
+1. Greydanus, S., et al. "Hamiltonian Neural Networks." NeurIPS 2019.
+2. Lutter, M., et al. "Deep Lagrangian Networks." ICLR 2019.
