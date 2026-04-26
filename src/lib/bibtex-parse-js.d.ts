@@ -1,4 +1,10 @@
 declare module 'bibtex-parse-js' {
-  export function toJSON(bibtex: string): any[];
-  export function toBibtex(json: any[]): string;
+  export interface BibtexEntry {
+    citationKey: string;
+    entryType: string;
+    entryTags: Record<string, string>;
+  }
+
+  export function toJSON(bibtex: string): BibtexEntry[];
+  export function toBibtex(json: BibtexEntry[]): string;
 }

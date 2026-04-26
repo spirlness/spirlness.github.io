@@ -27,6 +27,7 @@ export async function getPostBySlug(slug: string) {
 
   const { content, frontmatter } = await compileMDX<PostFrontmatter>({
     source: fileContent,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     components: staticComponents as any,
     options: {
       parseFrontmatter: true,

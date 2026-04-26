@@ -20,11 +20,18 @@ export async function generateStaticParams() {
 export default async function PostPage({ params }: PostPageProps) {
   const { slug } = await params;
   
+  let post;
   try {
-    const { content, frontmatter } = await getPostBySlug(slug);
+    post = await getPostBySlug(slug);
+  } catch (error) {
+    console.error("Error loading post:", error);
+    notFound();
+  }
 
-    return (
-      <article className="py-16">
+  const { content, frontmatter } = post;
+
+  return (
+    <article className="py-16">
         <header className="distill-grid mb-16">
           <div />
           <div>
@@ -64,9 +71,5 @@ export default async function PostPage({ params }: PostPageProps) {
           <div />
         </footer>
       </article>
-    );
-  } catch (error) {
-    console.error("Error loading post:", error);
-    notFound();
-  }
+  );
 }

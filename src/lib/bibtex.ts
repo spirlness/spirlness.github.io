@@ -22,7 +22,7 @@ export function getAllPublications(): Publication[] {
   
   const parsed = bibtexParse.toJSON(bibContent);
   
-  const publications: Publication[] = parsed.map((entry: any) => {
+  const publications: Publication[] = parsed.map((entry: bibtexParse.BibtexEntry) => {
     const fields = entry.entryTags;
     return {
       id: entry.citationKey,
