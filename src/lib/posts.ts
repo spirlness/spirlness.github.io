@@ -3,7 +3,13 @@ import path from "path";
 import { compileMDX } from "next-mdx-remote/rsc";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
-import { mdxComponents } from "@/components/mdx/MDXComponents";
+import { SideNote } from "@/components/mdx/SideNote";
+import { MathBlock } from "@/components/mdx/MathBlock";
+
+const staticComponents = {
+  SideNote,
+  MathBlock,
+};
 
 const POSTS_PATH = path.join(process.cwd(), "content/posts");
 
@@ -21,7 +27,7 @@ export async function getPostBySlug(slug: string) {
 
   const { content, frontmatter } = await compileMDX<PostFrontmatter>({
     source: fileContent,
-    components: mdxComponents,
+    components: staticComponents as any,
     options: {
       parseFrontmatter: true,
       mdxOptions: {

@@ -16,23 +16,13 @@ Algorithmic Resilience is defined here as the ability of a model to maintain per
 
 Consider a system governed by the following differential equation:
 
-<MathBlock>
-\frac{d\mathbf{x}}{dt} = \mathbf{f}(\mathbf{x}, t) + \sigma(\mathbf{x}) \cdot \mathbf{w}(t)
-</MathBlock>
+<MathBlock equation="\frac{d\mathbf{x}}{dt} = \mathbf{f}(\mathbf{x}, t) + \sigma(\mathbf{x}) \cdot \mathbf{w}(t)" label="1" />
 
 Where $\mathbf{w}(t)$ represents stochastic noise. In a traditional neural network, this noise can lead to catastrophic failure. However, by imposing Hamiltonian constraints:
 
-<MathBlock>
-H(\mathbf{q}, \mathbf{p}) = \frac{1}{2}\mathbf{p}^T \mathbf{M}^{-1} \mathbf{p} + V(\mathbf{q})
-</MathBlock>
+<MathBlock equation="H(\mathbf{q}, \mathbf{p}) = \frac{1}{2}\mathbf{p}^T \mathbf{M}^{-1} \mathbf{p} + V(\mathbf{q})" label="2" />
 
 We can ensure that the total energy is conserved, which significantly stabilizes the learning process.
-
-# Interactive Demonstration
-
-Below is a live simulation of a double pendulum system, which exhibits chaotic behavior but follows strict conservation laws.
-
-<PhysicsDemo />
 
 # Conclusion
 

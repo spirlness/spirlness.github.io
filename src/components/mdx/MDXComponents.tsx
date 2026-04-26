@@ -1,29 +1,25 @@
 import React from 'react';
-import dynamic from 'next/dynamic';
 import { SideNote } from './SideNote';
 import { MathBlock } from './MathBlock';
+import dynamic from 'next/dynamic';
 
-// 使用 dynamic 导入交互式组件，禁用 SSR 以避免 Three.js 的 Canvas 问题
-const SimulationContainer = dynamic(() => import('../interactive/SimulationContainer'), {
-  ssr: false,
-});
-
-const PhysicsDemo = dynamic(() => import('../interactive/PhysicsDemo'), {
-  ssr: false,
-});
+// 动态导入客户端组件，保持 MDXComponents 本身为服务端组件
+const SimulationContainer = dynamic(() => import('../interactive/SimulationContainer'), { ssr: false });
+const PhysicsDemo = dynamic(() => import('../interactive/PhysicsDemo'), { ssr: false });
 
 /**
  * Custom MDX components mapping for Distill-style layout.
- * Includes both custom components and HTML element overrides.
  */
 export const mdxComponents = {
-  // Custom components
+  // 基础组件
   SideNote,
   MathBlock,
+  
+  // 交互式组件
   SimulationContainer,
   PhysicsDemo,
   
-  // Default HTML element overrides with Distill-inspired styling
+  // HTML 元素覆盖
   h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h1 className="text-4xl font-bold mt-16 mb-8 font-display text-gray-900" {...props} />
   ),
