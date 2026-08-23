@@ -1,14 +1,37 @@
+import type { Metadata } from "next";
 import { getAllPublications, groupPublicationsByYear, Publication } from '@/lib/bibtex';
 import { FileText, Code, ExternalLink, Link as LinkIcon } from 'lucide-react';
 import { siteProfile } from '@/content/site';
+
+export const metadata: Metadata = {
+  title: "Publications",
+};
+
+/**
+ * Normalize an author name so highlighting survives BibTeX format drift.
+ * Strips grouping braces ({F}uying -> Fuying) and rewrites surname-first
+ * entries ("Li, Fuying") to given-name-first ("Fuying Li") so all the
+ * canonical forms match the same way.
+ */
+function normalizeAuthor(name: string): string {
+  const cleaned = name.replace(/[{}]/g, "").replace(/\s+/g, " ").trim();
+  const commaIndex = cleaned.indexOf(",");
+  if (commaIndex !== -1) {
+    const last = cleaned.slice(0, commaIndex).trim();
+    const first = cleaned.slice(commaIndex + 1).trim();
+    return `${first} ${last}`;
+  }
+  return cleaned;
+}
 
 function HighlightAuthors({ authors }: { authors: string }) {
   const parts = authors.split(' and ');
   return (
     <span>
       {parts.map((author, index) => {
-        const isMe = siteProfile.publicationAuthorNames.includes(
-          author.trim() as (typeof siteProfile.publicationAuthorNames)[number]
+        const normalized = normalizeAuthor(author);
+        const isMe = siteProfile.publicationAuthorNames.some(
+          (name) => normalizeAuthor(name) === normalized
         );
         return (
           <span key={index}>

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getPostBySlug, getAllPosts } from "@/lib/posts";
 import { siteProfile } from "@/content/site";
 import { notFound } from "next/navigation";
@@ -18,14 +19,28 @@ export async function generateStaticParams() {
   }));
 }
 
+export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  try {
+    const { frontmatter } = await getPostBySlug(slug);
+    return { title: frontmatter.title };
+  } catch {
+    return { title: siteProfile.title };
+  }
+}
+
 export default async function PostPage({ params }: PostPageProps) {
   const { slug } = await params;
-  
-  let post;
+
+  let post: Awaited<ReturnType<typeof getPostBySlug>> | undefined;
   try {
     post = await getPostBySlug(slug);
   } catch (error) {
     console.error("Error loading post:", error);
+    notFound();
+  }
+
+  if (!post) {
     notFound();
   }
 

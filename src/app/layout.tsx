@@ -6,7 +6,10 @@ import 'katex/dist/katex.min.css';
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: siteProfile.title,
+  title: {
+    default: siteProfile.title,
+    template: `%s — ${siteProfile.title}`,
+  },
   description: siteProfile.description,
 };
 

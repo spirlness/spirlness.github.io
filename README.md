@@ -40,6 +40,14 @@ npm run build
 
 `npm run build` creates the static export in `out/`.
 
+Preview the built static site locally (the `output: "export"` app has no server, so use `serve`):
+
+```bash
+npm run start
+```
+
+This serves `out/` with `serve` (see the `start` script in `package.json`). Use it to verify the exported site, including blog article routes, before pushing.
+
 ## GitHub Pages Deployment
 
 Repository setting required:

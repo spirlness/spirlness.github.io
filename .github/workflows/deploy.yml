@@ -54,7 +54,7 @@ jobs:
           path: |
             .next/cache
           # Generate a new cache whenever packages or source files change.
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-${{ hashFiles('src/**', 'content/**', 'public/**', 'next.config.*', 'postcss.config.*', 'tsconfig.json') }}
           # If source files changed but packages didn't, rebuild from a prior cache.
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-
@@ -83,6 +83,22 @@ jobs:
               exit 1
             fi
           done
+
+          # Every blog post must export as out/blog/<slug>/index.html with a
+          # URL-safe slug; otherwise the blog index links silently 404.
+          if compgen -G "content/posts/*.mdx" > /dev/null; then
+            for mdx in content/posts/*.mdx; do
+              slug="$(basename "$mdx" .mdx)"
+              if [[ ! "$slug" =~ ^[A-Za-z0-9-]+$ ]]; then
+                echo "::error file=$mdx,title=Unsafe blog slug::slug '$slug' is not URL-safe; use only [A-Za-z0-9-] in the filename"
+                exit 1
+              fi
+              if [[ ! -f "out/blog/$slug/index.html" ]]; then
+                echo "::error file=$mdx,title=Missing static export file::out/blog/$slug/index.html was not generated"
+                exit 1
+              fi
+            done
+          fi
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4

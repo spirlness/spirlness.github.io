@@ -1,4 +1,9 @@
-import { getAllPosts } from "@/lib/posts";
+import type { Metadata } from "next";
+import { getAllPosts, postHref } from "@/lib/posts";
+
+export const metadata: Metadata = {
+  title: "Blog",
+};
 
 export default async function BlogPage() {
   const posts = await getAllPosts();
@@ -18,7 +23,7 @@ export default async function BlogPage() {
           {posts.length > 0 ? (
             posts.map((post) => (
               <article key={post.slug} className="group">
-                <a href={`/blog/${post.slug}/`}>
+                <a href={postHref(post.slug)}>
                   <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-2">
                     <h2 className="text-2xl font-bold font-display group-hover:text-accent transition-colors">
                       {post.title}

@@ -13,6 +13,16 @@ const staticComponents = {
 
 const POSTS_PATH = path.join(process.cwd(), "content/posts");
 
+/**
+ * Build a normalized, trailing-slash href for a blog post. GitHub Pages serves
+ * out/blog/<slug>/index.html at /blog/<slug>/, so the trailing slash must
+ * always be present or an internal link silently 404s.
+ */
+export function postHref(slug: string): string {
+  const clean = slug.replace(/^\/+|\/+$/g, "");
+  return `/blog/${clean}/`;
+}
+
 export interface PostFrontmatter {
   title: string;
   date: string;
