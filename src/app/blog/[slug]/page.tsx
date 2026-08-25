@@ -63,9 +63,9 @@ export default async function PostPage({ params }: PostPageProps) {
           <div />
         </header>
 
-        <div className="distill-grid prose prose-lg prose-orange max-w-none">
+        <div className="distill-grid">
           <div />
-          <div className="mdx-content relative">
+          <div className="relative">
             {content}
           </div>
           <div />

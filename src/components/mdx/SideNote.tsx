@@ -7,6 +7,13 @@ interface SideNoteProps {
   label?: string;
 }
 
+/**
+ * Distill 式侧边注。
+ *
+ * 桌面端的 aside 绝对定位到正文右侧留白，锚点是组件自身在文档流中的位置。
+ * 因此要把 <SideNote> 放在被注释块的**前面**：放在后面会落进下一个块的
+ * 外边距区，看起来像在注释下一节标题。
+ */
 export const SideNote: React.FC<SideNoteProps> = ({ children, label = "Note" }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -22,17 +29,17 @@ export const SideNote: React.FC<SideNoteProps> = ({ children, label = "Note" }) 
           <span className="text-lg leading-none">{isOpen ? '−' : '+'}</span>
         </button>
         {isOpen && (
-          <div className="mt-2 text-sm text-gray-700 leading-relaxed animate-in fade-in slide-in-from-top-1 duration-200">
+          <div className="mt-2 text-sm text-gray-700 leading-relaxed animate-in fade-in slide-in-from-top-1 duration-200 [&_p]:text-sm [&_p]:leading-relaxed [&_p]:mb-3">
             {children}
           </div>
         )}
       </div>
 
-      {/* Desktop view: side note */}
-      <aside className="hidden lg:block absolute left-[calc(100%+2.5rem)] top-0 w-[240px] text-sm text-gray-500 italic border-l-2 border-orange-100 pl-4 leading-relaxed h-full">
-        <div className="sticky top-8">
-          {children}
-        </div>
+      {/* Desktop view: side note，对齐紧随其后的块的顶部。
+          共享映射的 p 覆盖规则（text-lg/gray-700/mb-6）会渗入侧注，用任意
+          变体把侧注内段落拉回 text-sm 小字号。 */}
+      <aside className="hidden lg:block absolute left-[calc(100%+2.5rem)] top-0 w-[240px] text-sm text-gray-500 italic border-l-2 border-orange-100 pl-4 leading-relaxed [&_p]:text-sm [&_p]:leading-relaxed [&_p]:text-gray-500 [&_p]:mb-2">
+        {children}
       </aside>
     </div>
   );
