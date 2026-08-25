@@ -6,9 +6,7 @@
   "thumbnail": "/projects/project-2.svg",
   "mediaType": "image",
   "links": {
-    "project": "#",
-    "code": "https://github.com/spirlness",
-    "demo": "#"
+    "code": "https://github.com/spirlness"
   },
   "tags": ["Benchmark", "Robustness", "PINNs"]
 }

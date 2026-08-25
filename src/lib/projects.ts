@@ -4,6 +4,7 @@ import { compileMDX } from "next-mdx-remote/rsc";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import { mdxComponents } from "@/components/mdx/MDXComponents";
+import { assertSafeContentSlug } from "./content-id";
 
 const PROJECTS_PATH = path.join(process.cwd(), "content/projects");
 
@@ -42,6 +43,7 @@ export function getAllProjects(): ProjectFrontmatter[] {
 
   for (const file of files) {
     if (!file.endsWith(".json")) continue;
+    assertSafeContentSlug(file.replace(/\.json$/, ""), "project id");
     const jsonPath = path.join(PROJECTS_PATH, file);
     const raw = fs.readFileSync(jsonPath, "utf8");
     const parsed: ProjectFrontmatter = JSON.parse(raw);
@@ -54,7 +56,8 @@ export function getAllProjects(): ProjectFrontmatter[] {
 }
 
 export function getProjectById(id: string): ProjectFrontmatter {
-  const jsonPath = path.join(PROJECTS_PATH, `${id}.json`);
+  const cleanId = assertSafeContentSlug(id, "project id");
+  const jsonPath = path.join(PROJECTS_PATH, `${cleanId}.json`);
   if (!fs.existsSync(jsonPath)) {
     throw new Error(`Project not found: ${id}`);
   }
@@ -66,8 +69,9 @@ export async function getProjectDetailById(id: string): Promise<{
   project: ProjectFrontmatter;
   content: React.ReactNode | null;
 }> {
-  const project = getProjectById(id);
-  const mdxPath = path.join(PROJECTS_PATH, `${id}.mdx`);
+  const cleanId = assertSafeContentSlug(id, "project id");
+  const project = getProjectById(cleanId);
+  const mdxPath = path.join(PROJECTS_PATH, `${cleanId}.mdx`);
 
   if (!fs.existsSync(mdxPath)) {
     return { project, content: null };

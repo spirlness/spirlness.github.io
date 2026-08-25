@@ -9,11 +9,18 @@ interface MathBlockProps {
 
 /**
  * MathBlock component for displaying numbered equations using KaTeX.
+ *
+ * Safety: `equation` comes from repo-controlled MDX content, not user input.
+ * KaTeX's `throwOnError: false` renders parse errors as inline text rather
+ * than throwing, and KaTeX itself escapes all input — it does not produce
+ * arbitrary HTML. The `dangerouslySetInnerHTML` usage is therefore scoped
+ * to KaTeX's own sanitized output.
  */
 export const MathBlock: React.FC<MathBlockProps> = ({ equation, id, label }) => {
   const html = katex.renderToString(equation, {
     displayMode: true,
     throwOnError: false,
+    strict: true,
   });
 
   return (

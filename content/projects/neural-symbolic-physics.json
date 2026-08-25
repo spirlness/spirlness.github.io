@@ -6,7 +6,6 @@
   "thumbnail": "/projects/project-1.svg",
   "mediaType": "image",
   "links": {
-    "project": "#",
     "code": "https://github.com/spirlness",
     "paper": "/publications/"
   },

@@ -4,12 +4,17 @@ import { getProjectDetailById, getAllProjects } from "@/lib/projects";
 import { notFound } from "next/navigation";
 import { Calendar, ExternalLink, Code, FileText, PlayCircle, ArrowLeft } from "lucide-react";
 import Image from "next/image";
+import { isUsableHref } from "@/lib/links";
 
 interface ProjectPageProps {
   params: Promise<{
     id: string;
   }>;
 }
+
+// Block dynamic route generation so ungenerated IDs 404 instead of
+// attempting dynamic rendering (which `output: "export"` cannot serve).
+export const dynamicParams = false;
 
 /**
  * Static params for all project JSON files.
@@ -126,7 +131,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
       <footer className="max-w-3xl mx-auto px-6 lg:px-8 mt-16 pt-12 border-t border-gray-100">
         <div className="flex flex-wrap gap-4">
-          {project.links?.project && (
+          {isUsableHref(project.links?.project) && (
             <a
               href={project.links.project}
               target="_blank"
@@ -159,7 +164,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
               Paper
             </a>
           )}
-          {project.links?.demo && (
+          {isUsableHref(project.links?.demo) && (
             <a
               href={project.links.demo}
               target="_blank"

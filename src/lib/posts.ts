@@ -1,10 +1,12 @@
 import fs from "fs";
 import path from "path";
+import matter from "gray-matter";
 import { compileMDX } from "next-mdx-remote/rsc";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import { mdxComponents } from "@/components/mdx/MDXComponents";
 import { getAllPublications, type Publication } from "./bibtex";
+import { assertSafeContentSlug } from "./content-id";
 
 const POSTS_PATH = path.join(process.cwd(), "content/posts");
 
@@ -31,6 +33,33 @@ export interface Post {
   content: React.ReactNode;
   frontmatter: PostFrontmatter;
   references: Publication[];
+}
+
+function parsePostFrontmatter(source: string, slug: string): PostFrontmatter {
+  const { data } = matter(source);
+
+  return {
+    title: typeof data.title === "string" ? data.title : "(Untitled)",
+    date: typeof data.date === "string" ? data.date : "",
+    excerpt: typeof data.excerpt === "string" ? data.excerpt : "",
+    slug,
+  };
+}
+
+function compareDatesDescending(a: string, b: string): number {
+  const aTime = new Date(a).getTime();
+  const bTime = new Date(b).getTime();
+
+  if (Number.isNaN(aTime)) return Number.isNaN(bTime) ? 0 : 1;
+  if (Number.isNaN(bTime)) return -1;
+  return bTime - aTime;
+}
+
+function readPostFile(slug: string): { realSlug: string; fileContent: string } {
+  const realSlug = assertSafeContentSlug(slug.replace(/\.mdx$/, ""), "post slug");
+  const filePath = path.join(POSTS_PATH, `${realSlug}.mdx`);
+  const fileContent = fs.readFileSync(filePath, "utf8");
+  return { realSlug, fileContent };
 }
 
 /**
@@ -82,20 +111,23 @@ function processCitations(
 }
 
 export async function getPostBySlug(slug: string): Promise<Post> {
-  const realSlug = slug.replace(/\.mdx$/, "");
-  const filePath = path.join(POSTS_PATH, `${realSlug}.mdx`);
-  const fileContent = fs.readFileSync(filePath, "utf8");
+  const { fileContent, realSlug } = readPostFile(slug);
+  const { content: mdxBody, data } = matter(fileContent);
+  const frontmatter = {
+    ...parsePostFrontmatter(fileContent, realSlug),
+    ...data,
+  };
 
   const { source: processedContent, references } = processCitations(
-    fileContent,
+    mdxBody,
     realSlug
   );
 
-  const { content, frontmatter } = await compileMDX<PostFrontmatter>({
+  const { content } = await compileMDX({
     source: processedContent,
     components: mdxComponents,
     options: {
-      parseFrontmatter: true,
+      parseFrontmatter: false,
       mdxOptions: {
         remarkPlugins: [remarkMath],
         rehypePlugins: [rehypeKatex],
@@ -105,29 +137,33 @@ export async function getPostBySlug(slug: string): Promise<Post> {
 
   return {
     content,
-    frontmatter: {
-      ...frontmatter,
-      slug: realSlug,
-    },
+    frontmatter,
     references,
   };
 }
 
-export async function getAllPosts() {
+export function getPostFrontmatter(slug: string): PostFrontmatter {
+  const { fileContent, realSlug } = readPostFile(slug);
+  return parsePostFrontmatter(fileContent, realSlug);
+}
+
+export function getAllPostFrontmatter(): PostFrontmatter[] {
   if (!fs.existsSync(POSTS_PATH)) {
     return [];
   }
 
   const files = fs.readdirSync(POSTS_PATH);
-  const posts = await Promise.all(
-    files
-      .filter((file) => file.endsWith(".mdx"))
-      .map(async (file) => {
-        const slug = file.replace(/\.mdx$/, "");
-        const { frontmatter } = await getPostBySlug(slug);
-        return frontmatter;
-      })
-  );
+  const posts = files
+    .filter((file) => file.endsWith(".mdx"))
+    .map((file) => {
+      const slug = file.replace(/\.mdx$/, "");
+      assertSafeContentSlug(slug, "post slug");
+      return getPostFrontmatter(slug);
+    });
 
-  return posts.sort((a, b) => (new Date(b.date) > new Date(a.date) ? 1 : -1));
+  return posts.sort((a, b) => compareDatesDescending(a.date, b.date));
+}
+
+export async function getAllPosts() {
+  return getAllPostFrontmatter();
 }

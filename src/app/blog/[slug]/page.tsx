@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getPostBySlug, getAllPosts } from "@/lib/posts";
+import { getPostBySlug, getAllPosts, getPostFrontmatter } from "@/lib/posts";
 import { siteProfile } from "@/content/site";
 import { notFound } from "next/navigation";
 import { References } from "@/components/mdx/References";
@@ -9,6 +9,10 @@ interface PostPageProps {
     slug: string;
   }>;
 }
+
+// Block dynamic route generation so ungenerated slugs 404 instead of
+// attempting dynamic rendering (which `output: "export"` cannot serve).
+export const dynamicParams = false;
 
 /**
  * 实现 generateStaticParams 以支持静态导出 (output: export)
@@ -23,7 +27,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
   const { slug } = await params;
   try {
-    const { frontmatter } = await getPostBySlug(slug);
+    const frontmatter = getPostFrontmatter(slug);
     return { title: frontmatter.title };
   } catch {
     return { title: siteProfile.title };
