@@ -28,23 +28,6 @@ export const siteProfile = {
     { href: "/publications/", label: "PUBLICATIONS" },
     { href: "/blog/", label: "BLOG" },
   ],
-  updates: [
-    {
-      date: "2024-04",
-      content: "Paper 'Algorithmic Resilience' accepted at ICLR 2024.",
-      icon: "award",
-    },
-    {
-      date: "2024-02",
-      content: "Invited talk at Perimeter Institute for Theoretical Physics.",
-      icon: "book",
-    },
-    {
-      date: "2023-12",
-      content: "Successfully defended PhD thesis on Neural Symbolic Integration.",
-      icon: "graduation",
-    },
-  ],
   publicationAuthorNames: ["Li, Fuying", "Fuying Li", "Li Fuying"],
   publicationsIntro:
     "Selected works in physics-informed machine learning and fluid simulation.",

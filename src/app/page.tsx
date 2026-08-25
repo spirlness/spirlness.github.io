@@ -1,13 +1,18 @@
-import { Calendar, Award, BookOpen, GraduationCap } from "lucide-react";
+import { Calendar, Award, BookOpen, GraduationCap, Folder, FileText, Newspaper, ExternalLink } from "lucide-react";
 import { siteProfile } from "@/content/site";
+import { getAllUpdates, UpdateIcon } from "@/lib/updates";
 
-const updateIcons = {
+const updateIcons: Record<UpdateIcon, React.ReactNode> = {
   award: <Award className="w-4 h-4 text-orange-500" />,
   book: <BookOpen className="w-4 h-4 text-blue-500" />,
   graduation: <GraduationCap className="w-4 h-4 text-purple-500" />,
+  project: <Folder className="w-4 h-4 text-green-500" />,
+  publication: <FileText className="w-4 h-4 text-red-500" />,
+  blog: <Newspaper className="w-4 h-4 text-indigo-500" />,
 };
 
 export default function Home() {
+  const updates = getAllUpdates();
   return (
     <div className="distill-grid py-16">
       <div />
@@ -36,9 +41,9 @@ export default function Home() {
             Latest Updates
           </h2>
           <div className="space-y-12">
-            {siteProfile.updates.map((update, index) => (
+            {updates.map((update, index) => (
               <div key={index} className="flex gap-8 relative group">
-                {index !== siteProfile.updates.length - 1 && (
+                {index !== updates.length - 1 && (
                   <div className="absolute left-[18px] top-8 bottom-[-48px] w-px bg-gray-100 group-hover:bg-orange-100 transition-colors" />
                 )}
                 <div className="flex-none w-9 h-9 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center relative z-10 group-hover:border-orange-200 transition-colors">
@@ -48,9 +53,19 @@ export default function Home() {
                   <span className="text-sm font-mono text-gray-400 mb-2 block tracking-tighter">
                     {update.date}
                   </span>
-                  <p className="text-lg text-gray-700 leading-snug">
-                    {update.content}
-                  </p>
+                  {update.link ? (
+                    <a
+                      href={update.link}
+                      className="inline-flex items-center gap-1.5 text-lg text-gray-700 leading-snug hover:text-accent transition-colors group/link"
+                    >
+                      {update.content}
+                      <ExternalLink className="w-3.5 h-3.5 text-gray-300 group-hover/link:text-accent/70 transition-colors" />
+                    </a>
+                  ) : (
+                    <p className="text-lg text-gray-700 leading-snug">
+                      {update.content}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
