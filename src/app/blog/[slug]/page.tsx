@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getPostBySlug, getAllPosts } from "@/lib/posts";
 import { siteProfile } from "@/content/site";
 import { notFound } from "next/navigation";
+import { References } from "@/components/mdx/References";
 
 interface PostPageProps {
   params: Promise<{
@@ -44,7 +45,7 @@ export default async function PostPage({ params }: PostPageProps) {
     notFound();
   }
 
-  const { content, frontmatter } = post;
+  const { content, frontmatter, references } = post;
 
   return (
     <article className="py-16">
@@ -67,6 +68,7 @@ export default async function PostPage({ params }: PostPageProps) {
           <div />
           <div className="relative">
             {content}
+            {references.length > 0 && <References references={references} />}
           </div>
           <div />
         </div>

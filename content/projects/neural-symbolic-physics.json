@@ -1,0 +1,14 @@
+{
+  "id": "neural-symbolic-physics",
+  "title": "Neural-Symbolic Physics",
+  "description": "Integrating symbolic reasoning with neural networks to discover conserved quantities in dynamical systems.",
+  "date": "2024-06",
+  "thumbnail": "/projects/project-1.svg",
+  "mediaType": "image",
+  "links": {
+    "project": "#",
+    "code": "https://github.com/spirlness",
+    "paper": "/publications/"
+  },
+  "tags": ["Deep Learning", "Physics", "Symbolic AI"]
+}

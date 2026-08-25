@@ -1,0 +1,14 @@
+{
+  "id": "algorithmic-resilience-benchmark",
+  "title": "Algorithmic Resilience Benchmark",
+  "description": "A large-scale benchmark measuring how physics-informed neural networks degrade under distribution shift and adversarial noise.",
+  "date": "2024-03",
+  "thumbnail": "/projects/project-2.svg",
+  "mediaType": "image",
+  "links": {
+    "project": "#",
+    "code": "https://github.com/spirlness",
+    "demo": "#"
+  },
+  "tags": ["Benchmark", "Robustness", "PINNs"]
+}

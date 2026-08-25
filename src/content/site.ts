@@ -24,6 +24,7 @@ export const siteProfile = {
   ],
   navLinks: [
     { href: "/", label: "HOME" },
+    { href: "/projects/", label: "PROJECTS" },
     { href: "/publications/", label: "PUBLICATIONS" },
     { href: "/blog/", label: "BLOG" },
   ],

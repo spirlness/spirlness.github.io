@@ -1,0 +1,13 @@
+---
+
+## Motivation
+
+Classical physics simulators are exact but expensive. Neural networks are fast but opaque. Neuro-symbolic methods attempt to combine the best of both worlds by learning models that are constrained by known physical laws.
+
+## Approach
+
+We combine graph neural networks with a symbolic regression objective. The network learns a latent representation of a dynamical system, while the loss term encourages the emergence of scalar quantities that remain invariant along trajectories.
+
+## Results
+
+On a suite of Hamiltonian systems, the model recovers known conservation laws with higher fidelity than purely data-driven baselines while maintaining sample efficiency.

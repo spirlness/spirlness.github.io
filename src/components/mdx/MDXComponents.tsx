@@ -12,7 +12,7 @@ export const mdxComponents: MDXComponents = {
   // 基础组件
   SideNote,
   MathBlock,
-  
+
   // 交互式组件
   SimulationContainer,
   PhysicsDemo,

@@ -1,0 +1,13 @@
+---
+
+## Overview
+
+Physics-informed neural networks (PINNs) are increasingly used as surrogate models. However, their behavior under out-of-distribution inputs remains poorly understood.
+
+## Benchmark Design
+
+We curated a dataset spanning Navier-Stokes, heat equation, and wave equation tasks. For each task we introduce covariate shift, parameter shift, and adversarial perturbations.
+
+## Key Findings
+
+Standard PINN architectures exhibit brittle extrapolation. A simple regularization inspired by algorithmic stability improves robustness without sacrificing accuracy on clean data.
