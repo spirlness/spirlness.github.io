@@ -65,6 +65,9 @@ jobs:
       - name: Lint
         run: ${{ steps.detect-package-manager.outputs.manager }} run lint
 
+      - name: Test
+        run: ${{ steps.detect-package-manager.outputs.manager }} run test
+
       - name: Build with Next.js
         run: ${{ steps.detect-package-manager.outputs.manager }} run build
 
@@ -74,6 +77,7 @@ jobs:
           required_files=(
             "out/index.html"
             "out/blog/index.html"
+            "out/projects/index.html"
             "out/publications/index.html"
           )
 
@@ -95,6 +99,35 @@ jobs:
               fi
               if [[ ! -f "out/blog/$slug/index.html" ]]; then
                 echo "::error file=$mdx,title=Missing static export file::out/blog/$slug/index.html was not generated"
+                exit 1
+              fi
+            done
+          fi
+
+          # Project detail routes are keyed on the `id` field *inside* each JSON,
+          # not on the filename (see generateStaticParams in
+          # src/app/projects/[id]/page.tsx), so read each id the way the build
+          # does. The id must also equal its filename: getProjectDetailById()
+          # reads content/projects/<id>.json, so a mismatch does not fail the
+          # build - the route silently exports as a 404 page whose index.html
+          # still exists, which a plain existence check cannot distinguish
+          # from a real page.
+          if compgen -G "content/projects/*.json" > /dev/null; then
+            for json in content/projects/*.json; do
+              if ! id="$(node -p "require('./$json').id||''")"; then
+                echo "::error file=$json,title=Unreadable project JSON::$json could not be parsed"
+                exit 1
+              fi
+              if [[ ! "$id" =~ ^[A-Za-z0-9-]+$ ]]; then
+                echo "::error file=$json,title=Unsafe project id::id '$id' is missing or not URL-safe; use only [A-Za-z0-9-]"
+                exit 1
+              fi
+              if [[ "$id" != "$(basename "$json" .json)" ]]; then
+                echo "::error file=$json,title=Project id/filename mismatch::id '$id' must equal the filename '$(basename "$json" .json)'; the detail route reads content/projects/$id.json and exports as a 404"
+                exit 1
+              fi
+              if [[ ! -f "out/projects/$id/index.html" ]]; then
+                echo "::error file=$json,title=Missing static export file::out/projects/$id/index.html was not generated"
                 exit 1
               fi
             done
