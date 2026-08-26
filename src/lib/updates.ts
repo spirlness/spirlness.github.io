@@ -35,6 +35,52 @@ function parseDate(date: string): { year: number; month: number } {
   return { year: Number(match[1]), month: Number(match[2]) };
 }
 
+function assertValidUpdate(
+  parsed: unknown,
+  file: string
+): UpdateFrontmatter {
+  if (!parsed || typeof parsed !== "object") {
+    throw new Error(`Invalid update "${file}": expected a JSON object`);
+  }
+
+  const data = parsed as Record<string, unknown>;
+
+  if (typeof data.content !== "string" || !data.content.trim()) {
+    throw new Error(`Invalid update "${file}": missing or empty content`);
+  }
+  if (typeof data.date !== "string" || !/^(\d{4})-(\d{2})$/.test(data.date)) {
+    throw new Error(
+      `Invalid update "${file}": date must be YYYY-MM (got ${JSON.stringify(data.date)})`
+    );
+  }
+  const { month } = parseDate(data.date);
+  if (month < 1 || month > 12) {
+    throw new Error(`Invalid update "${file}": month out of range in ${data.date}`);
+  }
+  if (typeof data.icon !== "string" || !UPDATE_ICONS.has(data.icon)) {
+    throw new Error(
+      `Invalid update "${file}": icon must be one of ${[...UPDATE_ICONS].join(", ")}`
+    );
+  }
+  if (
+    data.link !== undefined &&
+    (typeof data.link !== "string" || !data.link.trim())
+  ) {
+    throw new Error(`Invalid update "${file}": link must be a non-empty string when set`);
+  }
+
+  return {
+    date: data.date,
+    content: data.content,
+    icon: data.icon as UpdateIcon,
+    ...(typeof data.link === "string" ? { link: data.link } : {}),
+  };
+}
+
+/**
+ * Load homepage timeline entries. Malformed or invalid files **fail the build**
+ * so authoring errors cannot silently vanish from the homepage.
+ */
 export function getAllUpdates(): UpdateFrontmatter[] {
   if (!fs.existsSync(UPDATES_PATH)) {
     return [];
@@ -47,25 +93,15 @@ export function getAllUpdates(): UpdateFrontmatter[] {
     if (!file.endsWith(".json")) continue;
 
     const jsonPath = path.join(UPDATES_PATH, file);
-    let parsed: UpdateFrontmatter | null = null;
+    let parsed: unknown;
     try {
-      const raw = fs.readFileSync(jsonPath, "utf8");
-      parsed = JSON.parse(raw) as UpdateFrontmatter;
+      parsed = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
     } catch (err) {
-      // A malformed file must not take down the whole static build; skip it and say which one.
-      console.error(`Failed to read update "${file}" — ${(err as Error).message}`);
-      continue;
+      throw new Error(
+        `Failed to parse update "${file}": ${(err as Error).message}`
+      );
     }
-    if (
-      !parsed ||
-      typeof parsed.content !== "string" ||
-      typeof parsed.date !== "string" ||
-      !UPDATE_ICONS.has(parsed.icon)
-    ) {
-      console.warn(`Ignoring update "${file}": missing or invalid content, date, or icon`);
-      continue;
-    }
-    updates.push(parsed);
+    updates.push(assertValidUpdate(parsed, file));
   }
 
   return updates.sort((a, b) => {

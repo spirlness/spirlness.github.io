@@ -1,6 +1,7 @@
 import { Calendar, Award, BookOpen, GraduationCap, Folder, FileText, Newspaper, ExternalLink } from "lucide-react";
 import { siteProfile } from "@/content/site";
 import { getAllUpdates, UpdateIcon } from "@/lib/updates";
+import { isExternalHref, isUsableHref } from "@/lib/links";
 
 const updateIcons: Record<UpdateIcon, React.ReactNode> = {
   award: <Award className="w-4 h-4 text-orange-500" />,
@@ -36,13 +37,31 @@ export default function Home() {
         </section>
 
         <section className="mb-24">
+          <h2 className="font-display text-2xl font-bold mb-12 tracking-widest text-gray-400 uppercase">
+            Focus Areas
+          </h2>
+          <div className="grid grid-cols-1 gap-10">
+            {siteProfile.focusAreas.map((area) => (
+              <div key={area.title} className="border-l-2 border-orange-100 pl-6">
+                <h3 className="font-display text-xl font-bold text-gray-900 mb-2">
+                  {area.title}
+                </h3>
+                <p className="text-gray-600 leading-relaxed">
+                  {area.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mb-24">
           <h2 className="font-display text-2xl font-bold mb-12 flex items-center gap-3 tracking-widest text-gray-400 uppercase">
             <Calendar className="w-5 h-5" />
             Latest Updates
           </h2>
           <div className="space-y-12">
             {updates.map((update, index) => (
-              <div key={index} className="flex gap-8 relative group">
+              <div key={`${update.date}-${update.content}`} className="flex gap-8 relative group">
                 {index !== updates.length - 1 && (
                   <div className="absolute left-[18px] top-8 bottom-[-48px] w-px bg-gray-100 group-hover:bg-orange-100 transition-colors" />
                 )}
@@ -53,13 +72,18 @@ export default function Home() {
                   <span className="text-sm font-mono text-gray-400 mb-2 block tracking-tighter">
                     {update.date}
                   </span>
-                  {update.link ? (
+                  {isUsableHref(update.link) ? (
                     <a
                       href={update.link}
+                      {...(isExternalHref(update.link)
+                        ? { target: "_blank", rel: "noopener noreferrer" }
+                        : {})}
                       className="inline-flex items-center gap-1.5 text-lg text-gray-700 leading-snug hover:text-accent transition-colors group/link"
                     >
                       {update.content}
-                      <ExternalLink className="w-3.5 h-3.5 text-gray-300 group-hover/link:text-accent/70 transition-colors" />
+                      {isExternalHref(update.link) && (
+                        <ExternalLink className="w-3.5 h-3.5 text-gray-300 group-hover/link:text-accent/70 transition-colors" />
+                      )}
                     </a>
                   ) : (
                     <p className="text-lg text-gray-700 leading-snug">

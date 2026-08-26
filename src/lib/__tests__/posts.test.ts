@@ -1,11 +1,36 @@
 import { describe, it, expect } from "vitest";
-import { getAllPostFrontmatter, getPostFrontmatter, postHref } from "../posts";
+import {
+  getAllPostFrontmatter,
+  getPostFrontmatter,
+  postHref,
+  processCitations,
+} from "../posts";
 
 describe("postHref", () => {
   it("normalizes slashes and always trailing-slashes", () => {
     expect(postHref("my-post")).toBe("/blog/my-post/");
     expect(postHref("/my-post/")).toBe("/blog/my-post/");
     expect(postHref("//my-post//")).toBe("/blog/my-post/");
+  });
+});
+
+describe("processCitations", () => {
+  it("numbers citations by first appearance and links to refs", () => {
+    const { source, references } = processCitations(
+      "See [@li2024deep; @li2023neural] and again [@li2024deep].",
+      "test-post"
+    );
+    expect(references.map((r) => r.id)).toEqual(["li2024deep", "li2023neural"]);
+    expect(source).toContain('href="#ref-1"');
+    expect(source).toContain('href="#ref-2"');
+    expect(source).toContain("[1]");
+    expect(source).toContain("[2]");
+  });
+
+  it("throws on unknown citation keys", () => {
+    expect(() =>
+      processCitations("Broken [@does-not-exist]", "test-post")
+    ).toThrow(/does-not-exist/);
   });
 });
 

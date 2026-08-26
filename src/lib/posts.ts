@@ -38,10 +38,20 @@ export interface Post {
 function parsePostFrontmatter(source: string, slug: string): PostFrontmatter {
   const { data } = matter(source);
 
+  if (typeof data.title !== "string" || !data.title.trim()) {
+    throw new Error(`Post "${slug}" missing required frontmatter field: title`);
+  }
+  if (typeof data.date !== "string" || !data.date.trim()) {
+    throw new Error(`Post "${slug}" missing required frontmatter field: date`);
+  }
+  if (typeof data.excerpt !== "string" || !data.excerpt.trim()) {
+    throw new Error(`Post "${slug}" missing required frontmatter field: excerpt`);
+  }
+
   return {
-    title: typeof data.title === "string" ? data.title : "(Untitled)",
-    date: typeof data.date === "string" ? data.date : "",
-    excerpt: typeof data.excerpt === "string" ? data.excerpt : "",
+    title: data.title.trim(),
+    date: data.date.trim(),
+    excerpt: data.excerpt.trim(),
     slug,
   };
 }
@@ -64,13 +74,13 @@ function readPostFile(slug: string): { realSlug: string; fileContent: string } {
 
 /**
  * Parse `[@key1; @key2]` citations in the MDX source and replace them with inline
- * `<sup>` elements carrying numeric labels. Unknown keys cause the build to fail
- * so that dead citations do not reach production.
+ * numbered links that jump to the References block. Unknown keys cause the build
+ * to fail so that dead citations do not reach production.
  *
  * The returned `references` array is ordered by first appearance in the text,
  * matching the numeric labels rendered inline.
  */
-function processCitations(
+export function processCitations(
   source: string,
   slug: string
 ): { source: string; references: Publication[] } {
@@ -104,7 +114,13 @@ function processCitations(
     }
 
     const numbers = keys.map(numberForKey);
-    return `<sup className="text-accent font-medium text-xs ml-0.5">[${numbers.join(", ")}]</sup>`;
+    const links = numbers
+      .map(
+        (n) =>
+          `<a href="#ref-${n}" className="text-accent font-medium no-underline hover:underline">[${n}]</a>`
+      )
+      .join("");
+    return `<sup className="text-xs ml-0.5">${links}</sup>`;
   });
 
   return { source: processed, references };
@@ -112,11 +128,8 @@ function processCitations(
 
 export async function getPostBySlug(slug: string): Promise<Post> {
   const { fileContent, realSlug } = readPostFile(slug);
-  const { content: mdxBody, data } = matter(fileContent);
-  const frontmatter = {
-    ...parsePostFrontmatter(fileContent, realSlug),
-    ...data,
-  };
+  const { content: mdxBody } = matter(fileContent);
+  const frontmatter = parsePostFrontmatter(fileContent, realSlug);
 
   const { source: processedContent, references } = processCitations(
     mdxBody,

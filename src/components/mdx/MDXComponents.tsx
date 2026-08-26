@@ -39,6 +39,42 @@ export const mdxComponents: MDXComponents = {
   li: (props: React.LiHTMLAttributes<HTMLLIElement>) => (
     <li className="pl-1" {...props} />
   ),
+  a: ({ className, href, ...props }) => {
+    const external = typeof href === "string" && /^(https?:)?\/\//i.test(href);
+    return (
+      <a
+        href={href}
+        className={`text-accent font-medium underline underline-offset-2 decoration-orange-200 hover:decoration-accent ${className ?? ""}`}
+        {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+        {...props}
+      />
+    );
+  },
+  img: ({ className, alt, ...props }) => (
+    // eslint-disable-next-line @next/next/no-img-element -- MDX author images; static export keeps unoptimized assets simple
+    <img
+      alt={alt ?? ""}
+      className={`my-8 rounded-lg max-w-full h-auto ${className ?? ""}`}
+      {...props}
+    />
+  ),
+  table: ({ className, ...props }) => (
+    <div className="my-8 overflow-x-auto">
+      <table
+        className={`w-full text-left text-gray-700 border-collapse ${className ?? ""}`}
+        {...props}
+      />
+    </div>
+  ),
+  thead: (props: React.HTMLAttributes<HTMLTableSectionElement>) => (
+    <thead className="border-b border-gray-200 text-sm font-display text-gray-500" {...props} />
+  ),
+  th: (props: React.ThHTMLAttributes<HTMLTableCellElement>) => (
+    <th className="py-2 pr-4 font-semibold" {...props} />
+  ),
+  td: (props: React.TdHTMLAttributes<HTMLTableCellElement>) => (
+    <td className="py-2 pr-4 border-b border-gray-100 align-top" {...props} />
+  ),
   blockquote: ({ className, ...props }) => (
     <blockquote
       className={`border-l-4 border-orange-200 pl-6 italic my-8 text-gray-600 bg-orange-50/20 py-2 rounded-r-lg [&_p]:text-gray-600 [&_p:last-child]:mb-0 ${className ?? ''}`}

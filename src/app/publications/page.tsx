@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
-import { getAllPublications, groupPublicationsByYear, Publication } from '@/lib/bibtex';
-import { FileText, Code, ExternalLink, Link as LinkIcon } from 'lucide-react';
-import { siteProfile } from '@/content/site';
+import {
+  formatBibtex,
+  getAllPublications,
+  groupPublicationsByYear,
+  Publication,
+} from "@/lib/bibtex";
+import { FileText, Code, ExternalLink, Link as LinkIcon } from "lucide-react";
+import { siteProfile } from "@/content/site";
+import { isSafeHttpUrl } from "@/lib/links";
+import { BibTeXButton } from "@/components/publications/BibTeXButton";
 
 export const metadata: Metadata = {
   title: "Publications",
@@ -25,7 +32,7 @@ function normalizeAuthor(name: string): string {
 }
 
 function HighlightAuthors({ authors }: { authors: string }) {
-  const parts = authors.split(' and ');
+  const parts = authors.split(" and ");
   return (
     <span>
       {parts.map((author, index) => {
@@ -35,8 +42,12 @@ function HighlightAuthors({ authors }: { authors: string }) {
         );
         return (
           <span key={index}>
-            {isMe ? <strong className="text-orange-700 font-semibold">{author}</strong> : author}
-            {index < parts.length - 1 ? ', ' : ''}
+            {isMe ? (
+              <strong className="text-orange-700 font-semibold">{author}</strong>
+            ) : (
+              author
+            )}
+            {index < parts.length - 1 ? ", " : ""}
           </span>
         );
       })}
@@ -45,6 +56,12 @@ function HighlightAuthors({ authors }: { authors: string }) {
 }
 
 function PublicationItem({ pub }: { pub: Publication }) {
+  const arxivHref = pub.arxiv
+    ? pub.arxiv.startsWith("http")
+      ? pub.arxiv
+      : `https://arxiv.org/abs/${pub.arxiv}`
+    : undefined;
+
   return (
     <div className="py-6 border-b border-gray-100 last:border-0">
       <h3 className="text-xl font-display font-medium text-gray-900 mb-2 leading-tight">
@@ -54,33 +71,55 @@ function PublicationItem({ pub }: { pub: Publication }) {
         <HighlightAuthors authors={pub.authors} />
       </div>
       <div className="text-gray-500 italic mb-4">
-        {pub.journal || pub.booktitle}{pub.year ? `, ${pub.year}` : ''}
+        {pub.journal || pub.booktitle}
+        {pub.year ? `, ${pub.year}` : ""}
       </div>
       <div className="flex flex-wrap gap-3">
-        {pub.url && (
-          <a href={pub.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors">
+        {isSafeHttpUrl(pub.url) && (
+          <a
+            href={pub.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
+          >
             <LinkIcon size={14} />
             <span>Project</span>
           </a>
         )}
-        {pub.pdf && (
-          <a href={pub.pdf} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors">
+        {isSafeHttpUrl(pub.pdf) && (
+          <a
+            href={pub.pdf}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
+          >
             <FileText size={14} />
             <span>PDF</span>
           </a>
         )}
-        {pub.code && (
-          <a href={pub.code} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors">
+        {isSafeHttpUrl(pub.code) && (
+          <a
+            href={pub.code}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
+          >
             <Code size={14} />
             <span>Code</span>
           </a>
         )}
-        {pub.arxiv && (
-          <a href={`https://arxiv.org/abs/${pub.arxiv}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors">
+        {isSafeHttpUrl(arxivHref) && (
+          <a
+            href={arxivHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
+          >
             <ExternalLink size={14} />
             <span>arXiv</span>
           </a>
         )}
+        <BibTeXButton bibtex={formatBibtex(pub)} />
       </div>
     </div>
   );
@@ -95,13 +134,15 @@ export default function PublicationsPage() {
     <main className="distill-grid py-16">
       <div className="col-start-2 px-6 lg:px-0">
         <header className="mb-12">
-          <h1 className="text-4xl font-display font-bold text-gray-900 mb-4">Publications</h1>
+          <h1 className="text-4xl font-display font-bold text-gray-900 mb-4">
+            Publications
+          </h1>
           <p className="text-lg text-gray-600 max-w-2xl">
             {siteProfile.publicationsIntro}
           </p>
         </header>
 
-        {years.map(year => (
+        {years.map((year) => (
           <section key={year} className="mb-12 relative">
             <div className="absolute -left-16 top-6 hidden lg:block">
               <span className="text-2xl font-display font-bold text-gray-200 rotate-180 [writing-mode:vertical-lr]">

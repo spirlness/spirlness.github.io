@@ -41,7 +41,7 @@ export const SideNote: React.FC<SideNoteProps> = ({ children, label = "Note" }) 
           <span className="text-lg leading-none">{isOpen ? '−' : '+'}</span>
         </button>
         {isOpen && (
-          <div className="mt-2 text-sm text-gray-700 leading-relaxed animate-in fade-in slide-in-from-top-1 duration-200 [&_p]:text-sm [&_p]:leading-relaxed [&_p]:mb-3">
+          <div className="mt-2 text-sm text-gray-700 leading-relaxed [&_p]:text-sm [&_p]:leading-relaxed [&_p]:mb-3">
             {children}
           </div>
         )}

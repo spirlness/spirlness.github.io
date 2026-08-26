@@ -64,3 +64,30 @@ export function groupPublicationsByYear(publications: Publication[]): Record<str
     return groups;
   }, {} as Record<string, Publication[]>);
 }
+
+/** Reconstruct a pasteable BibTeX entry from a cleaned Publication record. */
+export function formatBibtex(pub: Publication): string {
+  const lines: string[] = [`@${pub.type}{${pub.id},`];
+  const field = (key: string, value: string | undefined) => {
+    if (!value) return;
+    lines.push(`  ${key} = {${value}},`);
+  };
+
+  field("title", pub.title);
+  field("author", pub.authors);
+  field("journal", pub.journal);
+  field("booktitle", pub.booktitle);
+  field("year", pub.year);
+  field("url", pub.url);
+  field("pdf", pub.pdf);
+  field("code", pub.code);
+  field("arxiv", pub.arxiv);
+
+  // Drop trailing comma on the last field line for valid BibTeX style.
+  const last = lines.length - 1;
+  if (last > 0 && lines[last].endsWith(",")) {
+    lines[last] = lines[last].slice(0, -1);
+  }
+  lines.push("}");
+  return lines.join("\n");
+}

@@ -142,7 +142,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
               Project Page
             </a>
           )}
-          {project.links?.code && (
+          {isUsableHref(project.links?.code) && (
             <a
               href={project.links.code}
               target="_blank"
@@ -153,7 +153,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
               Code
             </a>
           )}
-          {project.links?.paper && (
+          {isUsableHref(project.links?.paper) && (
             <a
               href={project.links.paper}
               target="_blank"

@@ -31,4 +31,21 @@ export const siteProfile = {
   publicationAuthorNames: ["Li, Fuying", "Fuying Li", "Li Fuying"],
   publicationsIntro:
     "Selected works in physics-informed machine learning and fluid simulation.",
+  focusAreas: [
+    {
+      title: "Algorithmic Resilience",
+      description:
+        "Stability guarantees for neural physical systems under distribution shift, noise, and symmetry-breaking perturbations.",
+    },
+    {
+      title: "Neural-Symbolic Physics",
+      description:
+        "Combining learned latent dynamics with symbolic constraints so models recover conservation laws, not only fit trajectories.",
+    },
+    {
+      title: "Physics-Informed Learning",
+      description:
+        "Surrogate models and operators for PDEs that embed Hamiltonian and geometric structure for sample-efficient generalization.",
+    },
+  ],
 } as const;

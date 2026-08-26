@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { getAllPublications, groupPublicationsByYear } from "../bibtex";
+import {
+  formatBibtex,
+  getAllPublications,
+  groupPublicationsByYear,
+} from "../bibtex";
 
 describe("getAllPublications", () => {
   it("returns publications sorted by year descending", () => {
@@ -43,5 +47,15 @@ describe("groupPublicationsByYear", () => {
       0
     );
     expect(totalGrouped).toBe(pubs.length);
+  });
+});
+
+describe("formatBibtex", () => {
+  it("emits a pasteable entry with the citation key", () => {
+    const pubs = getAllPublications();
+    const bib = formatBibtex(pubs[0]);
+    expect(bib).toContain(`@${pubs[0].type}{${pubs[0].id},`);
+    expect(bib).toContain(`title = {${pubs[0].title}}`);
+    expect(bib.trim().endsWith("}")).toBe(true);
   });
 });
