@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Calendar, ExternalLink, Code, FileText, PlayCircle, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import { isUsableHref } from "@/lib/links";
+import { articleProse } from "@/components/mdx/MDXComponents";
 
 interface ProjectPageProps {
   params: Promise<{
@@ -121,7 +122,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
       <div className="max-w-3xl mx-auto px-6 lg:px-8">
         {content ? (
-          <div>{content}</div>
+          <div className={articleProse}>{content}</div>
         ) : (
           <p className="text-gray-600 leading-relaxed text-lg">
             {project.description}

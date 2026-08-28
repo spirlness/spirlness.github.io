@@ -12,7 +12,7 @@ export function References({ references }: ReferencesProps) {
   }
 
   return (
-    <section className="mt-24 pt-12 border-t border-gray-100">
+    <section className="not-prose mt-24 pt-12 border-t border-gray-100">
       <h2 className="text-2xl font-bold mb-8 font-display text-gray-800 border-b border-gray-100 pb-2">
         References
       </h2>

@@ -3,6 +3,7 @@ import { getPostBySlug, getAllPosts, getPostFrontmatter } from "@/lib/posts";
 import { siteProfile } from "@/content/site";
 import { notFound } from "next/navigation";
 import { References } from "@/components/mdx/References";
+import { articleProse } from "@/components/mdx/MDXComponents";
 
 interface PostPageProps {
   params: Promise<{
@@ -70,7 +71,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
         <div className="distill-grid">
           <div />
-          <div className="relative">
+          <div className={`relative ${articleProse}`}>
             {content}
             {references.length > 0 && <References references={references} />}
           </div>

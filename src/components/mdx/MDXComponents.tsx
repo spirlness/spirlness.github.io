@@ -6,7 +6,34 @@ import { MathBlock } from './MathBlock';
 import { SimulationContainer, PhysicsDemo } from '../interactive/LazyInteractive';
 
 /**
- * Custom MDX components mapping for Distill-style layout.
+ * Container classes for rendered MDX article bodies. Element typography comes
+ * from @tailwindcss/typography (`prose`); the prose-* modifiers below pin the
+ * Distill look (orange blockquote, bordered h2, display font headings).
+ * `max-w-none` disables prose's 65ch measure — the distill-grid centre column
+ * already constrains width to 800px.
+ */
+export const articleProse = [
+  'prose prose-lg max-w-none',
+  'prose-headings:font-display prose-headings:text-gray-800',
+  'prose-h2:mt-12 prose-h2:mb-6 prose-h2:pb-2 prose-h2:border-b prose-h2:border-gray-100 prose-h2:text-2xl',
+  'prose-h3:mt-8 prose-h3:mb-4 prose-h3:text-xl',
+  'prose-blockquote:border-orange-200 prose-blockquote:bg-orange-50/20 prose-blockquote:rounded-r-lg prose-blockquote:py-2 prose-blockquote:pl-6 prose-blockquote:text-gray-600',
+  'prose-img:rounded-lg prose-img:my-8',
+  'prose-hr:border-gray-100',
+].join(' ');
+
+/**
+ * Custom MDX component mapping for Distill-style layout.
+ *
+ * Element typography (h2/p/ul/table/…) lives in `articleProse` via the
+ * typography plugin, not in per-element overrides. Only the entries that carry
+ * behavior or must coexist with rehype-pretty-code output stay here:
+ * - `a` adds target=_blank + accent styling for external links;
+ * - `pre`/`code` keep the dark block / pink inline look over shiki token spans
+ *   (utilities on the element beat the plugin's `:where()` selectors).
+ * There is deliberately no h1 mapping and prose h1 styling is reset in
+ * globals.css: the page shell renders the article's only <h1>, so a stray
+ * body-level `#` degrades to plain text. Post sections start at `##`.
  */
 export const mdxComponents: MDXComponents = {
   // 基础组件
@@ -16,29 +43,7 @@ export const mdxComponents: MDXComponents = {
   // 交互式组件
   SimulationContainer,
   PhysicsDemo,
-  
-  // HTML 元素覆盖
-  // 页面外壳已渲染文章标题的唯一 <h1>，因此映射刻意不含 h1：若正文出现
-  // `#`，preflight 会把它渲染成与正文相同的普通文本，而不是第二个样式化的
-  // 页面级标题。正文章节一律从 h2 起。
-  h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h2 className="text-2xl font-bold mt-12 mb-6 font-display text-gray-800 border-b border-gray-100 pb-2" {...props} />
-  ),
-  h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h3 className="text-xl font-semibold mt-8 mb-4 font-display text-gray-800" {...props} />
-  ),
-  p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
-    <p className="leading-relaxed mb-6 text-gray-700 text-lg" {...props} />
-  ),
-  ul: (props: React.HTMLAttributes<HTMLUListElement>) => (
-    <ul className="list-disc list-outside ml-6 mb-6 text-gray-700 space-y-2" {...props} />
-  ),
-  ol: (props: React.HTMLAttributes<HTMLOListElement>) => (
-    <ol className="list-decimal list-outside ml-6 mb-6 text-gray-700 space-y-2" {...props} />
-  ),
-  li: (props: React.LiHTMLAttributes<HTMLLIElement>) => (
-    <li className="pl-1" {...props} />
-  ),
+
   a: ({ className, href, ...props }) => {
     const external = typeof href === "string" && /^(https?:)?\/\//i.test(href);
     return (
@@ -50,39 +55,8 @@ export const mdxComponents: MDXComponents = {
       />
     );
   },
-  img: ({ className, alt, ...props }) => (
-    // eslint-disable-next-line @next/next/no-img-element -- MDX author images; static export keeps unoptimized assets simple
-    <img
-      alt={alt ?? ""}
-      className={`my-8 rounded-lg max-w-full h-auto ${className ?? ""}`}
-      {...props}
-    />
-  ),
-  table: ({ className, ...props }) => (
-    <div className="my-8 overflow-x-auto">
-      <table
-        className={`w-full text-left text-gray-700 border-collapse ${className ?? ""}`}
-        {...props}
-      />
-    </div>
-  ),
-  thead: (props: React.HTMLAttributes<HTMLTableSectionElement>) => (
-    <thead className="border-b border-gray-200 text-sm font-display text-gray-500" {...props} />
-  ),
-  th: (props: React.ThHTMLAttributes<HTMLTableCellElement>) => (
-    <th className="py-2 pr-4 font-semibold" {...props} />
-  ),
-  td: (props: React.TdHTMLAttributes<HTMLTableCellElement>) => (
-    <td className="py-2 pr-4 border-b border-gray-100 align-top" {...props} />
-  ),
-  blockquote: ({ className, ...props }) => (
-    <blockquote
-      className={`border-l-4 border-orange-200 pl-6 italic my-8 text-gray-600 bg-orange-50/20 py-2 rounded-r-lg [&_p]:text-gray-600 [&_p:last-child]:mb-0 ${className ?? ''}`}
-      {...props}
-    />
-  ),
-  // 围栏代码块内的 code 带 class="language-*"（行内 code 没有），据此区分形态；
-  // className 先解构再与默认样式合并，避免 {...props} 展开覆盖掉默认样式
+  // 围栏代码块内的 code 带 class="language-*"（shiki 会再加 token 颜色类），
+  // 行内 code 没有；className 先解构再与默认样式合并，避免 {...props} 展开覆盖默认样式
   code: ({ className, ...props }) => {
     const isBlock = /language-/.test(className ?? '');
     return isBlock ? (
@@ -100,7 +74,6 @@ export const mdxComponents: MDXComponents = {
       {...props}
     />
   ),
-  hr: () => <hr className="my-12 border-gray-100" />,
 };
 
 export default mdxComponents;

@@ -4,6 +4,7 @@ import matter from "gray-matter";
 import { compileMDX } from "next-mdx-remote/rsc";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import rehypePrettyCode from "rehype-pretty-code";
 import { mdxComponents } from "@/components/mdx/MDXComponents";
 import { getAllPublications, type Publication } from "./bibtex";
 import { assertSafeContentSlug } from "./content-id";
@@ -143,7 +144,11 @@ export async function getPostBySlug(slug: string): Promise<Post> {
       parseFrontmatter: false,
       mdxOptions: {
         remarkPlugins: [remarkMath],
-        rehypePlugins: [rehypeKatex],
+        rehypePlugins: [
+          rehypeKatex,
+          // keepBackground:false lets the `pre` override keep its own bg-gray-900
+          [rehypePrettyCode, { theme: "github-dark", keepBackground: false }],
+        ],
       },
     },
   });

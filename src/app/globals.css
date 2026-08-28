@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 :root {
   --bg: #fdfdfd;
@@ -30,4 +31,23 @@ body {
 
 .katex-display > .katex {
   min-width: max-content;
+}
+
+/* Typography-plugin defaults that clash with the Distill look: backticks
+   around inline code and quotation marks around blockquotes. Inline-code and
+   pre styling stays with the MDXComponents overrides (they must coexist with
+   shiki token spans). */
+.prose :where(code)::before,
+.prose :where(code)::after,
+.prose :where(blockquote p:first-of-type)::before,
+.prose :where(blockquote p:last-of-type)::after {
+  content: none;
+}
+
+/* The page shell renders an article's only <h1>; any body-level h1 in MDX must
+   degrade to plain preflight text instead of getting prose h1 sizing. */
+.prose :where(h1) {
+  font-size: inherit;
+  font-weight: inherit;
+  margin: 0;
 }

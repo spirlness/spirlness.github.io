@@ -1,4 +1,4 @@
-import * as bibtexParse from 'bibtex-parse-js';
+import { parse } from '@retorquere/bibtex-parser';
 import fs from 'fs';
 import path from 'path';
 
@@ -20,18 +20,35 @@ export function getAllPublications(): Publication[] {
   const bibPath = path.join(process.cwd(), 'content', 'references.bib');
   const bibContent = fs.readFileSync(bibPath, 'utf-8');
 
-  const parsed = bibtexParse.toJSON(bibContent);
+  // sentenceCase: false keeps the original title casing (default sentence-cases
+  // titles); verbatimFields keeps `author` as the raw "Last, First and ..."
+  // string instead of parsed {lastName, firstName} objects, which the
+  // publications page and formatBibtex both expect.
+  const parsed = parse(bibContent, {
+    sentenceCase: false,
+    verbatimFields: ["author"],
+  });
+
+  // A malformed entry is skipped with an error instead of parsed, which would
+  // silently drop it from /publications and break every [@key] citing it —
+  // fail the build loudly instead.
+  if (parsed.errors.length > 0) {
+    const first = parsed.errors[0];
+    throw new Error(
+      `Failed to parse content/references.bib: ${first.error}`
+    );
+  }
 
   const cleanField = (value: unknown): string | undefined => {
     if (typeof value !== 'string') return undefined;
     return value.replace(/[{}]/g, '').trim();
   };
 
-  const publications: Publication[] = parsed.map((entry: bibtexParse.BibtexEntry) => {
-    const fields = entry.entryTags;
+  const publications: Publication[] = parsed.entries.map((entry: { type: string; key: string; fields: Record<string, string> }) => {
+    const fields = entry.fields;
     return {
-      id: entry.citationKey || 'anonymous',
-      type: entry.entryType || 'misc',
+      id: entry.key || 'anonymous',
+      type: entry.type || 'misc',
       title: cleanField(fields.title) || '(Untitled)',
       authors: cleanField(fields.author) || 'Unknown',
       year: cleanField(fields.year) || 'Unknown',
