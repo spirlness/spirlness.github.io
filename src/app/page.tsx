@@ -1,7 +1,7 @@
 import { Calendar, Award, BookOpen, GraduationCap, Folder, FileText, Newspaper, ExternalLink } from "lucide-react";
 import { siteProfile } from "@/content/site";
 import { getAllUpdates, UpdateIcon } from "@/lib/updates";
-import { isExternalHref, isUsableHref } from "@/lib/links";
+import { isExternalHref, isSafeHref } from "@/lib/links";
 
 const updateIcons: Record<UpdateIcon, React.ReactNode> = {
   award: <Award className="w-4 h-4 text-orange-500" />,
@@ -72,7 +72,7 @@ export default function Home() {
                   <span className="text-sm font-mono text-gray-400 mb-2 block tracking-tighter">
                     {update.date}
                   </span>
-                  {isUsableHref(update.link) ? (
+                  {isSafeHref(update.link) ? (
                     <a
                       href={update.link}
                       {...(isExternalHref(update.link)

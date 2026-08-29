@@ -1,5 +1,29 @@
 import { describe, it, expect } from "vitest";
+import { isSafeHref, isSafeHttpUrl } from "../links";
 import { getAllUpdates } from "../updates";
+
+describe("isSafeHttpUrl", () => {
+  it("accepts only absolute HTTP(S) URLs", () => {
+    expect(isSafeHttpUrl("https://example.com")).toBe(true);
+    expect(isSafeHttpUrl("http://example.com")).toBe(true);
+    expect(isSafeHttpUrl("/projects/")).toBe(false);
+    expect(isSafeHttpUrl("javascript:alert(1)")).toBe(false);
+  });
+});
+
+describe("isSafeHref", () => {
+  it("allows local navigation and HTTP(S) URLs", () => {
+    expect(isSafeHref("/projects/")).toBe(true);
+    expect(isSafeHref("#references")).toBe(true);
+    expect(isSafeHref("https://example.com")).toBe(true);
+  });
+
+  it("rejects unsafe or ambiguous schemes", () => {
+    expect(isSafeHref("javascript:alert(1)")).toBe(false);
+    expect(isSafeHref("data:text/html,example")).toBe(false);
+    expect(isSafeHref("//example.com")).toBe(false);
+  });
+});
 
 describe("getAllUpdates", () => {
   it("loads valid updates sorted by date descending", () => {

@@ -24,3 +24,19 @@ export function isSafeHttpUrl(
     return false;
   }
 }
+
+/**
+ * Allow safe local navigation plus absolute HTTP(S) links.
+ * Protocol-relative URLs are deliberately rejected because their destination
+ * changes with the current scheme and they bypass the local-path check.
+ */
+export function isSafeHref(
+  href: string | null | undefined
+): href is string {
+  if (!href || !href.trim()) return false;
+
+  const value = href.trim();
+  if (value.startsWith("#")) return true;
+  if (value.startsWith("/") && !value.startsWith("//")) return true;
+  return isSafeHttpUrl(value);
+}
