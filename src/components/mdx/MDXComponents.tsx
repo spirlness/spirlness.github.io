@@ -4,6 +4,7 @@ import { SideNote } from './SideNote';
 import { MathBlock } from './MathBlock';
 // 交互式组件经由 LazyInteractive 的客户端边界导入，本文件保持为服务端组件
 import { SimulationContainer, PhysicsDemo } from '../interactive/LazyInteractive';
+import { isExternalHref, isSafeHref } from '@/lib/links';
 
 /**
  * Container classes for rendered MDX article bodies. Element typography comes
@@ -44,15 +45,21 @@ export const mdxComponents: MDXComponents = {
   SimulationContainer,
   PhysicsDemo,
 
-  a: ({ className, href, ...props }) => {
-    const external = typeof href === "string" && /^(https?:)?\/\//i.test(href);
+  a: ({ className, href, children, ...props }) => {
+    if (!isSafeHref(href)) {
+      return <span className={className}>{children}</span>;
+    }
+
+    const external = isExternalHref(href);
     return (
       <a
         href={href}
         className={`text-accent font-medium underline underline-offset-2 decoration-orange-200 hover:decoration-accent ${className ?? ""}`}
-        {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
         {...props}
-      />
+        {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      >
+        {children}
+      </a>
     );
   },
   // 围栏代码块内的 code 带 class="language-*"（shiki 会再加 token 颜色类），
