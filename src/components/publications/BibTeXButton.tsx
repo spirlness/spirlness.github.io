@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Quote } from "lucide-react";
 
 interface BibTeXButtonProps {
@@ -10,6 +10,54 @@ interface BibTeXButtonProps {
 export function BibTeXButton({ bibtex }: BibTeXButtonProps) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    const focusable = () =>
+      Array.from(
+        dialog.querySelectorAll<HTMLButtonElement>(
+          'button:not([disabled])'
+        )
+      );
+
+    const closeButton = focusable()[0];
+    closeButton?.focus();
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setOpen(false);
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+
+      const elements = focusable();
+      const first = elements[0];
+      const last = elements[elements.length - 1];
+      if (!first || !last) return;
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      triggerRef.current?.focus();
+    };
+  }, [open]);
 
   async function copy() {
     try {
@@ -24,6 +72,7 @@ export function BibTeXButton({ bibtex }: BibTeXButtonProps) {
   return (
     <>
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen(true)}
         className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
@@ -37,15 +86,18 @@ export function BibTeXButton({ bibtex }: BibTeXButtonProps) {
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
           role="dialog"
           aria-modal="true"
-          aria-label="BibTeX citation"
+          aria-labelledby="bibtex-dialog-title"
           onClick={() => setOpen(false)}
         >
           <div
+            ref={dialogRef}
             className="w-full max-w-lg bg-white rounded-xl border border-gray-100 p-6 shadow-none"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display text-lg font-bold text-gray-900">BibTeX</h3>
+              <h3 id="bibtex-dialog-title" className="font-display text-lg font-bold text-gray-900">
+                BibTeX
+              </h3>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
