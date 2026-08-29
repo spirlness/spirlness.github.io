@@ -55,7 +55,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   const { project, content } = result;
 
   return (
-    <article className="py-16">
+    <article className="py-10 sm:py-16">
       <header className="max-w-4xl mx-auto px-6 lg:px-8 mb-12">
         <a
           href="/projects/"
@@ -71,7 +71,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           {project.tags && project.tags.length > 0 && (
             <>
               <span className="w-1 h-1 rounded-full bg-gray-200" />
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {project.tags.map((tag) => (
                   <span
                     key={tag}
