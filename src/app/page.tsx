@@ -15,14 +15,14 @@ const updateIcons: Record<UpdateIcon, React.ReactNode> = {
 export default function Home() {
   const updates = getAllUpdates();
   return (
-    <div className="distill-grid py-16">
+    <div className="distill-grid py-10 sm:py-16">
       <div />
       <main>
         <section className="mb-24">
           <p className="font-display text-sm font-bold tracking-widest text-accent uppercase mb-5">
             {siteProfile.name}
           </p>
-          <h1 className="font-display text-6xl font-bold tracking-tight mb-8 text-gray-900">
+          <h1 className="font-display text-4xl sm:text-6xl font-bold tracking-tight leading-tight mb-8 text-gray-900">
             {siteProfile.heroTitle[0]} <br />
             {siteProfile.heroTitle[1]}
           </h1>
@@ -61,7 +61,7 @@ export default function Home() {
           </h2>
           <div className="space-y-12">
             {updates.map((update, index) => (
-              <div key={`${update.date}-${update.content}`} className="flex gap-8 relative group">
+              <div key={`${update.date}-${update.content}`} className="flex gap-4 sm:gap-8 relative group">
                 {index !== updates.length - 1 && (
                   <div className="absolute left-[18px] top-8 bottom-[-48px] w-px bg-gray-100 group-hover:bg-orange-100 transition-colors" />
                 )}
@@ -96,7 +96,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="p-12 bg-gray-50 rounded-2xl border border-gray-100">
+        <section className="p-6 sm:p-12 bg-gray-50 rounded-2xl border border-gray-100">
           <h3 className="font-display text-xl font-bold mb-4">Contact & Information</h3>
           <p className="text-gray-600 mb-8 leading-relaxed">
             {siteProfile.contactIntro}
