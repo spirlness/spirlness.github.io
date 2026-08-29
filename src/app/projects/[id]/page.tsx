@@ -4,7 +4,7 @@ import { getProjectDetailById, getAllProjects } from "@/lib/projects";
 import { notFound } from "next/navigation";
 import { Calendar, ExternalLink, Code, FileText, PlayCircle, ArrowLeft } from "lucide-react";
 import Image from "next/image";
-import { isSafeHref } from "@/lib/links";
+import { isExternalHref, isSafeHref } from "@/lib/links";
 import { articleProse } from "@/components/mdx/MDXComponents";
 
 interface ProjectPageProps {
@@ -135,8 +135,9 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           {isSafeHref(project.links?.project) && (
             <a
               href={project.links.project}
-              target="_blank"
-              rel="noopener noreferrer"
+              {...(isExternalHref(project.links.project)
+                ? { target: "_blank", rel: "noopener noreferrer" }
+                : {})}
               className="inline-flex items-center gap-2 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
             >
               <ExternalLink className="w-4 h-4" />
@@ -146,8 +147,9 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           {isSafeHref(project.links?.code) && (
             <a
               href={project.links.code}
-              target="_blank"
-              rel="noopener noreferrer"
+              {...(isExternalHref(project.links.code)
+                ? { target: "_blank", rel: "noopener noreferrer" }
+                : {})}
               className="inline-flex items-center gap-2 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
             >
               <Code className="w-4 h-4" />
@@ -157,8 +159,9 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           {isSafeHref(project.links?.paper) && (
             <a
               href={project.links.paper}
-              target="_blank"
-              rel="noopener noreferrer"
+              {...(isExternalHref(project.links.paper)
+                ? { target: "_blank", rel: "noopener noreferrer" }
+                : {})}
               className="inline-flex items-center gap-2 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
             >
               <FileText className="w-4 h-4" />
@@ -168,8 +171,9 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           {isSafeHref(project.links?.demo) && (
             <a
               href={project.links.demo}
-              target="_blank"
-              rel="noopener noreferrer"
+              {...(isExternalHref(project.links.demo)
+                ? { target: "_blank", rel: "noopener noreferrer" }
+                : {})}
               className="inline-flex items-center gap-2 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
             >
               <PlayCircle className="w-4 h-4" />
