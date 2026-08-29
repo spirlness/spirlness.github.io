@@ -4,7 +4,7 @@ import { getProjectDetailById, getAllProjects } from "@/lib/projects";
 import { notFound } from "next/navigation";
 import { Calendar, ExternalLink, Code, FileText, PlayCircle, ArrowLeft } from "lucide-react";
 import Image from "next/image";
-import { isUsableHref } from "@/lib/links";
+import { isSafeHref } from "@/lib/links";
 import { articleProse } from "@/components/mdx/MDXComponents";
 
 interface ProjectPageProps {
@@ -132,7 +132,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
       <footer className="max-w-3xl mx-auto px-6 lg:px-8 mt-16 pt-12 border-t border-gray-100">
         <div className="flex flex-wrap gap-4">
-          {isUsableHref(project.links?.project) && (
+          {isSafeHref(project.links?.project) && (
             <a
               href={project.links.project}
               target="_blank"
@@ -143,7 +143,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
               Project Page
             </a>
           )}
-          {isUsableHref(project.links?.code) && (
+          {isSafeHref(project.links?.code) && (
             <a
               href={project.links.code}
               target="_blank"
@@ -154,7 +154,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
               Code
             </a>
           )}
-          {isUsableHref(project.links?.paper) && (
+          {isSafeHref(project.links?.paper) && (
             <a
               href={project.links.paper}
               target="_blank"
@@ -165,7 +165,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
               Paper
             </a>
           )}
-          {isUsableHref(project.links?.demo) && (
+          {isSafeHref(project.links?.demo) && (
             <a
               href={project.links.demo}
               target="_blank"
