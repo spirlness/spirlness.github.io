@@ -135,7 +135,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           {isSafeHref(project.links?.project) && (
             <a
               href={project.links.project}
-              {...(isExternalHref(project.links.project)
+              {...(isExternalHref(project.links?.project ?? "")
                 ? { target: "_blank", rel: "noopener noreferrer" }
                 : {})}
               className="inline-flex items-center gap-2 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
@@ -147,7 +147,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           {isSafeHref(project.links?.code) && (
             <a
               href={project.links.code}
-              {...(isExternalHref(project.links.code)
+              {...(isExternalHref(project.links?.code ?? "")
                 ? { target: "_blank", rel: "noopener noreferrer" }
                 : {})}
               className="inline-flex items-center gap-2 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
@@ -159,7 +159,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           {isSafeHref(project.links?.paper) && (
             <a
               href={project.links.paper}
-              {...(isExternalHref(project.links.paper)
+              {...(isExternalHref(project.links?.paper ?? "")
                 ? { target: "_blank", rel: "noopener noreferrer" }
                 : {})}
               className="inline-flex items-center gap-2 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
@@ -171,7 +171,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           {isSafeHref(project.links?.demo) && (
             <a
               href={project.links.demo}
-              {...(isExternalHref(project.links.demo)
+              {...(isExternalHref(project.links?.demo ?? "")
                 ? { target: "_blank", rel: "noopener noreferrer" }
                 : {})}
               className="inline-flex items-center gap-2 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
