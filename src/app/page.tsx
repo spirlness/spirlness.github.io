@@ -2,6 +2,7 @@ import { Calendar, Award, BookOpen, GraduationCap, Folder, FileText, Newspaper, 
 import { siteProfile } from "@/content/site";
 import { getAllUpdates, UpdateIcon } from "@/lib/updates";
 import { isExternalHref, isSafeHref } from "@/lib/links";
+import { JsonLd } from "@/components/meta/JsonLd";
 
 const updateIcons: Record<UpdateIcon, React.ReactNode> = {
   award: <Award className="w-4 h-4 text-orange-500" />,
@@ -16,6 +17,17 @@ export default function Home() {
   const updates = getAllUpdates();
   return (
     <div className="distill-grid py-10 sm:py-16">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Person",
+          name: siteProfile.name,
+          url: siteProfile.url,
+          jobTitle: siteProfile.authorRole,
+          description: siteProfile.researchSummary,
+          sameAs: siteProfile.links.map((l) => l.href),
+        }}
+      />
       <div />
       <main>
         <section className="mb-24">

@@ -67,11 +67,15 @@ Deployment behavior:
 - It runs ESLint.
 - It runs the Vitest suite with `npm test`.
 - It builds the static export with `next build`.
-- It verifies that these required pages exist:
+- It verifies that these required pages and files exist:
   - `out/index.html`
   - `out/blog/index.html`
   - `out/projects/index.html`
   - `out/publications/index.html`
+  - `out/sitemap.xml`
+  - `out/robots.txt`
+  - `out/feed.xml`
+  - `out/opengraph-image.png`
 - It verifies that every blog post and every project exported its own page, and that each slug and project `id` is URL-safe.
 - It uploads `out/` as a GitHub Pages artifact and deploys it.
 

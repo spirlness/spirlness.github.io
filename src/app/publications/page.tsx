@@ -9,9 +9,16 @@ import { FileText, Code, ExternalLink, Link as LinkIcon } from "lucide-react";
 import { siteProfile } from "@/content/site";
 import { isSafeHttpUrl } from "@/lib/links";
 import { BibTeXButton } from "@/components/publications/BibTeXButton";
+import { JsonLd } from "@/components/meta/JsonLd";
 
 export const metadata: Metadata = {
   title: "Publications",
+  openGraph: {
+    type: "website",
+    title: "Publications",
+    url: `${siteProfile.url}/publications/`,
+    images: [`${siteProfile.url}/opengraph-image.png`],
+  },
 };
 
 /**
@@ -132,6 +139,32 @@ export default function PublicationsPage() {
 
   return (
     <main className="distill-grid py-16">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          name: "Publications",
+          itemListElement: publications.map((pub, index) => ({
+            "@type": "ListItem",
+            position: index + 1,
+            item: {
+              "@type": "ScholarlyArticle",
+              headline: pub.title,
+              ...(isSafeHttpUrl(pub.url) ? { url: pub.url } : {}),
+              ...(pub.year ? { datePublished: String(pub.year) } : {}),
+              ...(pub.journal || pub.booktitle
+                ? { publisher: pub.journal || pub.booktitle }
+                : {}),
+              author: pub.authors
+                .split(" and ")
+                .map((name) => ({
+                  "@type": "Person",
+                  name: name.replace(/[{}]/g, "").trim(),
+                })),
+            },
+          })),
+        }}
+      />
       <div className="col-start-2 px-6 lg:px-0">
         <header className="mb-12">
           <h1 className="text-4xl font-display font-bold text-gray-900 mb-4">
