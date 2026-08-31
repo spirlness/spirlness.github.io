@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getAllTags, getPostsByTag, postHref } from "@/lib/posts";
 import { notFound } from "next/navigation";
 import { siteProfile } from "@/content/site";
+import { buildPageMetadata } from "@/lib/metadata";
 
 export const dynamicParams = false;
 
@@ -15,10 +16,11 @@ export async function generateMetadata({
   params: Promise<{ tag: string }>;
 }): Promise<Metadata> {
   const { tag } = await params;
-  return {
+  return buildPageMetadata({
     title: `Tag: ${tag}`,
     description: `Posts tagged "${tag}" on ${siteProfile.name}'s blog.`,
-  };
+    path: `/blog/tag/${tag}/`,
+  });
 }
 
 export default async function TagPage({

@@ -126,6 +126,7 @@ Add one JSON file per project under `content/projects/`:
   "title": "My Project",
   "description": "One-paragraph summary shown on the card and as the fallback body.",
   "date": "2024-06",
+  "lastModified": "2024-06-15",
   "thumbnail": "/projects/my-project.svg",
   "mediaType": "image",
   "links": { "code": "https://github.com/...", "paper": "https://..." },
@@ -134,6 +135,8 @@ Add one JSON file per project under `content/projects/`:
 ```
 
 The `id` becomes the URL (`/projects/my-project/`) and must match `^[A-Za-z0-9-]+$`. Keep it identical to the filename: the detail route reads `content/projects/<id>.json`, so a mismatch does not fail the build — the page silently exports as a 404. CI therefore rejects any id that differs from its filename.
+
+`lastModified` is optional. When present, it must be a real `YYYY-MM-DD` date and is emitted as the project's sitemap `lastmod`; leave it out when only the display month is known.
 
 For a longer write-up, add `content/projects/<id>.mdx` with the same base name; without it the detail page just shows `description`.
 

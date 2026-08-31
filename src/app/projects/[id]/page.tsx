@@ -6,6 +6,8 @@ import { Calendar, ExternalLink, Code, FileText, PlayCircle, ArrowLeft } from "l
 import Image from "next/image";
 import { isExternalHref, isSafeHref } from "@/lib/links";
 import { articleProse } from "@/components/mdx/MDXComponents";
+import { siteProfile } from "@/content/site";
+import { buildPageMetadata } from "@/lib/metadata";
 
 interface ProjectPageProps {
   params: Promise<{
@@ -31,9 +33,17 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
   const { id } = await params;
   try {
     const { project } = await getProjectDetailById(id);
-    return { title: project.title };
+    return buildPageMetadata({
+      title: project.title,
+      description: project.description,
+      path: `/projects/${project.id}/`,
+    });
   } catch {
-    return { title: "Project" };
+    return buildPageMetadata({
+      title: "Project",
+      description: siteProfile.description,
+      path: "/projects/",
+    });
   }
 }
 

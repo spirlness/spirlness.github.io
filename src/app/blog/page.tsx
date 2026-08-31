@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { getAllPosts, getAllTags, postHref } from "@/lib/posts";
+import { buildPageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Blog",
-};
+  description: "Thoughts on physics, computing, and everything in between.",
+  path: "/blog/",
+});
 
 export default async function BlogPage() {
   const posts = await getAllPosts();

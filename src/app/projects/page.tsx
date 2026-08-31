@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { getAllProjects, projectHref, type ProjectFrontmatter } from "@/lib/projects";
+import { buildPageMetadata } from "@/lib/metadata";
 import { Calendar } from "lucide-react";
 import Image from "next/image";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Projects",
-};
+  description: "Independent research projects and open-source tools.",
+  path: "/projects/",
+});
 
 function ProjectCard({ project }: { project: ProjectFrontmatter }) {
   return (

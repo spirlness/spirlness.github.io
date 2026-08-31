@@ -15,6 +15,7 @@ export interface ProjectFrontmatter {
   title: string;
   description: string;
   date: string;
+  lastModified?: string;
   thumbnail: string;
   mediaType?: "image" | "video";
   links?: {
@@ -24,6 +25,30 @@ export interface ProjectFrontmatter {
     demo?: string;
   };
   tags?: string[];
+}
+
+/** Validate the optional sitemap modification date without inventing a day. */
+export function normalizeProjectLastModified(
+  value: unknown,
+  projectId: string
+): string | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw new Error(
+      `Project "${projectId}" lastModified must use YYYY-MM-DD when provided`
+    );
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    throw new Error(`Project "${projectId}" lastModified must be a valid calendar date`);
+  }
+  return value;
 }
 
 /**
@@ -60,7 +85,10 @@ export function getAllProjects(): ProjectFrontmatter[] {
       );
     }
 
-    projects.push(parsed);
+    projects.push({
+      ...parsed,
+      lastModified: normalizeProjectLastModified(parsed.lastModified, filenameId),
+    });
   }
 
   return projects.sort(
@@ -81,7 +109,10 @@ export function getProjectById(id: string): ProjectFrontmatter {
       `Project id "${parsed.id}" must equal filename "${cleanId}"`
     );
   }
-  return parsed;
+  return {
+    ...parsed,
+    lastModified: normalizeProjectLastModified(parsed.lastModified, cleanId),
+  };
 }
 
 export async function getProjectDetailById(id: string): Promise<{

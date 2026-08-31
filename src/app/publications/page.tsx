@@ -10,16 +10,13 @@ import { siteProfile } from "@/content/site";
 import { isSafeHttpUrl } from "@/lib/links";
 import { BibTeXButton } from "@/components/publications/BibTeXButton";
 import { JsonLd } from "@/components/meta/JsonLd";
+import { buildPageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Publications",
-  openGraph: {
-    type: "website",
-    title: "Publications",
-    url: `${siteProfile.url}/publications/`,
-    images: [`${siteProfile.url}/opengraph-image.png`],
-  },
-};
+  description: siteProfile.publicationsIntro,
+  path: "/publications/",
+});
 
 /**
  * Normalize an author name so highlighting survives BibTeX format drift.

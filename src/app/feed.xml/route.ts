@@ -3,7 +3,7 @@ import { getAllPostFrontmatter, postHref } from "@/lib/posts";
 
 export const dynamic = "force-static";
 
-function escapeXml(value: string): string {
+export function escapeXml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -28,7 +28,7 @@ export function GET() {
       <link>${base}${postHref(post.slug)}</link>
       <guid isPermaLink="true">${base}${postHref(post.slug)}</guid>
       <pubDate>${rssDate(post.date)}</pubDate>
-      <description><![CDATA[${post.excerpt}]]></description>
+      <description>${escapeXml(post.excerpt)}</description>
     </item>`
     )
     .join("\n");

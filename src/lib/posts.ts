@@ -135,23 +135,7 @@ function parsePostFrontmatter(source: string, slug: string): PostFrontmatter {
     throw new Error(`Post "${slug}" missing required frontmatter field: excerpt`);
   }
 
-  const rawTags =
-    typeof data.tags === "string"
-      ? data.tags.split(",")
-      : Array.isArray(data.tags)
-        ? data.tags
-        : [];
-  const tags = rawTags
-    .filter((t): t is string => typeof t === "string")
-    .map((t) => t.trim())
-    .filter(Boolean);
-  for (const tag of tags) {
-    if (!/^[A-Za-z0-9-]+$/.test(tag)) {
-      throw new Error(
-        `Post "${slug}" has unsafe tag "${tag}"; use only [A-Za-z0-9-] (it becomes /blog/tag/<tag>/)`
-      );
-    }
-  }
+  const tags = normalizePostTags(data.tags, slug);
 
   const lastUpdated =
     typeof data.lastUpdated === "string" && data.lastUpdated.trim()
@@ -166,6 +150,33 @@ function parsePostFrontmatter(source: string, slug: string): PostFrontmatter {
     tags,
     lastUpdated,
   };
+}
+
+/** Normalize author-supplied tags while preserving first-seen order. */
+export function normalizePostTags(value: unknown, slug: string): string[] {
+  const rawTags =
+    typeof value === "string"
+      ? value.split(",")
+      : Array.isArray(value)
+        ? value
+        : [];
+  const tags: string[] = [];
+  const seen = new Set<string>();
+
+  for (const rawTag of rawTags) {
+    if (typeof rawTag !== "string") continue;
+    const tag = rawTag.trim();
+    if (!tag || seen.has(tag)) continue;
+    if (!/^[A-Za-z0-9-]+$/.test(tag)) {
+      throw new Error(
+        `Post "${slug}" has unsafe tag "${tag}"; use only [A-Za-z0-9-] (it becomes /blog/tag/<tag>/)`
+      );
+    }
+    seen.add(tag);
+    tags.push(tag);
+  }
+
+  return tags;
 }
 
 function compareDatesDescending(a: string, b: string): number {

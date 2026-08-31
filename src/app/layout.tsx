@@ -12,19 +12,6 @@ export const metadata: Metadata = {
     template: `%s — ${siteProfile.title}`,
   },
   description: siteProfile.description,
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: siteProfile.url,
-    siteName: siteProfile.title,
-    title: siteProfile.title,
-    description: siteProfile.description,
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: siteProfile.title,
-    description: siteProfile.description,
-  },
   alternates: {
     types: {
       "application/rss+xml": `${siteProfile.url}/feed.xml`,

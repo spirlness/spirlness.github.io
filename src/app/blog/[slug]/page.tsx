@@ -13,6 +13,7 @@ import { References } from "@/components/mdx/References";
 import { articleProse } from "@/components/mdx/MDXComponents";
 import { TableOfContents } from "@/components/mdx/TableOfContents";
 import { JsonLd } from "@/components/meta/JsonLd";
+import { buildPageMetadata } from "@/lib/metadata";
 
 interface PostPageProps {
   params: Promise<{
@@ -38,24 +39,14 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
   const { slug } = await params;
   try {
     const frontmatter = getPostFrontmatter(slug);
-    return {
+    return buildPageMetadata({
       title: frontmatter.title,
       description: frontmatter.excerpt,
-      openGraph: {
-        type: "article",
-        title: frontmatter.title,
-        description: frontmatter.excerpt,
-        url: `${siteProfile.url}/blog/${slug}/`,
-        publishedTime: frontmatter.date,
-        authors: [siteProfile.name],
-        images: [`${siteProfile.url}/opengraph-image.png`],
-      },
-      twitter: {
-        title: frontmatter.title,
-        description: frontmatter.excerpt,
-        images: [`${siteProfile.url}/opengraph-image.png`],
-      },
-    };
+      path: `/blog/${slug}/`,
+      type: "article",
+      publishedTime: frontmatter.date,
+      authors: [siteProfile.name],
+    });
   } catch {
     return { title: siteProfile.title };
   }

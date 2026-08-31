@@ -1,8 +1,10 @@
+import type { Metadata } from "next";
 import { Calendar, Award, BookOpen, GraduationCap, Folder, FileText, Newspaper, ExternalLink } from "lucide-react";
 import { siteProfile } from "@/content/site";
 import { getAllUpdates, UpdateIcon } from "@/lib/updates";
 import { isExternalHref, isSafeHref } from "@/lib/links";
 import { JsonLd } from "@/components/meta/JsonLd";
+import { buildPageMetadata } from "@/lib/metadata";
 
 const updateIcons: Record<UpdateIcon, React.ReactNode> = {
   award: <Award className="w-4 h-4 text-orange-500" />,
@@ -12,6 +14,12 @@ const updateIcons: Record<UpdateIcon, React.ReactNode> = {
   publication: <FileText className="w-4 h-4 text-red-500" />,
   blog: <Newspaper className="w-4 h-4 text-indigo-500" />,
 };
+
+export const metadata: Metadata = buildPageMetadata({
+  title: siteProfile.title,
+  description: siteProfile.description,
+  path: "/",
+});
 
 export default function Home() {
   const updates = getAllUpdates();

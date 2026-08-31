@@ -6,6 +6,7 @@ import {
   getPostsByTag,
   getAdjacentPosts,
   getRelatedPosts,
+  normalizePostTags,
   readingTime,
   postHref,
   processCitations,
@@ -78,6 +79,22 @@ describe("getPostFrontmatter", () => {
 });
 
 describe("tags", () => {
+  it("normalizes whitespace and removes duplicate tags in first-seen order", () => {
+    expect(normalizePostTags([" physics ", "physics", "Physics", "deep-learning"], "test-post")).toEqual([
+      "physics",
+      "Physics",
+      "deep-learning",
+    ]);
+    expect(normalizePostTags("physics, physics, resilience", "test-post")).toEqual([
+      "physics",
+      "resilience",
+    ]);
+  });
+
+  it("rejects unsafe normalized tags", () => {
+    expect(() => normalizePostTags(["not safe"], "test-post")).toThrow(/unsafe tag/);
+  });
+
   it("every post's tags are URL-safe", () => {
     for (const post of getAllPostFrontmatter()) {
       for (const tag of post.tags) {
