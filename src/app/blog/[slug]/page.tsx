@@ -71,7 +71,7 @@ export default async function PostPage({ params }: PostPageProps) {
   const { content, frontmatter, references } = post;
 
   return (
-    <article className="py-16">
+    <article className="py-10 sm:py-16">
         <JsonLd
           data={{
             "@context": "https://schema.org",
@@ -87,7 +87,7 @@ export default async function PostPage({ params }: PostPageProps) {
             },
           }}
         />
-        <header className="distill-grid mb-16">
+        <header className="distill-grid mb-10 sm:mb-16">
           <div />
           <div>
             <div className="flex items-center gap-4 mb-6">
@@ -95,7 +95,7 @@ export default async function PostPage({ params }: PostPageProps) {
               <span className="w-1 h-1 rounded-full bg-gray-200" />
               <span className="font-display text-xs font-bold tracking-widest text-accent uppercase">Article</span>
             </div>
-            <h1 className="font-display text-5xl md:text-6xl font-bold tracking-tight text-gray-900 leading-tight">
+            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-gray-900 leading-tight">
               {frontmatter.title}
             </h1>
           </div>
@@ -111,9 +111,9 @@ export default async function PostPage({ params }: PostPageProps) {
           <div />
         </div>
 
-        <footer className="distill-grid mt-24">
+        <footer className="distill-grid mt-16 sm:mt-24">
           <div />
-          <div className="border-t border-gray-100 pt-12 flex justify-between items-center">
+          <div className="border-t border-gray-100 pt-8 sm:pt-12 flex justify-between items-center">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center font-display font-bold text-orange-600">
                 {siteProfile.authorInitial}

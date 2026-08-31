@@ -1,7 +1,7 @@
 import { Calendar, Award, BookOpen, GraduationCap, Folder, FileText, Newspaper, ExternalLink } from "lucide-react";
 import { siteProfile } from "@/content/site";
 import { getAllUpdates, UpdateIcon } from "@/lib/updates";
-import { isExternalHref, isUsableHref } from "@/lib/links";
+import { isExternalHref, isSafeHref } from "@/lib/links";
 import { JsonLd } from "@/components/meta/JsonLd";
 
 const updateIcons: Record<UpdateIcon, React.ReactNode> = {
@@ -16,7 +16,7 @@ const updateIcons: Record<UpdateIcon, React.ReactNode> = {
 export default function Home() {
   const updates = getAllUpdates();
   return (
-    <div className="distill-grid py-16">
+    <div className="distill-grid py-10 sm:py-16">
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -34,7 +34,7 @@ export default function Home() {
           <p className="font-display text-sm font-bold tracking-widest text-accent uppercase mb-5">
             {siteProfile.name}
           </p>
-          <h1 className="font-display text-6xl font-bold tracking-tight mb-8 text-gray-900">
+          <h1 className="font-display text-4xl sm:text-6xl font-bold tracking-tight leading-tight mb-8 text-gray-900">
             {siteProfile.heroTitle[0]} <br />
             {siteProfile.heroTitle[1]}
           </h1>
@@ -73,7 +73,7 @@ export default function Home() {
           </h2>
           <div className="space-y-12">
             {updates.map((update, index) => (
-              <div key={`${update.date}-${update.content}`} className="flex gap-8 relative group">
+              <div key={`${update.date}-${update.content}`} className="flex gap-4 sm:gap-8 relative group">
                 {index !== updates.length - 1 && (
                   <div className="absolute left-[18px] top-8 bottom-[-48px] w-px bg-gray-100 group-hover:bg-orange-100 transition-colors" />
                 )}
@@ -84,7 +84,7 @@ export default function Home() {
                   <span className="text-sm font-mono text-gray-400 mb-2 block tracking-tighter">
                     {update.date}
                   </span>
-                  {isUsableHref(update.link) ? (
+                  {isSafeHref(update.link) ? (
                     <a
                       href={update.link}
                       {...(isExternalHref(update.link)
@@ -108,7 +108,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="p-12 bg-gray-50 rounded-2xl border border-gray-100">
+        <section className="p-6 sm:p-12 bg-gray-50 rounded-2xl border border-gray-100">
           <h3 className="font-display text-xl font-bold mb-4">Contact & Information</h3>
           <p className="text-gray-600 mb-8 leading-relaxed">
             {siteProfile.contactIntro}
