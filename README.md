@@ -4,14 +4,14 @@ This repository contains the source code for the static personal academic site p
 
 https://spirlness.github.io/
 
-The site is built with Next.js App Router and exported as static HTML for GitHub Pages. It includes a home page with an updates timeline, a projects gallery, a publication list generated from BibTeX, and MDX-based blog posts with math support and inline citations.
+The site is built with Next.js App Router and exported as static HTML for GitHub Pages. It includes a home page with an updates timeline, a projects gallery, a publication list generated from BibTeX, and MDX-based blog posts with math support, inline citations, tags, and a floating table of contents. The build also emits an RSS feed (`/feed.xml`), `sitemap.xml` / `robots.txt`, JSON-LD structured data, and Open Graph / Twitter share cards.
 
 ## Project Structure
 
-- `src/app/` - Next.js routes and page layouts.
-- `src/components/` - Shared UI components.
+- `src/app/` - Next.js routes: `/`, `/blog` (with `/blog/[slug]` and `/blog/tag/[tag]`), `/projects` (with `/projects/[id]`), `/publications`, plus build-time `sitemap.ts`, `robots.ts`, `feed.xml/route.ts`, and the `opengraph-image.png` share card.
+- `src/components/` - Shared UI components, grouped by concern: `layout/` (Navbar), `mdx/` (SideNote, MathBlock, TableOfContents, CodeBlock, References, the component map), `interactive/` (lazy-loaded Three.js demos), `publications/` (BibTeXButton), `meta/` (JSON-LD).
 - `src/lib/` - Build-time content readers, with unit tests in `src/lib/__tests__/`.
-- `src/content/site.ts` - Central profile, navigation, contact links, and publication display settings.
+- `src/content/site.ts` - Central profile, navigation, contact links, absolute site origin, and publication display settings.
 - `content/references.bib` - Publication data source.
 - `content/posts/` - Blog posts written as `.mdx`.
 - `content/projects/` - One `.json` per project, plus an optional same-name `.mdx` detail body.
@@ -90,6 +90,7 @@ The site uses `output: "export"` and `trailingSlash: true` in `next.config.ts`, 
 Edit `src/content/site.ts` to update:
 
 - Display name and metadata.
+- The absolute site origin (`url`), used for metadata, the sitemap, the RSS feed, and JSON-LD.
 - Navigation links.
 - Contact links.
 - Homepage research summary.
@@ -165,6 +166,8 @@ Each post needs frontmatter:
 title: "Post Title"
 date: "2026-04-26"
 excerpt: "Short summary shown on the blog index."
+tags: [physics, deep-learning]
+lastUpdated: "2026-08-01"
 ---
 ```
 
@@ -173,9 +176,21 @@ The filename becomes the URL slug and must match `^[A-Za-z0-9-]+$`. For example:
 - `content/posts/my-note.mdx`
 - `/blog/my-note/`
 
+Optional fields:
+
+- `tags` — array (or comma-separated string). Each tag becomes a filterable `/blog/tag/<tag>/` page and must match `^[A-Za-z0-9-]+$`; an unsafe tag fails the build.
+- `lastUpdated` — shown as "Updated ..." beside the date.
+
 The blog supports MDX content and the local MDX components wired through `src/lib/posts.ts`.
 
 To cite a publication inline, use its BibTeX key: `[@li2024deep]`, or `[@li2024deep; @li2023neural]` for several. These render as numbered superscripts with a reference list at the end of the post. A key that is not in `content/references.bib` fails the build, so citations cannot go dead silently. Citations work in blog posts only, not in project `.mdx` files.
+
+Several post features are automatic:
+
+- Start sections at `##` (the page renders the title as the only `<h1>`). The build slugs `##`/`###` headings into anchor ids and renders a floating table of contents in the left margin on viewports 1400px and wider, with scrollspy highlighting.
+- Reading time is computed from the body and shown next to the date.
+- Fenced code blocks get a hover copy button.
+- Previous/next links (by date) and related posts (shared tags) are appended automatically as the blog grows.
 
 ## Notes for Static Hosting
 
