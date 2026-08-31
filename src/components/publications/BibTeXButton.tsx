@@ -16,6 +16,7 @@ export function BibTeXButton({ bibtex }: BibTeXButtonProps) {
   useEffect(() => {
     if (!open) return;
 
+    const trigger = triggerRef.current;
     const dialog = dialogRef.current;
     if (!dialog) return;
 
@@ -55,7 +56,7 @@ export function BibTeXButton({ bibtex }: BibTeXButtonProps) {
     document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      triggerRef.current?.focus();
+      trigger?.focus();
     };
   }, [open]);
 
