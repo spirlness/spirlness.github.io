@@ -2,6 +2,7 @@ import React from 'react';
 import type { MDXComponents } from 'mdx/types';
 import { SideNote } from './SideNote';
 import { MathBlock } from './MathBlock';
+import { CodeBlock } from './CodeBlock';
 // 交互式组件经由 LazyInteractive 的客户端边界导入，本文件保持为服务端组件
 import { SimulationContainer, PhysicsDemo } from '../interactive/LazyInteractive';
 import { isExternalHref, isSafeHref } from '@/lib/links';
@@ -76,7 +77,7 @@ export const mdxComponents: MDXComponents = {
     );
   },
   pre: ({ className, ...props }) => (
-    <pre
+    <CodeBlock
       className={`bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-8 font-mono text-sm ${className ?? ''}`}
       {...props}
     />

@@ -2,6 +2,11 @@ import { describe, it, expect } from "vitest";
 import {
   getAllPostFrontmatter,
   getPostFrontmatter,
+  getAllTags,
+  getPostsByTag,
+  getAdjacentPosts,
+  getRelatedPosts,
+  readingTime,
   postHref,
   processCitations,
 } from "../posts";
@@ -69,5 +74,65 @@ describe("getPostFrontmatter", () => {
 
   it("throws on an unsafe slug", () => {
     expect(() => getPostFrontmatter("../etc/passwd")).toThrow();
+  });
+});
+
+describe("tags", () => {
+  it("every post's tags are URL-safe", () => {
+    for (const post of getAllPostFrontmatter()) {
+      for (const tag of post.tags) {
+        expect(tag).toMatch(/^[A-Za-z0-9-]+$/);
+      }
+    }
+  });
+
+  it("getAllTags returns the real post tags with counts", () => {
+    const tags = getAllTags();
+    expect(tags.length).toBeGreaterThan(0);
+    const total = tags.reduce((sum, t) => sum + t.count, 0);
+    const tagCount = getAllPostFrontmatter().reduce(
+      (sum, p) => sum + p.tags.length,
+      0
+    );
+    expect(total).toBe(tagCount);
+  });
+
+  it("getPostsByTag returns exactly the posts carrying the tag", () => {
+    const posts = getAllPostFrontmatter();
+    const someTag = posts[0].tags[0];
+    const hits = getPostsByTag(someTag);
+    expect(hits.length).toBeGreaterThan(0);
+    for (const hit of hits) {
+      expect(hit.tags).toContain(someTag);
+    }
+  });
+});
+
+describe("adjacent and related", () => {
+  it("a lone post has no neighbours and no related posts", () => {
+    const posts = getAllPostFrontmatter();
+    if (posts.length === 1) {
+      const { newer, older } = getAdjacentPosts(posts[0].slug);
+      expect(newer).toBeUndefined();
+      expect(older).toBeUndefined();
+      expect(getRelatedPosts(posts[0].slug)).toEqual([]);
+    }
+  });
+
+  it("adjacent posts link by chronological order", () => {
+    const posts = getAllPostFrontmatter();
+    for (let i = 1; i < posts.length - 1; i++) {
+      const { newer, older } = getAdjacentPosts(posts[i].slug);
+      expect(newer?.slug).toBe(posts[i - 1].slug);
+      expect(older?.slug).toBe(posts[i + 1].slug);
+    }
+  });
+});
+
+describe("readingTime", () => {
+  it("returns at least 1 minute and strips code fences", () => {
+    expect(readingTime("hello world")).toBe(1);
+    expect(readingTime("```\nnoise words here\n```")).toBe(1);
+    expect(readingTime("word ".repeat(400))).toBe(2);
   });
 });
