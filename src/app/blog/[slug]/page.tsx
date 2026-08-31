@@ -4,6 +4,7 @@ import { siteProfile } from "@/content/site";
 import { notFound } from "next/navigation";
 import { References } from "@/components/mdx/References";
 import { articleProse } from "@/components/mdx/MDXComponents";
+import { JsonLd } from "@/components/meta/JsonLd";
 
 interface PostPageProps {
   params: Promise<{
@@ -29,7 +30,24 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
   const { slug } = await params;
   try {
     const frontmatter = getPostFrontmatter(slug);
-    return { title: frontmatter.title };
+    return {
+      title: frontmatter.title,
+      description: frontmatter.excerpt,
+      openGraph: {
+        type: "article",
+        title: frontmatter.title,
+        description: frontmatter.excerpt,
+        url: `${siteProfile.url}/blog/${slug}/`,
+        publishedTime: frontmatter.date,
+        authors: [siteProfile.name],
+        images: [`${siteProfile.url}/opengraph-image.png`],
+      },
+      twitter: {
+        title: frontmatter.title,
+        description: frontmatter.excerpt,
+        images: [`${siteProfile.url}/opengraph-image.png`],
+      },
+    };
   } catch {
     return { title: siteProfile.title };
   }
@@ -54,6 +72,21 @@ export default async function PostPage({ params }: PostPageProps) {
 
   return (
     <article className="py-16">
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            headline: frontmatter.title,
+            description: frontmatter.excerpt,
+            datePublished: frontmatter.date,
+            url: `${siteProfile.url}/blog/${slug}/`,
+            author: { "@type": "Person", name: siteProfile.name },
+            mainEntityOfPage: {
+              "@type": "WebPage",
+              "@id": `${siteProfile.url}/blog/${slug}/`,
+            },
+          }}
+        />
         <header className="distill-grid mb-16">
           <div />
           <div>

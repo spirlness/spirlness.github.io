@@ -79,6 +79,10 @@ jobs:
             "out/blog/index.html"
             "out/projects/index.html"
             "out/publications/index.html"
+            "out/sitemap.xml"
+            "out/robots.txt"
+            "out/feed.xml"
+            "out/opengraph-image.png"
           )
 
           for file in "${required_files[@]}"; do

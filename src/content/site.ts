@@ -3,6 +3,7 @@ export const siteProfile = {
   navTitle: "LI FUYING",
   title: "Li Fuying",
   description: "Personal academic website for Li Fuying",
+  url: "https://spirlness.github.io",
   authorInitial: "L",
   authorRole: "Physics & Deep Learning Researcher",
   heroTitle: ["Physics, Intelligence,", "& Complexity."],
