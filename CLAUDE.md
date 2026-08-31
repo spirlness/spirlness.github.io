@@ -89,5 +89,3 @@ The Distill layout is `.distill-grid`: `grid-template-columns: 1fr min(800px, 10
 ## Deployment
 
 Pushing to `master` runs `.github/workflows/deploy.yml`: `npm ci` → lint → test → build → verify required pages and metadata files (`sitemap.xml`, `robots.txt`, `feed.xml`, `opengraph-image.png` included) plus every per-post and per-project export → upload `out/` as a Pages artifact → deploy. Lint *or* test failures block the deploy, so run `npm run lint && npm test && npm run build` before pushing. Pages source must stay set to "GitHub Actions" in repo settings.
-
-`docs/superpowers/` holds the original (Chinese) design spec and refactor plan. Treat them as intent rather than as a description of the current code — but note that the projects gallery and inline `[@citation]` support they describe **have since been built**. Check anything else they mention against the tree instead of assuming it is still unbuilt.
