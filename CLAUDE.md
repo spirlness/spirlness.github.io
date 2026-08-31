@@ -19,7 +19,7 @@ npm run start     # serves out/ via `serve` — NOT a Next server
 
 `npm run start` only works after `npm run build`. Because `output: "export"` produces no server, `serve out` is the only way to preview the real deployed artifact; use it to verify blog routes and internal links before pushing.
 
-Tests are Vitest, living in `src/lib/__tests__/`. They cover the pure content-layer helpers (`bibtex`, `content-id`, `links`, `posts`) — not components, not rendering. There is no DOM environment configured (`vitest.config.ts` sets only an `@` alias and `include`), so a test that needs a browser API will fail; keep new tests on the `src/lib/` side or add an environment first.
+Tests are Vitest, living in `src/lib/__tests__/`. They cover the pure content-layer helpers (`bibtex`, `content-id`, `links`, `posts`, `projects`, `updates`) — not components, not rendering. There is no DOM environment configured (`vitest.config.ts` sets only an `@` alias and `include`), so a test that needs a browser API will fail; keep new tests on the `src/lib/` side or add an environment first.
 
 The unit tests do not cover the exported artifact. That is CI's "Verify static export" step, which you can reproduce locally after a build:
 
@@ -33,7 +33,7 @@ for f in content/projects/*.json; do id=$(node -p "require('./$f').id"); base=$(
 
 `next.config.ts` sets `output: "export"`, `trailingSlash: true`, `images.unoptimized`. Everything resolves at build time — no request-dependent route handlers, ISR, server actions, or runtime data fetching. (A GET-only Route Handler that returns a static response *is* allowed under `output: "export"` — `src/app/feed.xml/route.ts` is one. Note also that Next 16 renamed `middleware.ts` to `proxy.ts`.) Consequences that bite:
 
-- **Dynamic routes need `generateStaticParams`.** `src/app/blog/[slug]/page.tsx` derives it from `getAllPosts()`; `src/app/projects/[id]/page.tsx` from `getAllProjects()`. Both also set `export const dynamicParams = false`, so an unlisted slug 404s instead of attempting a dynamic render that `output: "export"` cannot serve.
+- **Dynamic routes need `generateStaticParams`.** `src/app/blog/[slug]/page.tsx` derives it from `getAllPosts()`; `src/app/projects/[id]/page.tsx` from `getAllProjects()`; `src/app/blog/tag/[tag]/page.tsx` from `getAllTags()`. All set `export const dynamicParams = false`, so an unlisted slug 404s instead of attempting a dynamic render that `output: "export"` cannot serve.
 - **Trailing slashes are load-bearing.** Pages emit as `out/<route>/index.html`; a link without the trailing slash relies on the host to 301-redirect to the directory form — GitHub Pages and `serve` do this, but a strict static host 404s, so links must always be normalized. Route URLs must go through `postHref()` in `src/lib/posts.ts` or `projectHref()` in `src/lib/projects.ts` rather than being hand-built.
 - **Internal navigation uses plain `<a>`, not `next/link`** — a deliberate choice for static-hosting reliability. `src/components/layout/Navbar.tsx` and `src/app/projects/[id]/page.tsx` carry `/* eslint-disable @next/next/no-html-link-for-pages */` for this. Keep it unless you re-verify the exported site.
 - **Blog slugs and project ids must match `^[A-Za-z0-9-]+$`** — `assertSafeContentSlug()` enforces it at build time and CI hard-fails on violations independently (`.github/workflows/deploy.yml`).
@@ -44,13 +44,13 @@ Content lives outside `src/` and is read from disk at build time via `fs` + `pro
 
 | Source | Reader | Consumer |
 |---|---|---|
-| `content/posts/*.mdx` | `src/lib/posts.ts` | `/blog`, `/blog/[slug]` |
+| `content/posts/*.mdx` | `src/lib/posts.ts` | `/blog`, `/blog/[slug]`, `/blog/tag/[tag]` |
 | `content/projects/*.json` (+ optional same-name `.mdx`) | `src/lib/projects.ts` | `/projects`, `/projects/[id]` |
 | `content/updates/*.json` | `src/lib/updates.ts` | `/` |
 | `content/references.bib` | `src/lib/bibtex.ts` (via `@retorquere/bibtex-parser`) | `/publications`, post citations |
 | `src/content/site.ts` | direct import | every page |
 
-**`src/content/site.ts`** is the single `siteProfile as const` holding site copy, nav, contact links, and publication display settings. Prefer editing it over hardcoding text in components. Homepage updates are *not* here — they live in `content/updates/*.json`. One coupling point:
+**`src/content/site.ts`** is the single `siteProfile as const` holding site copy, nav, contact links, the absolute site origin (`url` — feeds `metadataBase`, the sitemap, the feed, and all JSON-LD), and publication display settings. Prefer editing it over hardcoding text in components. Homepage updates are *not* here — they live in `content/updates/*.json`. One coupling point:
 
 - `publicationAuthorNames` drives author bolding on `/publications`. Matching runs through `normalizeAuthor()` in that page, which strips BibTeX braces and rewrites `"Li, Fuying"` to `"Fuying Li"`, so list any spelling variant in whichever form is convenient.
 
@@ -79,7 +79,7 @@ Content lives outside `src/` and is read from disk at build time via `fs` + `pro
 
 Tailwind v4, CSS-first — no `tailwind.config.js`; the only loaded plugin is `@tailwindcss/typography` (via `@plugin "@tailwindcss/typography"` in `src/app/globals.css`, feeding the `prose` styling described in the MDX section). Tokens live in the `@theme` block of `src/app/globals.css`; the accent `#d86b4a` is exposed as `text-accent`/`border-accent`. The only custom classes that exist are `.distill-grid` and `.katex-display` (plus the prose resets in the same file) — any other bespoke class name in the JSX is a no-op. Fonts are `next/font/google` handles in `src/lib/fonts.ts`, wired to `--font-inter` / `--font-serif` / `--font-display` on `<html>`.
 
-The Distill layout is `.distill-grid`: `grid-template-columns: 1fr min(800px, 100%) 1fr`. Pages render an empty `<div />` in columns 1 and 3 and real content in column 2 — those empty divs are structural, not cruft.
+The Distill layout is `.distill-grid`: `grid-template-columns: 1fr min(800px, 100%) 1fr`. Pages render an empty `<div />` in columns 1 and 3 and real content in column 2 — those empty divs are structural, not cruft. The one current exception: `/blog/[slug]` renders its `TableOfContents` inside the column-1 div (hidden below `min-[1400px]`).
 
 `SideNote` needs two things understood before touching it:
 
@@ -88,6 +88,6 @@ The Distill layout is `.distill-grid`: `grid-template-columns: 1fr min(800px, 10
 
 ## Deployment
 
-Pushing to `master` runs `.github/workflows/deploy.yml`: `npm ci` → lint → test → build → verify required pages plus every per-post and per-project export → upload `out/` as a Pages artifact → deploy. Lint *or* test failures block the deploy, so run `npm run lint && npm test && npm run build` before pushing. Pages source must stay set to "GitHub Actions" in repo settings.
+Pushing to `master` runs `.github/workflows/deploy.yml`: `npm ci` → lint → test → build → verify required pages and metadata files (`sitemap.xml`, `robots.txt`, `feed.xml`, `opengraph-image.png` included) plus every per-post and per-project export → upload `out/` as a Pages artifact → deploy. Lint *or* test failures block the deploy, so run `npm run lint && npm test && npm run build` before pushing. Pages source must stay set to "GitHub Actions" in repo settings.
 
 `docs/superpowers/` holds the original (Chinese) design spec and refactor plan. Treat them as intent rather than as a description of the current code — but note that the projects gallery and inline `[@citation]` support they describe **have since been built**. Check anything else they mention against the tree instead of assuming it is still unbuilt.
