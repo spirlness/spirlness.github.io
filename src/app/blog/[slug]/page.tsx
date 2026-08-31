@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
-import { getPostBySlug, getAllPosts, getPostFrontmatter } from "@/lib/posts";
+import {
+  getPostBySlug,
+  getAllPosts,
+  getPostFrontmatter,
+  getAdjacentPosts,
+  getRelatedPosts,
+  postHref,
+} from "@/lib/posts";
 import { siteProfile } from "@/content/site";
 import { notFound } from "next/navigation";
 import { References } from "@/components/mdx/References";
 import { articleProse } from "@/components/mdx/MDXComponents";
+import { TableOfContents } from "@/components/mdx/TableOfContents";
 import { JsonLd } from "@/components/meta/JsonLd";
 
 interface PostPageProps {
@@ -68,7 +76,9 @@ export default async function PostPage({ params }: PostPageProps) {
     notFound();
   }
 
-  const { content, frontmatter, references } = post;
+  const { content, frontmatter, references, headings, readingMinutes } = post;
+  const { newer, older } = getAdjacentPosts(slug);
+  const related = getRelatedPosts(slug, 2);
 
   return (
     <article className="py-10 sm:py-16">
@@ -90,10 +100,30 @@ export default async function PostPage({ params }: PostPageProps) {
         <header className="distill-grid mb-10 sm:mb-16">
           <div />
           <div>
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex flex-wrap items-center gap-4 mb-6">
               <time className="font-mono text-sm text-gray-400">{frontmatter.date}</time>
+              {frontmatter.lastUpdated && (
+                <time className="font-mono text-sm text-gray-400">
+                  Updated {frontmatter.lastUpdated}
+                </time>
+              )}
+              <span className="w-1 h-1 rounded-full bg-gray-200" />
+              <span className="text-sm text-gray-400">{readingMinutes} min read</span>
               <span className="w-1 h-1 rounded-full bg-gray-200" />
               <span className="font-display text-xs font-bold tracking-widest text-accent uppercase">Article</span>
+              {frontmatter.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 ml-1">
+                  {frontmatter.tags.map((tag) => (
+                    <a
+                      key={tag}
+                      href={`/blog/tag/${tag}/`}
+                      className="text-xs font-mono px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 hover:text-accent hover:bg-orange-50 transition-colors"
+                    >
+                      #{tag}
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
             <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-gray-900 leading-tight">
               {frontmatter.title}
@@ -103,7 +133,7 @@ export default async function PostPage({ params }: PostPageProps) {
         </header>
 
         <div className="distill-grid">
-          <div />
+          <div>{headings.length > 0 && <TableOfContents headings={headings} />}</div>
           <div className={`relative ${articleProse}`}>
             {content}
             {references.length > 0 && <References references={references} />}
@@ -113,7 +143,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
         <footer className="distill-grid mt-16 sm:mt-24">
           <div />
-          <div className="border-t border-gray-100 pt-8 sm:pt-12 flex justify-between items-center">
+          <div className="border-t border-gray-100 pt-8 sm:pt-12 space-y-10">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center font-display font-bold text-orange-600">
                 {siteProfile.authorInitial}
@@ -123,6 +153,60 @@ export default async function PostPage({ params }: PostPageProps) {
                 <p className="text-sm text-gray-500">{siteProfile.authorRole}</p>
               </div>
             </div>
+
+            {(newer || older) && (
+              <div className="flex justify-between gap-6 border-t border-gray-100 pt-6 text-sm">
+                {older ? (
+                  <a href={postHref(older.slug)} className="group max-w-[45%]">
+                    <span className="block text-xs font-display font-bold tracking-widest text-gray-400 uppercase mb-1">
+                      Older
+                    </span>
+                    <span className="font-medium text-gray-700 group-hover:text-accent transition-colors">
+                      {older.title}
+                    </span>
+                  </a>
+                ) : (
+                  <span />
+                )}
+                {newer ? (
+                  <a href={postHref(newer.slug)} className="group text-right max-w-[45%]">
+                    <span className="block text-xs font-display font-bold tracking-widest text-gray-400 uppercase mb-1">
+                      Newer
+                    </span>
+                    <span className="font-medium text-gray-700 group-hover:text-accent transition-colors">
+                      {newer.title}
+                    </span>
+                  </a>
+                ) : (
+                  <span />
+                )}
+              </div>
+            )}
+
+            {related.length > 0 && (
+              <div className="border-t border-gray-100 pt-6">
+                <p className="text-xs font-display font-bold tracking-widest text-gray-400 uppercase mb-4">
+                  Related
+                </p>
+                <ul className="space-y-3">
+                  {related.map((post) => (
+                    <li key={post.slug}>
+                      <a
+                        href={postHref(post.slug)}
+                        className="group inline-flex flex-col gap-0.5"
+                      >
+                        <span className="font-medium text-gray-700 group-hover:text-accent transition-colors">
+                          {post.title}
+                        </span>
+                        <span className="text-sm text-gray-400 font-mono">
+                          {post.date}
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
           <div />
         </footer>
