@@ -46,6 +46,15 @@ npm run build
 
 `npm run build` creates the static export in `out/`.
 
+Page-level browser tests run against the production static export. Install the Chromium browser once after `npm ci`, then run:
+
+```bash
+npx playwright install chromium
+npm run test:e2e
+```
+
+`npm run test:e2e` builds `out/`, serves it locally, and checks the core site journeys in desktop and mobile Chromium. Failures save screenshots and retry traces in `playwright-report/` and `test-results/`.
+
 Preview the built static site locally (the `output: "export"` app has no server, so use `serve`):
 
 ```bash
@@ -66,7 +75,7 @@ Deployment behavior:
 - The workflow installs dependencies with `npm ci`.
 - It runs ESLint.
 - It runs the Vitest suite with `npm test`.
-- It builds the static export with `next build`.
+- It installs Chromium and runs the Playwright page suite, which builds and serves the static export.
 - It verifies that these required pages and files exist:
   - `out/index.html`
   - `out/blog/index.html`
@@ -114,7 +123,7 @@ The homepage timeline is **not** in `site.ts`. Add one JSON file per entry under
 
 `date` must be `"YYYY-MM"`. `link` is optional. `icon` must be one of `award`, `book`, `graduation`, `project`, `publication`, `blog` — a new name also has to be added to `src/lib/updates.ts` and to the `updateIcons` map in `src/app/page.tsx`.
 
-An entry with a missing field or an unknown icon is skipped with a warning rather than failing the build, so check the build log if something does not show up on the homepage.
+Malformed or invalid update JSON—including missing fields, invalid dates, unknown icons, or invalid links—fails the build with an error, so fix the reported file before deploying.
 
 ### Projects
 

@@ -68,8 +68,22 @@ jobs:
       - name: Test
         run: ${{ steps.detect-package-manager.outputs.manager }} run test
 
-      - name: Build with Next.js
-        run: ${{ steps.detect-package-manager.outputs.manager }} run build
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run page tests
+        run: ${{ steps.detect-package-manager.outputs.manager }} run test:e2e
+
+      - name: Upload Playwright failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-failure-${{ github.run_id }}
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Verify static export
         shell: bash
