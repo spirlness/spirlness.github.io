@@ -58,6 +58,10 @@ test.describe("academic site pages", () => {
     );
     await expect(page.getByText(/\d+ min read/)).toBeVisible();
     await expect(page.getByRole("heading", { level: 2, name: "References" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "[1]", exact: true }).first()).toHaveAttribute(
+      "href",
+      "#ref-1"
+    );
     await expectNoHorizontalOverflow(page);
 
     const toc = page.getByRole("navigation", { name: "Table of contents" });
@@ -71,9 +75,11 @@ test.describe("academic site pages", () => {
     } else {
       await expect(toc).toBeHidden();
       await expect(noteButton).toBeVisible();
+      await expect(noteButton).toHaveAttribute("aria-expanded", "false");
       const inlineNote = noteButton.locator("xpath=..");
       await expect(inlineNote.getByText(/Algorithmic Resilience is defined here/)).toBeHidden();
       await noteButton.click();
+      await expect(noteButton).toHaveAttribute("aria-expanded", "true");
       await expect(inlineNote.getByText(/Algorithmic Resilience is defined here/)).toBeVisible();
     }
   });
@@ -109,6 +115,7 @@ test.describe("academic site pages", () => {
     await bibtexButton.click();
     const dialog = page.getByRole("dialog", { name: "BibTeX" });
     await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveAttribute("aria-describedby");
     await expect(dialog.locator("pre")).toContainText("@article{li2024deep");
     const closeButton = dialog.getByRole("button", { name: "Close", exact: true });
     await expect(closeButton).toBeFocused();

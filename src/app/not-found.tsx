@@ -1,6 +1,6 @@
-/* eslint-disable @next/next/no-html-link-for-pages */
 import type { Metadata } from "next";
 import { siteProfile } from "@/content/site";
+import { SmartLink } from "@/components/ui/SmartLink";
 
 export const metadata: Metadata = {
   title: "Not found",
@@ -20,12 +20,12 @@ export default function NotFound() {
         <p className="text-gray-600 mb-8 leading-relaxed">
           The page you requested is not part of this static site.
         </p>
-        <a
+        <SmartLink
           href="/"
           className="inline-flex text-sm font-display font-medium text-accent underline underline-offset-4"
         >
           Back to {siteProfile.name}
-        </a>
+        </SmartLink>
       </div>
       <div />
     </main>

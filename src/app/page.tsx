@@ -5,6 +5,7 @@ import { getAllUpdates, UpdateIcon } from "@/lib/updates";
 import { isExternalHref, isSafeHref } from "@/lib/links";
 import { JsonLd } from "@/components/meta/JsonLd";
 import { buildPageMetadata } from "@/lib/metadata";
+import { SmartLink } from "@/components/ui/SmartLink";
 
 const updateIcons: Record<UpdateIcon, React.ReactNode> = {
   award: <Award className="w-4 h-4 text-orange-500" />,
@@ -93,7 +94,7 @@ export default function Home() {
                     {update.date}
                   </span>
                   {isSafeHref(update.link) ? (
-                    <a
+                    <SmartLink
                       href={update.link}
                       {...(isExternalHref(update.link)
                         ? { target: "_blank", rel: "noopener noreferrer" }
@@ -104,7 +105,7 @@ export default function Home() {
                       {isExternalHref(update.link) && (
                         <ExternalLink className="w-3.5 h-3.5 text-gray-300 group-hover/link:text-accent/70 transition-colors" />
                       )}
-                    </a>
+                    </SmartLink>
                   ) : (
                     <p className="text-lg text-gray-700 leading-snug">
                       {update.content}
@@ -123,15 +124,13 @@ export default function Home() {
           </p>
           <div className="flex flex-wrap gap-6 font-display text-sm font-medium text-gray-500">
             {siteProfile.links.map((link) => (
-              <a
+              <SmartLink
                 key={link.href}
                 href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="hover:text-accent underline underline-offset-4 decoration-gray-200"
               >
                 {link.label}
-              </a>
+              </SmartLink>
             ))}
           </div>
         </section>

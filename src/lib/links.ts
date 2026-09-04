@@ -4,6 +4,18 @@ export function isUsableHref(
   return Boolean(href && href.trim() && !href.trim().startsWith("#"));
 }
 
+/** Keep internal page links compatible with trailing-slash static exports. */
+export function normalizeInternalHref(href: string): string {
+  if (!href.startsWith("/") || href.startsWith("//")) return href;
+  const match = /^([^?#]*)(.*)$/.exec(href);
+  const pathname = match?.[1] ?? href;
+  const suffix = match?.[2] ?? "";
+  if (pathname === "/" || pathname.endsWith("/") || /\/[^/]+\.[^/]+$/.test(pathname)) {
+    return href;
+  }
+  return `${pathname}/${suffix}`;
+}
+
 /** True for absolute http(s) URLs (and protocol-relative `//…`). */
 export function isExternalHref(href: string): boolean {
   return /^(https?:)?\/\//i.test(href.trim());

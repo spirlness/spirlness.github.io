@@ -14,6 +14,8 @@ import { articleProse } from "@/components/mdx/MDXComponents";
 import { TableOfContents } from "@/components/mdx/TableOfContents";
 import { JsonLd } from "@/components/meta/JsonLd";
 import { buildPageMetadata } from "@/lib/metadata";
+import { SmartLink } from "@/components/ui/SmartLink";
+import { Tag } from "@/components/ui/Tag";
 
 interface PostPageProps {
   params: Promise<{
@@ -105,13 +107,13 @@ export default async function PostPage({ params }: PostPageProps) {
               {frontmatter.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 ml-1">
                   {frontmatter.tags.map((tag) => (
-                    <a
+                    <Tag
                       key={tag}
                       href={`/blog/tag/${tag}/`}
-                      className="text-xs font-mono px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 hover:text-accent hover:bg-orange-50 transition-colors"
+                      variant="filter"
                     >
                       #{tag}
-                    </a>
+                    </Tag>
                   ))}
                 </div>
               )}
@@ -148,26 +150,26 @@ export default async function PostPage({ params }: PostPageProps) {
             {(newer || older) && (
               <div className="flex justify-between gap-6 border-t border-gray-100 pt-6 text-sm">
                 {older ? (
-                  <a href={postHref(older.slug)} className="group max-w-[45%]">
+                  <SmartLink href={postHref(older.slug)} className="group max-w-[45%]">
                     <span className="block text-xs font-display font-bold tracking-widest text-gray-400 uppercase mb-1">
                       Older
                     </span>
                     <span className="font-medium text-gray-700 group-hover:text-accent transition-colors">
                       {older.title}
                     </span>
-                  </a>
+                  </SmartLink>
                 ) : (
                   <span />
                 )}
                 {newer ? (
-                  <a href={postHref(newer.slug)} className="group text-right max-w-[45%]">
+                  <SmartLink href={postHref(newer.slug)} className="group text-right max-w-[45%]">
                     <span className="block text-xs font-display font-bold tracking-widest text-gray-400 uppercase mb-1">
                       Newer
                     </span>
                     <span className="font-medium text-gray-700 group-hover:text-accent transition-colors">
                       {newer.title}
                     </span>
-                  </a>
+                  </SmartLink>
                 ) : (
                   <span />
                 )}
@@ -182,7 +184,7 @@ export default async function PostPage({ params }: PostPageProps) {
                 <ul className="space-y-3">
                   {related.map((post) => (
                     <li key={post.slug}>
-                      <a
+                      <SmartLink
                         href={postHref(post.slug)}
                         className="group inline-flex flex-col gap-0.5"
                       >
@@ -192,7 +194,7 @@ export default async function PostPage({ params }: PostPageProps) {
                         <span className="text-sm text-gray-400 font-mono">
                           {post.date}
                         </span>
-                      </a>
+                      </SmartLink>
                     </li>
                   ))}
                 </ul>

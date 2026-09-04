@@ -65,6 +65,9 @@ jobs:
       - name: Lint
         run: ${{ steps.detect-package-manager.outputs.manager }} run lint
 
+      - name: Validate content
+        run: ${{ steps.detect-package-manager.outputs.manager }} run content:check
+
       - name: Test
         run: ${{ steps.detect-package-manager.outputs.manager }} run test
 

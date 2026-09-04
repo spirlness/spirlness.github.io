@@ -1,5 +1,22 @@
 import { describe, it, expect } from "vitest";
-import { isExternalHref, isSafeHttpUrl, isUsableHref } from "../links";
+import {
+  isExternalHref,
+  isSafeHttpUrl,
+  isUsableHref,
+  normalizeInternalHref,
+} from "../links";
+
+describe("normalizeInternalHref", () => {
+  it("adds a trailing slash to page routes without changing files or anchors", () => {
+    expect(normalizeInternalHref("/projects")).toBe("/projects/");
+    expect(normalizeInternalHref("/projects?view=all")).toBe("/projects/?view=all");
+    expect(normalizeInternalHref("/feed.xml")).toBe("/feed.xml");
+    expect(normalizeInternalHref("#references")).toBe("#references");
+    expect(normalizeInternalHref("https://example.com/path")).toBe(
+      "https://example.com/path"
+    );
+  });
+});
 
 describe("isUsableHref", () => {
   it("accepts real URLs", () => {

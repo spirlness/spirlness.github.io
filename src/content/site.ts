@@ -1,4 +1,6 @@
-export const siteProfile = {
+import { parseSiteProfile } from "@/lib/content-schemas";
+
+export const siteProfile = parseSiteProfile({
   name: "Li Fuying",
   navTitle: "LI FUYING",
   title: "Li Fuying",
@@ -49,4 +51,4 @@ export const siteProfile = {
         "Surrogate models and operators for PDEs that embed Hamiltonian and geometric structure for sample-efficient generalization.",
     },
   ],
-} as const;
+});

@@ -1,55 +1,13 @@
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
-import { compileMDX } from "next-mdx-remote/rsc";
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
-import rehypePrettyCode from "rehype-pretty-code";
-import { mdxComponents } from "@/components/mdx/MDXComponents";
 import { assertSafeContentSlug } from "./content-id";
+import { parseProject, type ProjectFrontmatter } from "./content-schemas";
+import { compileContent } from "./mdx";
+
+export type { ProjectFrontmatter } from "./content-schemas";
 
 const PROJECTS_PATH = path.join(process.cwd(), "content/projects");
-
-export interface ProjectFrontmatter {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  lastModified?: string;
-  thumbnail: string;
-  mediaType?: "image" | "video";
-  links?: {
-    project?: string;
-    code?: string;
-    paper?: string;
-    demo?: string;
-  };
-  tags?: string[];
-}
-
-/** Validate the optional sitemap modification date without inventing a day. */
-export function normalizeProjectLastModified(
-  value: unknown,
-  projectId: string
-): string | undefined {
-  if (value === undefined) return undefined;
-  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    throw new Error(
-      `Project "${projectId}" lastModified must use YYYY-MM-DD when provided`
-    );
-  }
-
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(Date.UTC(year, month - 1, day));
-  if (
-    date.getUTCFullYear() !== year ||
-    date.getUTCMonth() !== month - 1 ||
-    date.getUTCDate() !== day
-  ) {
-    throw new Error(`Project "${projectId}" lastModified must be a valid calendar date`);
-  }
-  return value;
-}
 
 /**
  * Build a normalized, trailing-slash href for a project. Matches the rule in
@@ -76,19 +34,7 @@ export function getAllProjects(): ProjectFrontmatter[] {
     );
     const jsonPath = path.join(PROJECTS_PATH, file);
     const raw = fs.readFileSync(jsonPath, "utf8");
-    const parsed: ProjectFrontmatter = JSON.parse(raw);
-
-    if (typeof parsed.id !== "string" || parsed.id !== filenameId) {
-      throw new Error(
-        `Project id "${String(parsed.id)}" must equal filename "${filenameId}" (file: ${file}). ` +
-          `getProjectDetailById reads content/projects/<id>.json; a mismatch exports a silent 404.`
-      );
-    }
-
-    projects.push({
-      ...parsed,
-      lastModified: normalizeProjectLastModified(parsed.lastModified, filenameId),
-    });
+    projects.push(parseProject(JSON.parse(raw) as unknown, filenameId, file));
   }
 
   return projects.sort(
@@ -103,16 +49,7 @@ export function getProjectById(id: string): ProjectFrontmatter {
     throw new Error(`Project not found: ${id}`);
   }
   const raw = fs.readFileSync(jsonPath, "utf8");
-  const parsed: ProjectFrontmatter = JSON.parse(raw);
-  if (parsed.id !== cleanId) {
-    throw new Error(
-      `Project id "${parsed.id}" must equal filename "${cleanId}"`
-    );
-  }
-  return {
-    ...parsed,
-    lastModified: normalizeProjectLastModified(parsed.lastModified, cleanId),
-  };
+  return parseProject(JSON.parse(raw) as unknown, cleanId, `${cleanId}.json`);
 }
 
 export async function getProjectDetailById(id: string): Promise<{
@@ -131,20 +68,9 @@ export async function getProjectDetailById(id: string): Promise<{
   // do — otherwise markdown treats the opening `---` as a thematic break <hr>.
   const fileContent = fs.readFileSync(mdxPath, "utf8");
   const { content: mdxBody } = matter(fileContent);
-  const { content } = await compileMDX({
+  const { content } = await compileContent({
     source: mdxBody,
-    components: mdxComponents,
-    options: {
-      parseFrontmatter: false,
-      mdxOptions: {
-        remarkPlugins: [remarkMath],
-        rehypePlugins: [
-          rehypeKatex,
-          // keepBackground:false lets the `pre` override keep its own bg-gray-900
-          [rehypePrettyCode, { theme: "github-dark", keepBackground: false }],
-        ],
-      },
-    },
+    slug: cleanId,
   });
 
   return { project, content };

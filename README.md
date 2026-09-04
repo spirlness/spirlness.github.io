@@ -38,11 +38,13 @@ Run quality checks before committing:
 
 ```bash
 npm run lint
+npm run content:check
 npm test
+npm run test:coverage
 npm run build
 ```
 
-`npm test` runs the Vitest suite once (`npm run test:watch` to iterate). It covers the content readers in `src/lib/`, not rendered pages.
+`npm run content:check` validates every content schema, local content link, project asset, citation, and MDX document. `npm test` runs the Vitest suite once (`npm run test:watch` to iterate).
 
 `npm run build` creates the static export in `out/`.
 

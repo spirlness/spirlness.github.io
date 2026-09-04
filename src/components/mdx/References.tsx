@@ -1,6 +1,7 @@
 import { Publication } from "@/lib/bibtex";
 import { FileText, ExternalLink, Code } from "lucide-react";
 import { isSafeHttpUrl } from "@/lib/links";
+import { ActionLink } from "@/components/ui/ActionLink";
 
 interface ReferencesProps {
   references: Publication[];
@@ -42,47 +43,24 @@ export function References({ references }: ReferencesProps) {
                 </p>
                 <div className="flex flex-wrap gap-4 mt-2">
                   {isSafeHttpUrl(pub.pdf) && (
-                    <a
-                      href={pub.pdf}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
-                    >
-                      <FileText className="w-3.5 h-3.5" />
+                    <ActionLink href={pub.pdf} icon={<FileText className="w-3.5 h-3.5" />}>
                       PDF
-                    </a>
+                    </ActionLink>
                   )}
                   {isSafeHttpUrl(pub.url) && (
-                    <a
-                      href={pub.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" />
+                    <ActionLink href={pub.url} icon={<ExternalLink className="w-3.5 h-3.5" />}>
                       Project
-                    </a>
+                    </ActionLink>
                   )}
                   {isSafeHttpUrl(pub.code) && (
-                    <a
-                      href={pub.code}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
-                    >
-                      <Code className="w-3.5 h-3.5" />
+                    <ActionLink href={pub.code} icon={<Code className="w-3.5 h-3.5" />}>
                       Code
-                    </a>
+                    </ActionLink>
                   )}
                   {isSafeHttpUrl(arxivHref) && (
-                    <a
-                      href={arxivHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
-                    >
+                    <ActionLink href={arxivHref}>
                       arXiv
-                    </a>
+                    </ActionLink>
                   )}
                 </div>
               </div>

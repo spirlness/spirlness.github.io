@@ -1,13 +1,14 @@
-/* eslint-disable @next/next/no-html-link-for-pages */
 import type { Metadata } from "next";
 import { getProjectDetailById, getAllProjects } from "@/lib/projects";
 import { notFound } from "next/navigation";
 import { Calendar, ExternalLink, Code, FileText, PlayCircle, ArrowLeft } from "lucide-react";
-import Image from "next/image";
-import { isExternalHref, isSafeHref } from "@/lib/links";
 import { articleProse } from "@/components/mdx/MDXComponents";
 import { siteProfile } from "@/content/site";
 import { buildPageMetadata } from "@/lib/metadata";
+import { ActionLink } from "@/components/ui/ActionLink";
+import { SmartLink } from "@/components/ui/SmartLink";
+import { Tag } from "@/components/ui/Tag";
+import { ProjectMedia } from "@/components/projects/ProjectMedia";
 
 interface ProjectPageProps {
   params: Promise<{
@@ -67,13 +68,13 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   return (
     <article className="py-10 sm:py-16">
       <header className="max-w-4xl mx-auto px-6 lg:px-8 mb-12">
-        <a
+        <SmartLink
           href="/projects/"
           className="inline-flex items-center gap-2 text-sm font-display font-medium text-gray-400 hover:text-accent transition-colors mb-8"
         >
           <ArrowLeft className="w-4 h-4" />
           All Projects
-        </a>
+        </SmartLink>
 
         <div className="flex items-center gap-4 mb-6 text-sm text-gray-400 font-mono">
           <Calendar className="w-4 h-4" />
@@ -83,12 +84,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
               <span className="w-1 h-1 rounded-full bg-gray-200" />
               <div className="flex flex-wrap gap-2">
                 {project.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-xs font-display font-medium text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full"
-                  >
-                    {tag}
-                  </span>
+                  <Tag key={tag}>{tag}</Tag>
                 ))}
               </div>
             </>
@@ -107,25 +103,13 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
       {project.thumbnail && (
         <div className="max-w-5xl mx-auto px-6 lg:px-8 mb-16">
           <div className="relative aspect-video rounded-2xl overflow-hidden bg-gray-900">
-            {project.mediaType === "video" ? (
-              <video
-                src={project.thumbnail}
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <Image
-                src={project.thumbnail}
-                alt={project.title}
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 90vw"
-                priority
-              />
-            )}
+            <ProjectMedia
+              title={project.title}
+              src={project.thumbnail}
+              mediaType={project.mediaType}
+              sizes="(max-width: 1024px) 100vw, 90vw"
+              priority
+            />
           </div>
         </div>
       )}
@@ -142,53 +126,25 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
       <footer className="max-w-3xl mx-auto px-6 lg:px-8 mt-16 pt-12 border-t border-gray-100">
         <div className="flex flex-wrap gap-4">
-          {isSafeHref(project.links?.project) && (
-            <a
-              href={project.links.project}
-              {...(isExternalHref(project.links?.project ?? "")
-                ? { target: "_blank", rel: "noopener noreferrer" }
-                : {})}
-              className="inline-flex items-center gap-2 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
-            >
-              <ExternalLink className="w-4 h-4" />
+          {project.links?.project && (
+            <ActionLink href={project.links.project} icon={<ExternalLink className="w-4 h-4" />}>
               Project Page
-            </a>
+            </ActionLink>
           )}
-          {isSafeHref(project.links?.code) && (
-            <a
-              href={project.links.code}
-              {...(isExternalHref(project.links?.code ?? "")
-                ? { target: "_blank", rel: "noopener noreferrer" }
-                : {})}
-              className="inline-flex items-center gap-2 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
-            >
-              <Code className="w-4 h-4" />
+          {project.links?.code && (
+            <ActionLink href={project.links.code} icon={<Code className="w-4 h-4" />}>
               Code
-            </a>
+            </ActionLink>
           )}
-          {isSafeHref(project.links?.paper) && (
-            <a
-              href={project.links.paper}
-              {...(isExternalHref(project.links?.paper ?? "")
-                ? { target: "_blank", rel: "noopener noreferrer" }
-                : {})}
-              className="inline-flex items-center gap-2 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
-            >
-              <FileText className="w-4 h-4" />
+          {project.links?.paper && (
+            <ActionLink href={project.links.paper} icon={<FileText className="w-4 h-4" />}>
               Paper
-            </a>
+            </ActionLink>
           )}
-          {isSafeHref(project.links?.demo) && (
-            <a
-              href={project.links.demo}
-              {...(isExternalHref(project.links?.demo ?? "")
-                ? { target: "_blank", rel: "noopener noreferrer" }
-                : {})}
-              className="inline-flex items-center gap-2 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
-            >
-              <PlayCircle className="w-4 h-4" />
+          {project.links?.demo && (
+            <ActionLink href={project.links.demo} icon={<PlayCircle className="w-4 h-4" />}>
               Demo
-            </a>
+            </ActionLink>
           )}
         </div>
       </footer>

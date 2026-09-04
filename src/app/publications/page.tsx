@@ -11,6 +11,8 @@ import { isSafeHttpUrl } from "@/lib/links";
 import { BibTeXButton } from "@/components/publications/BibTeXButton";
 import { JsonLd } from "@/components/meta/JsonLd";
 import { buildPageMetadata } from "@/lib/metadata";
+import { ActionLink } from "@/components/ui/ActionLink";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Publications",
@@ -80,48 +82,24 @@ function PublicationItem({ pub }: { pub: Publication }) {
       </div>
       <div className="flex flex-wrap gap-3">
         {isSafeHttpUrl(pub.url) && (
-          <a
-            href={pub.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
-          >
-            <LinkIcon size={14} />
+          <ActionLink href={pub.url} icon={<LinkIcon size={14} />}>
             <span>Project</span>
-          </a>
+          </ActionLink>
         )}
         {isSafeHttpUrl(pub.pdf) && (
-          <a
-            href={pub.pdf}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
-          >
-            <FileText size={14} />
+          <ActionLink href={pub.pdf} icon={<FileText size={14} />}>
             <span>PDF</span>
-          </a>
+          </ActionLink>
         )}
         {isSafeHttpUrl(pub.code) && (
-          <a
-            href={pub.code}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
-          >
-            <Code size={14} />
+          <ActionLink href={pub.code} icon={<Code size={14} />}>
             <span>Code</span>
-          </a>
+          </ActionLink>
         )}
         {isSafeHttpUrl(arxivHref) && (
-          <a
-            href={arxivHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
-          >
-            <ExternalLink size={14} />
+          <ActionLink href={arxivHref} icon={<ExternalLink size={14} />}>
             <span>arXiv</span>
-          </a>
+          </ActionLink>
         )}
         <BibTeXButton bibtex={formatBibtex(pub)} />
       </div>
@@ -163,14 +141,11 @@ export default function PublicationsPage() {
         }}
       />
       <div className="col-start-2 px-6 lg:px-0">
-        <header className="mb-12">
-          <h1 className="text-4xl font-display font-bold text-gray-900 mb-4">
-            Publications
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl">
-            {siteProfile.publicationsIntro}
-          </p>
-        </header>
+        <PageHeader
+          variant="compact"
+          title="Publications"
+          description={siteProfile.publicationsIntro}
+        />
 
         {years.map((year) => (
           <section key={year} className="mb-12 relative">

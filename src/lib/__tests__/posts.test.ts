@@ -6,10 +6,8 @@ import {
   getPostsByTag,
   getAdjacentPosts,
   getRelatedPosts,
-  normalizePostTags,
   readingTime,
   postHref,
-  processCitations,
 } from "../posts";
 
 describe("postHref", () => {
@@ -17,26 +15,6 @@ describe("postHref", () => {
     expect(postHref("my-post")).toBe("/blog/my-post/");
     expect(postHref("/my-post/")).toBe("/blog/my-post/");
     expect(postHref("//my-post//")).toBe("/blog/my-post/");
-  });
-});
-
-describe("processCitations", () => {
-  it("numbers citations by first appearance and links to refs", () => {
-    const { source, references } = processCitations(
-      "See [@li2024deep; @li2023neural] and again [@li2024deep].",
-      "test-post"
-    );
-    expect(references.map((r) => r.id)).toEqual(["li2024deep", "li2023neural"]);
-    expect(source).toContain('href="#ref-1"');
-    expect(source).toContain('href="#ref-2"');
-    expect(source).toContain("[1]");
-    expect(source).toContain("[2]");
-  });
-
-  it("throws on unknown citation keys", () => {
-    expect(() =>
-      processCitations("Broken [@does-not-exist]", "test-post")
-    ).toThrow(/does-not-exist/);
   });
 });
 
@@ -79,22 +57,6 @@ describe("getPostFrontmatter", () => {
 });
 
 describe("tags", () => {
-  it("normalizes whitespace and removes duplicate tags in first-seen order", () => {
-    expect(normalizePostTags([" physics ", "physics", "Physics", "deep-learning"], "test-post")).toEqual([
-      "physics",
-      "Physics",
-      "deep-learning",
-    ]);
-    expect(normalizePostTags("physics, physics, resilience", "test-post")).toEqual([
-      "physics",
-      "resilience",
-    ]);
-  });
-
-  it("rejects unsafe normalized tags", () => {
-    expect(() => normalizePostTags(["not safe"], "test-post")).toThrow(/unsafe tag/);
-  });
-
   it("every post's tags are URL-safe", () => {
     for (const post of getAllPostFrontmatter()) {
       for (const tag of post.tags) {

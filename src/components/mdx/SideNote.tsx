@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
+import * as Collapsible from "@radix-ui/react-collapsible";
+import React from "react";
 
 interface SideNoteProps {
   children: React.ReactNode;
@@ -27,25 +28,28 @@ interface SideNoteProps {
  * 侧注整体消失。
  */
 export const SideNote: React.FC<SideNoteProps> = ({ children, label = "Note" }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
   return (
     <div className="relative">
       {/* Narrow view (incl. most laptops): collapsible inline note */}
-      <div className="min-[1400px]:hidden my-4 border-l-4 border-orange-200 bg-orange-50/30 p-4 rounded-r-md">
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center justify-between w-full text-sm font-medium text-orange-800"
-        >
-          <span>{label}</span>
-          <span className="text-lg leading-none">{isOpen ? '−' : '+'}</span>
-        </button>
-        {isOpen && (
+      <Collapsible.Root className="min-[1400px]:hidden my-4 border-l-4 border-orange-200 bg-orange-50/30 p-4 rounded-r-md group/note">
+        <Collapsible.Trigger asChild>
+          <button
+            type="button"
+            className="flex items-center justify-between w-full text-sm font-medium text-orange-800"
+          >
+            <span>{label}</span>
+            <span aria-hidden className="text-lg leading-none">
+              <span className="group-data-[state=open]/note:hidden">+</span>
+              <span className="hidden group-data-[state=open]/note:inline">−</span>
+            </span>
+          </button>
+        </Collapsible.Trigger>
+        <Collapsible.Content>
           <div className="mt-2 text-sm text-gray-700 leading-relaxed [&_p]:text-sm [&_p]:leading-relaxed [&_p]:mb-3">
             {children}
           </div>
-        )}
-      </div>
+        </Collapsible.Content>
+      </Collapsible.Root>
 
       {/* Wide view: true margin note，对齐紧随其后的块的顶部。
           共享映射的 p 覆盖规则（text-lg/gray-700/mb-6）会渗入侧注，用任意

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
+import { useState } from "react";
 import { Check, Quote } from "lucide-react";
 
 interface BibTeXButtonProps {
@@ -10,55 +11,6 @@ interface BibTeXButtonProps {
 export function BibTeXButton({ bibtex }: BibTeXButtonProps) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const dialogRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const trigger = triggerRef.current;
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-
-    const focusable = () =>
-      Array.from(
-        dialog.querySelectorAll<HTMLButtonElement>(
-          'button:not([disabled])'
-        )
-      );
-
-    const closeButton = focusable()[0];
-    closeButton?.focus();
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        setOpen(false);
-        return;
-      }
-
-      if (event.key !== "Tab") return;
-
-      const elements = focusable();
-      const first = elements[0];
-      const last = elements[elements.length - 1];
-      if (!first || !last) return;
-
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    }
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      trigger?.focus();
-    };
-  }, [open]);
 
   async function copy() {
     try {
@@ -71,62 +23,63 @@ export function BibTeXButton({ bibtex }: BibTeXButtonProps) {
   }
 
   return (
-    <>
-      <button
-        ref={triggerRef}
-        type="button"
-        onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
-      >
-        <Quote size={14} />
-        <span>BibTeX</span>
-      </button>
-
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="bibtex-dialog-title"
-          onClick={() => setOpen(false)}
+    <Dialog.Root
+      open={open}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen);
+        if (!nextOpen) setCopied(false);
+      }}
+    >
+      <Dialog.Trigger asChild>
+        <button
+          type="button"
+          className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
         >
-          <div
-            ref={dialogRef}
-            className="w-full max-w-lg bg-white rounded-xl border border-gray-100 p-6 shadow-none"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 id="bibtex-dialog-title" className="font-display text-lg font-bold text-gray-900">
-                BibTeX
-              </h3>
+          <Quote size={14} />
+          <span>BibTeX</span>
+        </button>
+      </Dialog.Trigger>
+
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40" />
+        <Dialog.Content
+          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl border border-gray-100 p-6 shadow-none"
+        >
+          <Dialog.Description className="sr-only">
+            Copy the BibTeX citation for this publication.
+          </Dialog.Description>
+          <div className="flex items-center justify-between mb-4">
+            <Dialog.Title className="font-display text-lg font-bold text-gray-900">
+              BibTeX
+            </Dialog.Title>
+            <Dialog.Close asChild>
               <button
                 type="button"
-                onClick={() => setOpen(false)}
                 className="text-sm text-gray-400 hover:text-gray-700"
               >
                 Close
               </button>
-            </div>
-            <pre className="bg-gray-900 text-gray-100 text-xs font-mono p-4 rounded-lg overflow-x-auto mb-4 whitespace-pre-wrap">
-              {bibtex}
-            </pre>
-            <button
-              type="button"
-              onClick={copy}
-              className="inline-flex items-center gap-2 text-sm font-medium text-white bg-accent px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
-            >
-              {copied ? (
-                <>
-                  <Check size={14} />
-                  Copied
-                </>
-              ) : (
-                "Copy to clipboard"
-              )}
-            </button>
+            </Dialog.Close>
           </div>
-        </div>
-      )}
-    </>
+          <pre className="bg-gray-900 text-gray-100 text-xs font-mono p-4 rounded-lg overflow-x-auto mb-4 whitespace-pre-wrap">
+            {bibtex}
+          </pre>
+          <button
+            type="button"
+            onClick={copy}
+            className="inline-flex items-center gap-2 text-sm font-medium text-white bg-accent px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
+          >
+            {copied ? (
+              <>
+                <Check size={14} />
+                Copied
+              </>
+            ) : (
+              "Copy to clipboard"
+            )}
+          </button>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

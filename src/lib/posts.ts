@@ -1,17 +1,18 @@
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
-import { compileMDX } from "next-mdx-remote/rsc";
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
-import rehypePrettyCode from "rehype-pretty-code";
-import { mdxComponents } from "@/components/mdx/MDXComponents";
-import { getAllPublications, type Publication } from "./bibtex";
 import { assertSafeContentSlug } from "./content-id";
+import {
+  parsePostFrontmatter,
+  type PostFrontmatter,
+} from "./content-schemas";
+import { compileContent, type TocHeading } from "./mdx";
+import type { Publication } from "./bibtex";
+
+export type { PostFrontmatter } from "./content-schemas";
+export type { TocHeading } from "./mdx";
 
 const POSTS_PATH = path.join(process.cwd(), "content/posts");
-
-const CITATION_REGEX = /\[@([A-Za-z0-9:-]+(?:;\s*@[A-Za-z0-9:-]+)*)\]/g;
 
 /**
  * Rough reading time in minutes: strip fenced code blocks and JSX tags, then
@@ -32,63 +33,6 @@ export function readingTime(source: string): number {
  * The plugin mutates the headings array passed in; compileMDX runs rehype
  * synchronously, so the array is populated when it resolves.
  */
-export function collectHeadingsPlugin(headings: TocHeading[]) {
-  return (tree: {
-    type: string;
-    tagName?: string;
-    properties?: Record<string, unknown>;
-    children?: unknown[];
-  }) => {
-    const seen = new Set<string>();
-
-    function slugify(text: string): string {
-      const base =
-        text
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-+|-+$/g, "") || "section";
-      let id = base;
-      let n = 2;
-      while (seen.has(id)) {
-        id = `${base}-${n++}`;
-      }
-      seen.add(id);
-      return id;
-    }
-
-    function textOf(
-      node: { type: string; value?: string; tagName?: string; children?: unknown[] } | null
-    ): string {
-      if (!node) return "";
-      if (node.type === "text") return node.value ?? "";
-      if (node.type === "element") {
-        return (node.children ?? []).map((c) => textOf(c as never)).join("");
-      }
-      return "";
-    }
-
-    function walk(node: unknown) {
-      if (!node || typeof node !== "object") return;
-      const el = node as {
-        type: string;
-        tagName?: string;
-        properties?: Record<string, unknown>;
-        children?: unknown[];
-      };
-      if (el.type === "element" && (el.tagName === "h2" || el.tagName === "h3")) {
-        const text = textOf(el as never).trim();
-        const id = typeof el.properties?.id === "string" ? el.properties.id : slugify(text);
-        if (el.properties) el.properties.id = id;
-        headings.push({ id, text, level: el.tagName === "h2" ? 2 : 3 });
-        return;
-      }
-      (el.children ?? []).forEach(walk);
-    }
-
-    walk(tree);
-  };
-}
-
 /**
  * Build a normalized, trailing-slash href for a blog post. GitHub Pages serves
  * out/blog/<slug>/index.html at /blog/<slug>/, so the trailing slash must
@@ -99,84 +43,12 @@ export function postHref(slug: string): string {
   return `/blog/${clean}/`;
 }
 
-export interface PostFrontmatter {
-  title: string;
-  date: string;
-  excerpt: string;
-  slug: string;
-  tags: string[];
-  lastUpdated?: string;
-}
-
-export interface TocHeading {
-  id: string;
-  text: string;
-  level: 2 | 3;
-}
-
 export interface Post {
   content: React.ReactNode;
   frontmatter: PostFrontmatter;
   references: Publication[];
   headings: TocHeading[];
   readingMinutes: number;
-}
-
-function parsePostFrontmatter(source: string, slug: string): PostFrontmatter {
-  const { data } = matter(source);
-
-  if (typeof data.title !== "string" || !data.title.trim()) {
-    throw new Error(`Post "${slug}" missing required frontmatter field: title`);
-  }
-  if (typeof data.date !== "string" || !data.date.trim()) {
-    throw new Error(`Post "${slug}" missing required frontmatter field: date`);
-  }
-  if (typeof data.excerpt !== "string" || !data.excerpt.trim()) {
-    throw new Error(`Post "${slug}" missing required frontmatter field: excerpt`);
-  }
-
-  const tags = normalizePostTags(data.tags, slug);
-
-  const lastUpdated =
-    typeof data.lastUpdated === "string" && data.lastUpdated.trim()
-      ? data.lastUpdated.trim()
-      : undefined;
-
-  return {
-    title: data.title.trim(),
-    date: data.date.trim(),
-    excerpt: data.excerpt.trim(),
-    slug,
-    tags,
-    lastUpdated,
-  };
-}
-
-/** Normalize author-supplied tags while preserving first-seen order. */
-export function normalizePostTags(value: unknown, slug: string): string[] {
-  const rawTags =
-    typeof value === "string"
-      ? value.split(",")
-      : Array.isArray(value)
-        ? value
-        : [];
-  const tags: string[] = [];
-  const seen = new Set<string>();
-
-  for (const rawTag of rawTags) {
-    if (typeof rawTag !== "string") continue;
-    const tag = rawTag.trim();
-    if (!tag || seen.has(tag)) continue;
-    if (!/^[A-Za-z0-9-]+$/.test(tag)) {
-      throw new Error(
-        `Post "${slug}" has unsafe tag "${tag}"; use only [A-Za-z0-9-] (it becomes /blog/tag/<tag>/)`
-      );
-    }
-    seen.add(tag);
-    tags.push(tag);
-  }
-
-  return tags;
 }
 
 function compareDatesDescending(a: string, b: string): number {
@@ -195,89 +67,15 @@ function readPostFile(slug: string): { realSlug: string; fileContent: string } {
   return { realSlug, fileContent };
 }
 
-/**
- * Parse `[@key1; @key2]` citations in the MDX source and replace them with inline
- * numbered links that jump to the References block. Unknown keys cause the build
- * to fail so that dead citations do not reach production.
- *
- * The returned `references` array is ordered by first appearance in the text,
- * matching the numeric labels rendered inline.
- */
-export function processCitations(
-  source: string,
-  slug: string
-): { source: string; references: Publication[] } {
-  const publications = getAllPublications();
-  const pubById = new Map(publications.map((pub) => [pub.id, pub]));
-  const references: Publication[] = [];
-
-  function numberForKey(key: string): number {
-    const existing = references.findIndex((p) => p.id === key);
-    if (existing !== -1) return existing + 1;
-
-    const pub = pubById.get(key);
-    if (!pub) {
-      throw new Error(
-        `Citation key "${key}" not found in content/references.bib (post: ${slug})`
-      );
-    }
-
-    references.push(pub);
-    return references.length;
-  }
-
-  const processed = source.replace(CITATION_REGEX, (match, keyList: string) => {
-    const keys = keyList
-      .split(/;\s*/)
-      .map((k: string) => k.replace(/^@/, "").trim())
-      .filter(Boolean);
-
-    if (keys.length === 0) {
-      return match;
-    }
-
-    const numbers = keys.map(numberForKey);
-    const links = numbers
-      .map(
-        (n) =>
-          `<a href="#ref-${n}" className="text-accent font-medium no-underline hover:underline">[${n}]</a>`
-      )
-      .join("");
-    return `<sup className="text-xs ml-0.5">${links}</sup>`;
-  });
-
-  return { source: processed, references };
-}
-
 export async function getPostBySlug(slug: string): Promise<Post> {
   const { fileContent, realSlug } = readPostFile(slug);
-  const { content: mdxBody } = matter(fileContent);
-  const frontmatter = parsePostFrontmatter(fileContent, realSlug);
-
-  const { source: processedContent, references } = processCitations(
-    mdxBody,
-    realSlug
-  );
-
-  const headings: TocHeading[] = [];
-
-  const { content } = await compileMDX({
-    source: processedContent,
-    components: mdxComponents,
-    options: {
-      parseFrontmatter: false,
-      mdxOptions: {
-        remarkPlugins: [remarkMath],
-        rehypePlugins: [
-          rehypeKatex,
-          // keepBackground:false lets the `pre` override keep its own bg-gray-900
-          [rehypePrettyCode, { theme: "github-dark", keepBackground: false }],
-          // Pair form: unified calls collectHeadingsPlugin(headings) and runs
-          // the returned transformer on the tree.
-          [collectHeadingsPlugin, headings],
-        ],
-      },
-    },
+  const { content: mdxBody, data } = matter(fileContent);
+  const frontmatter = parsePostFrontmatter(data, realSlug);
+  const { content, references, headings } = await compileContent({
+    source: mdxBody,
+    slug: realSlug,
+    citations: true,
+    tableOfContents: true,
   });
 
   return {
@@ -291,7 +89,7 @@ export async function getPostBySlug(slug: string): Promise<Post> {
 
 export function getPostFrontmatter(slug: string): PostFrontmatter {
   const { fileContent, realSlug } = readPostFile(slug);
-  return parsePostFrontmatter(fileContent, realSlug);
+  return parsePostFrontmatter(matter(fileContent).data, realSlug);
 }
 
 export function getAllPostFrontmatter(): PostFrontmatter[] {
