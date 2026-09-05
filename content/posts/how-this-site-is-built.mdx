@@ -1,63 +1,63 @@
 ---
-title: "How This Site Is Built"
+title: "这个网站是如何构建的"
 date: "2026-09-05"
-excerpt: "A tour of this site's architecture: a Next.js static export, a files-as-content layer, an MDX pipeline with real BibTeX citations, and a CI pipeline that refuses to ship a broken page."
+excerpt: "本站架构一览:Next.js 静态导出、文件即内容层、带真实 BibTeX 引用的 MDX 管线,以及一条拒绝发布坏页面的 CI 流水线。"
 tags: [web, nextjs, tooling]
 ---
 
-## Why Static
+## 为什么选择静态
 
-This site is a single question answered over and over: what is the simplest thing that can serve an academic homepage reliably? The answer settled on a fully static build — [Next.js](https://nextjs.org) 16 in `output: "export"` mode, deployed to GitHub Pages via Actions. There is no server, no runtime database, no CMS. Every page you can reach was rendered at build time and uploaded as an `index.html`.
+本站在反复回答同一个问题:**什么是最简单、又能稳定支撑一个学术主页的方案?** 最终答案是全静态构建——运行于 `output: "export"` 模式的 [Next.js](https://nextjs.org) 16,通过 GitHub Actions 部署到 GitHub Pages。没有服务器,没有运行时数据库,没有 CMS。你能访问到的每一个页面,都是在构建时渲染完成、以 `index.html` 形式上传的。
 
-The constraint sounds limiting, and in exchange it buys three things: the site cannot go down in any interesting way, every page is fast by construction, and the entire deploy is reproducible from a clean checkout with `npm ci && npm run build`.
+这个约束听起来限制重重,但换来三样东西:站点不存在"宕机"这种故障模式;每个页面天然就是快的;整个部署可以从干净检出用 `npm ci && npm run build` 完整复现。
 
-## Content as Files
+## 内容即文件
 
-Nothing lives in a CMS. Every piece of content is a plain file in the repository, read from disk at build time:
+没有任何内容存放在 CMS 里。每一篇内容都是仓库中的纯文本文件,在构建时从磁盘读入:
 
-| Source | Route |
+| 内容来源 | 对应路由 |
 |---|---|
 | `content/posts/*.mdx` | `/blog/<slug>/` |
-| `content/projects/*.json` + optional `.mdx` | `/projects/<id>/` |
-| `content/updates/*.json` | the homepage timeline |
-| `content/references.bib` | `/publications` and in-post citations |
+| `content/projects/*.json` + 可选同名 `.mdx` | `/projects/<id>/` |
+| `content/updates/*.json` | 首页时间线 |
+| `content/references.bib` | `/publications` 与文内引用 |
 
-The filenames *are* the URLs, which means the URL space is validated before anything ships: slugs must match `^[A-Za-z0-9-]+$`, project ids must equal their filenames, and a dead internal link fails the build rather than silently 40ing.
+文件名*就是* URL,这意味着 URL 空间在上架前就完成了校验:slug 必须匹配 `^[A-Za-z0-9-]+$`,项目 id 必须与文件名一致,失效的站内链接直接构建失败,而不是静默变成 404。
 
 <SideNote>
-The homepage timeline is intentionally separate from blog posts — publishing a post does not automatically announce it. Add an entry under `content/updates/` if it deserves a spot there.
+首页时间线与博客文章刻意分离——发布一篇文章并不会自动上首页公告。若值得在首页出现,需在 `content/updates/` 下另行添加条目。
 </SideNote>
 
-## The MDX Pipeline
+## MDX 管线
 
-Posts are MDX compiled through `next-mdx-remote`: remark-math and rehype-katex render `$...$` and display equations, rehype-pretty-code highlights fenced code blocks with Shiki, and a small custom plugin rewrites `[@bibtexKey]` citations into numbered markers linked to a references section at the end of the post.
+文章是 MDX,经 `next-mdx-remote` 编译:remark-math 与 rehype-katex 渲染 `$...$` 行内及独立公式,rehype-pretty-code 用 Shiki 为代码块着色,还有一个自定义插件将 `[@bibtexKey]` 引用改写为带编号的上标标记,链向文末的参考文献列表。
 
 ```text
-Consider a system governed by [@zhang2023efficient] ...
+考虑一个由 [@zhang2023efficient] 刻画的系统……
                     |
                     v
-Consider a system governed by [2] ...
+考虑一个由 [2] 刻画的系统……
 ```
 
-The citation keys resolve against a real `references.bib` parsed at build time, so the reference list on `/publications` and the citations inside posts come from the same source. An unknown key is a build error, not a rendered placeholder — dead citations cannot reach production.
+引用键在构建时对真实的 `references.bib` 解析,因此 `/publications` 的文献列表与文内引用同出一源。未知的键会触发构建错误,而非渲染出一个占位符——死引用到不了生产环境。
 
-Interactive components — orbit controls, simulations — are wired into the MDX component map and lazily loaded client-side, keeping the three.js payload out of pages that never ask for it.
+交互组件(轨道控制、仿真演示)注册在 MDX 组件映射里,按需在客户端懒加载,three.js 的体积不会进入从未用到它的页面。
 
-## The Layout
+## 版式设计
 
-The typography follows the Distill journal pattern: a centre column capped at 800px, headings in a display face, section rules on `h2`, and margin notes in the gutter on wide viewports. The gutter layout is plain CSS grid — `1fr min(800px, 100%) 1fr` — with the margin notes positioned absolutely against the centre column. Below 1400px viewport width the gutter is too narrow for notes and a table of contents, so they collapse into inline and hidden forms respectively rather than overflowing.
+排版沿用 Distill 期刊的范式:中栏上限 800px,标题用展示字体,`h2` 带章节分隔线,宽视口下栏外空白处放旁注。栏外布局是纯 CSS Grid——`1fr min(800px, 100%) 1fr`——旁注相对中栏绝对定位。视口宽度低于 1400px 时栏外空间放不下旁注和目录,二者分别折叠为行内形式与直接隐藏,而不是任其溢出。
 
-## Verification
+## 验证
 
-The deploy pipeline runs the full gate on every push to `master`: lint, unit tests over the content layer, the production build, then a verification pass over the exported artifact — every required page, every per-post and per-project `index.html`, the sitemap, `robots.txt`, the RSS feed, and the Open Graph card. If any of it is missing, the deploy stops before GitHub Pages ever sees it.
+每次向 `master` 推送,部署流水线都会跑完整的关卡:lint、内容层单元测试、生产构建,再对导出产物做一轮核查——所有必需页面、每篇文章和每个项目的 `index.html`、sitemap、`robots.txt`、RSS 订阅、Open Graph 分享卡。任何一项缺失,部署都会在 GitHub Pages 收到任何东西之前中止。
 
-## Publishing a Post
+## 发布一篇文章
 
-The whole authoring loop is now two commands:
+整个写作-发布闭环如今只剩两条命令:
 
 ```bash
-npm run new-post -- my-post-slug --title "My Post"
-npm run lint && npm test && npm run build   # the CI gates, locally
+npm run new-post -- my-post-slug --title "我的文章"
+npm run lint && npm test && npm run build   # 在本地预演 CI 关卡
 ```
 
-The first scaffolds a validated MDX file in `content/posts/`; the second reproduces exactly what CI will run. Push to `master` and the site deploys itself.
+前者在 `content/posts/` 下生成一份通过校验的 MDX 骨架;后者与 CI 执行的完全一致。推送到 `master`,站点便会自行完成部署。
