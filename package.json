@@ -8,6 +8,7 @@
     "start": "serve out",
     "lint": "eslint",
     "content:check": "vitest run src/lib/__tests__/content-integrity.test.ts",
+    "new-post": "node scripts/new-post.mjs",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
