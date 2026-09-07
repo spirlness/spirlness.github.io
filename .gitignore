@@ -42,5 +42,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# claude code tool directory (worktrees, settings)
-.claude/
+# claude code (local-only artifacts; settings.json, hooks/, agents/, skills/ are committed)
+.claude/settings.local.json
+.claude/worktrees/
