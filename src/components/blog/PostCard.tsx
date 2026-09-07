@@ -1,21 +1,23 @@
-import { postHref, type PostFrontmatter } from "@/lib/posts";
+import type { PostFrontmatter } from "@/lib/posts";
 import { SmartLink } from "@/components/ui/SmartLink";
 import { Tag } from "@/components/ui/Tag";
 
 interface PostCardProps {
   post: PostFrontmatter;
+  href: string;
   showTags?: boolean;
   showReadMore?: boolean;
 }
 
 export function PostCard({
   post,
+  href,
   showTags = false,
   showReadMore = false,
 }: PostCardProps) {
   return (
-    <article key={post.slug} className="group">
-      <SmartLink href={postHref(post.slug)}>
+    <article className="group">
+      <SmartLink href={href}>
         <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-2">
           <h2 className="text-2xl font-bold font-display group-hover:text-accent transition-colors">
             {post.title}

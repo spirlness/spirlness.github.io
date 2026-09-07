@@ -1,6 +1,6 @@
 import { FileText, Code, ExternalLink, Link as LinkIcon } from "lucide-react";
+import type { Publication } from "@/lib/bibtex";
 import { siteProfile } from "@/content/site";
-import { formatBibtex, type Publication } from "@/lib/bibtex";
 import { isSafeHttpUrl } from "@/lib/links";
 import { BibTeXButton } from "@/components/publications/BibTeXButton";
 import { ActionLink } from "@/components/ui/ActionLink";
@@ -48,9 +48,10 @@ function HighlightAuthors({ authors }: { authors: string }) {
 
 interface PublicationItemProps {
   pub: Publication;
+  bibtex: string;
 }
 
-export function PublicationItem({ pub }: PublicationItemProps) {
+export function PublicationItem({ pub, bibtex }: PublicationItemProps) {
   const arxivHref = pub.arxiv
     ? pub.arxiv.startsWith("http")
       ? pub.arxiv
@@ -90,7 +91,7 @@ export function PublicationItem({ pub }: PublicationItemProps) {
             <span>arXiv</span>
           </ActionLink>
         )}
-        <BibTeXButton bibtex={formatBibtex(pub)} />
+        <BibTeXButton bibtex={bibtex} />
       </div>
     </div>
   );

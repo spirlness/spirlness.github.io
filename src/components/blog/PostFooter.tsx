@@ -1,14 +1,19 @@
-import {
-  postHref,
-  type PostFrontmatter,
-} from "@/lib/posts";
 import { siteProfile } from "@/content/site";
 import { SmartLink } from "@/components/ui/SmartLink";
 
+interface PostLink {
+  href: string;
+  title: string;
+}
+
+interface DatedPostLink extends PostLink {
+  date: string;
+}
+
 interface PostFooterProps {
-  newer?: PostFrontmatter;
-  older?: PostFrontmatter;
-  related: PostFrontmatter[];
+  newer?: PostLink;
+  older?: PostLink;
+  related: DatedPostLink[];
 }
 
 export function PostFooter({ newer, older, related }: PostFooterProps) {
@@ -29,7 +34,7 @@ export function PostFooter({ newer, older, related }: PostFooterProps) {
         {(newer || older) && (
           <div className="flex justify-between gap-6 border-t border-gray-100 pt-6 text-sm">
             {older ? (
-              <SmartLink href={postHref(older.slug)} className="group max-w-[45%]">
+              <SmartLink href={older.href} className="group max-w-[45%]">
                 <span className="block text-xs font-display font-bold tracking-widest text-gray-400 uppercase mb-1">
                   Older
                 </span>
@@ -41,7 +46,7 @@ export function PostFooter({ newer, older, related }: PostFooterProps) {
               <span />
             )}
             {newer ? (
-              <SmartLink href={postHref(newer.slug)} className="group text-right max-w-[45%]">
+              <SmartLink href={newer.href} className="group text-right max-w-[45%]">
                 <span className="block text-xs font-display font-bold tracking-widest text-gray-400 uppercase mb-1">
                   Newer
                 </span>
@@ -62,9 +67,9 @@ export function PostFooter({ newer, older, related }: PostFooterProps) {
             </p>
             <ul className="space-y-3">
               {related.map((post) => (
-                <li key={post.slug}>
+                <li key={post.href}>
                   <SmartLink
-                    href={postHref(post.slug)}
+                    href={post.href}
                     className="group inline-flex flex-col gap-0.5"
                   >
                     <span className="font-medium text-gray-700 group-hover:text-accent transition-colors">

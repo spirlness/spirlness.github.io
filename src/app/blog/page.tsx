@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getAllPosts, getAllTags } from "@/lib/posts";
+import { getAllPosts, getAllTags, postHref } from "@/lib/posts";
 import { buildPageMetadata } from "@/lib/metadata";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -46,7 +46,13 @@ export default async function BlogPage() {
         <div className="space-y-16">
           {posts.length > 0 ? (
             posts.map((post) => (
-              <PostCard key={post.slug} post={post} showTags showReadMore />
+              <PostCard
+                key={post.slug}
+                post={post}
+                href={postHref(post.slug)}
+                showTags
+                showReadMore
+              />
             ))
           ) : (
             <EmptyState>No posts found yet. Check back soon!</EmptyState>

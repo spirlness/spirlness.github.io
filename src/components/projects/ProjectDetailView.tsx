@@ -12,10 +12,47 @@ interface ProjectDetailViewProps {
   content: ReactNode | null;
 }
 
+interface ProjectActionLink {
+  href: string;
+  label: string;
+  icon: ReactNode;
+}
+
 export function ProjectDetailView({
   project,
   content,
 }: ProjectDetailViewProps) {
+  const actionLinks: ProjectActionLink[] = [
+    ...(project.links?.project
+      ? [{
+          href: project.links.project,
+          label: "Project Page",
+          icon: <ExternalLink className="w-4 h-4" />,
+        }]
+      : []),
+    ...(project.links?.code
+      ? [{
+          href: project.links.code,
+          label: "Code",
+          icon: <Code className="w-4 h-4" />,
+        }]
+      : []),
+    ...(project.links?.paper
+      ? [{
+          href: project.links.paper,
+          label: "Paper",
+          icon: <FileText className="w-4 h-4" />,
+        }]
+      : []),
+    ...(project.links?.demo
+      ? [{
+          href: project.links.demo,
+          label: "Demo",
+          icon: <PlayCircle className="w-4 h-4" />,
+        }]
+      : []),
+  ];
+
   return (
     <article className="py-10 sm:py-16">
       <header className="max-w-4xl mx-auto px-6 lg:px-8 mb-12">
@@ -66,7 +103,7 @@ export function ProjectDetailView({
       )}
 
       <div className="max-w-3xl mx-auto px-6 lg:px-8">
-        {content ? (
+        {content !== null && content !== undefined ? (
           <div className={articleProse}>{content}</div>
         ) : (
           <p className="text-gray-600 leading-relaxed text-lg">
@@ -77,26 +114,11 @@ export function ProjectDetailView({
 
       <footer className="max-w-3xl mx-auto px-6 lg:px-8 mt-16 pt-12 border-t border-gray-100">
         <div className="flex flex-wrap gap-4">
-          {project.links?.project && (
-            <ActionLink href={project.links.project} icon={<ExternalLink className="w-4 h-4" />}>
-              Project Page
+          {actionLinks.map(({ href, label, icon }) => (
+            <ActionLink key={href} href={href} icon={icon}>
+              {label}
             </ActionLink>
-          )}
-          {project.links?.code && (
-            <ActionLink href={project.links.code} icon={<Code className="w-4 h-4" />}>
-              Code
-            </ActionLink>
-          )}
-          {project.links?.paper && (
-            <ActionLink href={project.links.paper} icon={<FileText className="w-4 h-4" />}>
-              Paper
-            </ActionLink>
-          )}
-          {project.links?.demo && (
-            <ActionLink href={project.links.demo} icon={<PlayCircle className="w-4 h-4" />}>
-              Demo
-            </ActionLink>
-          )}
+          ))}
         </div>
       </footer>
     </article>

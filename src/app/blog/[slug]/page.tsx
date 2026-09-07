@@ -5,6 +5,7 @@ import {
   getPostFrontmatter,
   getAdjacentPosts,
   getRelatedPosts,
+  postHref,
 } from "@/lib/posts";
 import { siteProfile } from "@/content/site";
 import { notFound } from "next/navigation";
@@ -96,7 +97,15 @@ export default async function PostPage({ params }: PostPageProps) {
         headings={headings}
         references={references}
       />
-      <PostFooter newer={newer} older={older} related={related} />
+      <PostFooter
+        newer={newer ? { href: postHref(newer.slug), title: newer.title } : undefined}
+        older={older ? { href: postHref(older.slug), title: older.title } : undefined}
+        related={related.map((relatedPost) => ({
+          href: postHref(relatedPost.slug),
+          title: relatedPost.title,
+          date: relatedPost.date,
+        }))}
+      />
     </article>
   );
 }

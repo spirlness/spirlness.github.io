@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getAllTags, getPostsByTag } from "@/lib/posts";
+import { getAllTags, getPostsByTag, postHref } from "@/lib/posts";
 import { notFound } from "next/navigation";
 import { siteProfile } from "@/content/site";
 import { buildPageMetadata } from "@/lib/metadata";
@@ -49,7 +49,11 @@ export default async function TagPage({
 
         <div className="space-y-12">
           {posts.map((post) => (
-            <PostCard key={post.slug} post={post} />
+            <PostCard
+              key={post.slug}
+              post={post}
+              href={postHref(post.slug)}
+            />
           ))}
         </div>
       </main>

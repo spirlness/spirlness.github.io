@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import {
+  formatBibtex,
   getAllPublications,
   groupPublicationsByYear,
 } from "@/lib/bibtex";
@@ -68,7 +69,11 @@ export default function PublicationsPage() {
             </h2>
             <div className="space-y-2">
               {grouped[year].map((pub) => (
-                <PublicationItem key={pub.id} pub={pub} />
+                <PublicationItem
+                  key={pub.id}
+                  pub={pub}
+                  bibtex={formatBibtex(pub)}
+                />
               ))}
             </div>
           </section>
