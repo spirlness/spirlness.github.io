@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { getAllTags, getPostsByTag, postHref } from "@/lib/posts";
+import { getAllTags, getPostsByTag } from "@/lib/posts";
 import { notFound } from "next/navigation";
 import { siteProfile } from "@/content/site";
 import { buildPageMetadata } from "@/lib/metadata";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { SmartLink } from "@/components/ui/SmartLink";
+import { PostCard } from "@/components/blog/PostCard";
 
 export const dynamicParams = false;
 
@@ -49,21 +49,7 @@ export default async function TagPage({
 
         <div className="space-y-12">
           {posts.map((post) => (
-            <article key={post.slug} className="group">
-              <SmartLink href={postHref(post.slug)}>
-                <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-2">
-                  <h2 className="text-2xl font-bold font-display group-hover:text-accent transition-colors">
-                    {post.title}
-                  </h2>
-                  <time className="text-sm font-mono text-gray-400">
-                    {post.date}
-                  </time>
-                </div>
-                <p className="text-gray-600 leading-relaxed text-lg">
-                  {post.excerpt}
-                </p>
-              </SmartLink>
-            </article>
+            <PostCard key={post.slug} post={post} />
           ))}
         </div>
       </main>
