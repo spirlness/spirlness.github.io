@@ -15,6 +15,10 @@ tags: [web, nextjs, tooling]
 
 没有任何内容存放在 CMS 里。每一篇内容都是仓库中的纯文本文件,在构建时从磁盘读入:
 
+<SideNote>
+首页时间线与博客文章刻意分离——发布一篇文章并不会自动上首页公告。若值得在首页出现,需在 `content/updates/` 下另行添加条目。
+</SideNote>
+
 | 内容来源 | 对应路由 |
 |---|---|
 | `content/posts/*.mdx` | `/blog/<slug>/` |
@@ -23,10 +27,6 @@ tags: [web, nextjs, tooling]
 | `content/references.bib` | `/publications` 与文内引用 |
 
 文件名*就是* URL,这意味着 URL 空间在上架前就完成了校验:slug 必须匹配 `^[A-Za-z0-9-]+$`,项目 id 必须与文件名一致,失效的站内链接直接构建失败,而不是静默变成 404。
-
-<SideNote>
-首页时间线与博客文章刻意分离——发布一篇文章并不会自动上首页公告。若值得在首页出现,需在 `content/updates/` 下另行添加条目。
-</SideNote>
 
 ## MDX 管线
 

@@ -5,6 +5,7 @@ import { compileMDX } from "next-mdx-remote/rsc";
 import rehypeKatex from "rehype-katex";
 import rehypePrettyCode from "rehype-pretty-code";
 import rehypeSlug from "rehype-slug";
+import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import { visit } from "unist-util-visit";
 import { mdxComponents } from "@/components/mdx/MDXComponents";
@@ -132,6 +133,9 @@ export async function compileContent({
       mdxOptions: {
         remarkPlugins: [
           remarkMath,
+          // GFM (tables, strikethrough, autolinks) — without this, markdown
+          // tables in posts render as literal pipe-text paragraphs.
+          remarkGfm,
           ...(citations ? [[citationPlugin, references, slug] as never] : []),
         ],
         rehypePlugins: [
