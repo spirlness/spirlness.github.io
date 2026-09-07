@@ -9,13 +9,11 @@ import {
 } from "@/lib/posts";
 import { siteProfile } from "@/content/site";
 import { notFound } from "next/navigation";
-import { References } from "@/components/mdx/References";
-import { articleProse } from "@/components/mdx/MDXComponents";
-import { TableOfContents } from "@/components/mdx/TableOfContents";
 import { JsonLd } from "@/components/meta/JsonLd";
 import { buildPageMetadata } from "@/lib/metadata";
-import { SmartLink } from "@/components/ui/SmartLink";
-import { Tag } from "@/components/ui/Tag";
+import { PostHeader } from "@/components/blog/PostHeader";
+import { PostBody } from "@/components/blog/PostBody";
+import { PostFooter } from "@/components/blog/PostFooter";
 
 interface PostPageProps {
   params: Promise<{
@@ -75,134 +73,39 @@ export default async function PostPage({ params }: PostPageProps) {
 
   return (
     <article className="py-10 sm:py-16">
-        <JsonLd
-          data={{
-            "@context": "https://schema.org",
-            "@type": "BlogPosting",
-            headline: frontmatter.title,
-            description: frontmatter.excerpt,
-            datePublished: frontmatter.date,
-            url: `${siteProfile.url}/blog/${slug}/`,
-            author: { "@type": "Person", name: siteProfile.name },
-            mainEntityOfPage: {
-              "@type": "WebPage",
-              "@id": `${siteProfile.url}/blog/${slug}/`,
-            },
-          }}
-        />
-        <header className="distill-grid mb-10 sm:mb-16">
-          <div />
-          <div>
-            <div className="flex flex-wrap items-center gap-4 mb-6">
-              <time className="font-mono text-sm text-gray-400">{frontmatter.date}</time>
-              {frontmatter.lastUpdated && (
-                <time className="font-mono text-sm text-gray-400">
-                  Updated {frontmatter.lastUpdated}
-                </time>
-              )}
-              <span className="w-1 h-1 rounded-full bg-gray-200" />
-              <span className="text-sm text-gray-400">{readingMinutes} min read</span>
-              <span className="w-1 h-1 rounded-full bg-gray-200" />
-              <span className="font-display text-xs font-bold tracking-widest text-accent uppercase">Article</span>
-              {frontmatter.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 ml-1">
-                  {frontmatter.tags.map((tag) => (
-                    <Tag
-                      key={tag}
-                      href={`/blog/tag/${tag}/`}
-                      variant="filter"
-                    >
-                      #{tag}
-                    </Tag>
-                  ))}
-                </div>
-              )}
-            </div>
-            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-gray-900 leading-tight">
-              {frontmatter.title}
-            </h1>
-          </div>
-          <div />
-        </header>
-
-        <div className="distill-grid">
-          <div>{headings.length > 0 && <TableOfContents headings={headings} />}</div>
-          <div className={`relative ${articleProse}`}>
-            {content}
-            {references.length > 0 && <References references={references} />}
-          </div>
-          <div />
-        </div>
-
-        <footer className="distill-grid mt-16 sm:mt-24">
-          <div />
-          <div className="border-t border-gray-100 pt-8 sm:pt-12 space-y-10">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center font-display font-bold text-orange-600">
-                {siteProfile.authorInitial}
-              </div>
-              <div>
-                <p className="font-bold text-gray-900">{siteProfile.name}</p>
-                <p className="text-sm text-gray-500">{siteProfile.authorRole}</p>
-              </div>
-            </div>
-
-            {(newer || older) && (
-              <div className="flex justify-between gap-6 border-t border-gray-100 pt-6 text-sm">
-                {older ? (
-                  <SmartLink href={postHref(older.slug)} className="group max-w-[45%]">
-                    <span className="block text-xs font-display font-bold tracking-widest text-gray-400 uppercase mb-1">
-                      Older
-                    </span>
-                    <span className="font-medium text-gray-700 group-hover:text-accent transition-colors">
-                      {older.title}
-                    </span>
-                  </SmartLink>
-                ) : (
-                  <span />
-                )}
-                {newer ? (
-                  <SmartLink href={postHref(newer.slug)} className="group text-right max-w-[45%]">
-                    <span className="block text-xs font-display font-bold tracking-widest text-gray-400 uppercase mb-1">
-                      Newer
-                    </span>
-                    <span className="font-medium text-gray-700 group-hover:text-accent transition-colors">
-                      {newer.title}
-                    </span>
-                  </SmartLink>
-                ) : (
-                  <span />
-                )}
-              </div>
-            )}
-
-            {related.length > 0 && (
-              <div className="border-t border-gray-100 pt-6">
-                <p className="text-xs font-display font-bold tracking-widest text-gray-400 uppercase mb-4">
-                  Related
-                </p>
-                <ul className="space-y-3">
-                  {related.map((post) => (
-                    <li key={post.slug}>
-                      <SmartLink
-                        href={postHref(post.slug)}
-                        className="group inline-flex flex-col gap-0.5"
-                      >
-                        <span className="font-medium text-gray-700 group-hover:text-accent transition-colors">
-                          {post.title}
-                        </span>
-                        <span className="text-sm text-gray-400 font-mono">
-                          {post.date}
-                        </span>
-                      </SmartLink>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-          <div />
-        </footer>
-      </article>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          headline: frontmatter.title,
+          description: frontmatter.excerpt,
+          datePublished: frontmatter.date,
+          url: `${siteProfile.url}/blog/${slug}/`,
+          author: { "@type": "Person", name: siteProfile.name },
+          mainEntityOfPage: {
+            "@type": "WebPage",
+            "@id": `${siteProfile.url}/blog/${slug}/`,
+          },
+        }}
+      />
+      <PostHeader
+        frontmatter={frontmatter}
+        readingMinutes={readingMinutes}
+      />
+      <PostBody
+        content={content}
+        headings={headings}
+        references={references}
+      />
+      <PostFooter
+        newer={newer ? { href: postHref(newer.slug), title: newer.title } : undefined}
+        older={older ? { href: postHref(older.slug), title: older.title } : undefined}
+        related={related.map((relatedPost) => ({
+          href: postHref(relatedPost.slug),
+          title: relatedPost.title,
+          date: relatedPost.date,
+        }))}
+      />
+    </article>
   );
 }
