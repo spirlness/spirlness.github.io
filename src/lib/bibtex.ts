@@ -1,6 +1,7 @@
 import { parse } from '@retorquere/bibtex-parser';
 import fs from 'fs';
 import path from 'path';
+import { CITATION_KEY_REGEX } from './content-id';
 
 export interface Publication {
   id: string;
@@ -16,10 +17,18 @@ export interface Publication {
   arxiv?: string;
 }
 
-export function getAllPublications(): Publication[] {
-  const bibPath = path.join(process.cwd(), 'content', 'references.bib');
-  const bibContent = fs.readFileSync(bibPath, 'utf-8');
+function cleanField(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  return value.replace(/[{}]/g, '').trim();
+}
 
+/**
+ * Parse a .bib source into normalized Publication records.
+ *
+ * Split out from `getAllPublications()` so the validation below can be tested
+ * against malformed input without a fixture file on disk.
+ */
+export function parsePublications(bibContent: string): Publication[] {
   // sentenceCase: false keeps the original title casing (default sentence-cases
   // titles); verbatimFields keeps `author` as the raw "Last, First and ..."
   // string instead of parsed {lastName, firstName} objects, which the
@@ -39,15 +48,20 @@ export function getAllPublications(): Publication[] {
     );
   }
 
-  const cleanField = (value: unknown): string | undefined => {
-    if (typeof value !== 'string') return undefined;
-    return value.replace(/[{}]/g, '').trim();
-  };
-
   const publications: Publication[] = parsed.entries.map((entry: { type: string; key: string; fields: Record<string, string> }) => {
     const fields = entry.fields;
+    // The parser accepts a keyless `@article{, ...}` entry (key `""`) and one
+    // whose key uses characters the `[@key]` citation syntax cannot express
+    // (`smith_2020`); either way the entry is unreachable from a post, so fail
+    // the build loudly instead of shipping a citation that renders literally.
+    if (!CITATION_KEY_REGEX.test(entry.key ?? '')) {
+      const label = cleanField(fields.title) || '(no title)';
+      throw new Error(
+        `BibTeX entry has an unusable citation key ${JSON.stringify(entry.key ?? '')}: @${entry.type || 'misc'}{${label}}`
+      );
+    }
     return {
-      id: entry.key || 'anonymous',
+      id: entry.key,
       type: entry.type || 'misc',
       title: cleanField(fields.title) || '(Untitled)',
       authors: cleanField(fields.author) || 'Unknown',
@@ -69,6 +83,12 @@ export function getAllPublications(): Publication[] {
   return publications.sort(
     (a, b) => yearToNumber(b.year) - yearToNumber(a.year)
   );
+}
+
+export function getAllPublications(): Publication[] {
+  const bibPath = path.join(process.cwd(), 'content', 'references.bib');
+  const bibContent = fs.readFileSync(bibPath, 'utf-8');
+  return parsePublications(bibContent);
 }
 
 export function groupPublicationsByYear(publications: Publication[]): Record<string, Publication[]> {

@@ -1,34 +1,49 @@
 import fs from "fs";
 import path from "path";
+import matter from "gray-matter";
 import { siteProfile } from "@/content/site";
 import { getAllPublications } from "./bibtex";
+import { normalizeInternalHref } from "./links";
 import { getAllPostFrontmatter, getPostBySlug, postHref } from "./posts";
 import {
   getAllProjects,
   getProjectDetailById,
   projectHref,
 } from "./projects";
+import {
+  extractLocalTargets,
+  isAssetPath,
+  localAbsolute,
+  pathnameOf,
+} from "./content-targets";
 import { getAllUpdates } from "./updates";
 
 const projectDirectory = path.join(process.cwd(), "content", "projects");
 const postDirectory = path.join(process.cwd(), "content", "posts");
+const publicDirectory = path.join(process.cwd(), "public");
 
-function localPathFromHref(href: string): string | undefined {
-  if (!href.startsWith("/") || href.startsWith("//")) return undefined;
-  const pathname = href.split(/[?#]/, 1)[0];
-  return pathname.endsWith("/") ? pathname : `${pathname}/`;
+/**
+ * Resolve a site-absolute href to the file it names under `public/`, or
+ * `undefined` when it would escape that directory. Traversal is rejected here
+ * rather than by trusting the href, so `![x](/../package.json)` cannot pass the
+ * existence check by pointing at a real file outside `public/`.
+ */
+function resolvePublicFile(url: string): string | undefined {
+  let pathname: string;
+  try {
+    pathname = decodeURIComponent(pathnameOf(url));
+  } catch {
+    pathname = pathnameOf(url); // malformed escape: let the existence check fail
+  }
+  const resolved = path.resolve(publicDirectory, pathname.replace(/^\/+/, ""));
+  return resolved.startsWith(publicDirectory + path.sep) ? resolved : undefined;
 }
 
-function markdownLocalLinks(source: string): string[] {
-  const links: string[] = [];
-  const patterns = [
-    /\]\((\/[^\s)]+)\)/g,
-    /\bhref=["'](\/[^"']+)["']/g,
-  ];
-  for (const pattern of patterns) {
-    for (const match of source.matchAll(pattern)) links.push(match[1]);
+function assertAssetExists(url: string, origin: string): void {
+  const resolved = resolvePublicFile(url);
+  if (!resolved || !fs.existsSync(resolved)) {
+    throw new Error(`Missing asset under public/: ${url} (${origin})`);
   }
-  return links;
 }
 
 export async function checkContentIntegrity(): Promise<{
@@ -47,6 +62,10 @@ export async function checkContentIntegrity(): Promise<{
     "/blog/",
     "/projects/",
     "/publications/",
+    // Exported but not pages: no trailing slash, so list them verbatim.
+    "/feed.xml",
+    "/robots.txt",
+    "/sitemap.xml",
     ...posts.map((post) => postHref(post.slug)),
     ...projects.map((project) => projectHref(project.id)),
     ...new Set(
@@ -56,34 +75,51 @@ export async function checkContentIntegrity(): Promise<{
     ),
   ]);
 
-  const localLinks = [
-    ...siteProfile.navLinks.map((link) => link.href),
-    ...updates.flatMap((update) => (update.link ? [update.link] : [])),
-    ...projects.flatMap((project) => Object.values(project.links ?? {})),
+  const links: { href: string; origin: string }[] = [
+    ...siteProfile.navLinks.map((link) => ({
+      href: link.href,
+      origin: "src/content/site.ts navLinks",
+    })),
+    ...updates.flatMap((update) =>
+      update.link
+        ? [{ href: update.link, origin: `update "${update.date}"` }]
+        : []
+    ),
+    ...projects.flatMap((project) =>
+      Object.values(project.links ?? {}).map((href) => ({
+        href,
+        origin: `project "${project.id}" links`,
+      }))
+    ),
   ];
+  const assets: { url: string; origin: string }[] = [];
 
   for (const post of posts) {
-    const source = fs.readFileSync(
-      path.join(postDirectory, `${post.slug}.mdx`),
-      "utf8"
-    );
-    localLinks.push(...markdownLocalLinks(source));
+    const origin = `post "${post.slug}"`;
+    const body = matter(
+      fs.readFileSync(path.join(postDirectory, `${post.slug}.mdx`), "utf8")
+    ).content;
+    const targets = extractLocalTargets(body);
+    links.push(...targets.links.map((href) => ({ href, origin })));
+    assets.push(...targets.assets.map((url) => ({ url, origin })));
     await getPostBySlug(post.slug);
   }
 
   for (const project of projects) {
+    const origin = `project "${project.id}"`;
     if (project.thumbnail.startsWith("/")) {
-      const assetPath = path.join(
-        process.cwd(),
-        "public",
-        project.thumbnail.replace(/^\/+/, "")
-      );
-      if (!fs.existsSync(assetPath)) {
-        throw new Error(
-          `Project "${project.id}" thumbnail does not exist: ${project.thumbnail}`
-        );
-      }
+      assertAssetExists(project.thumbnail, `${origin} thumbnail`);
     }
+
+    const mdxPath = path.join(projectDirectory, `${project.id}.mdx`);
+    if (fs.existsSync(mdxPath)) {
+      const targets = extractLocalTargets(
+        matter(fs.readFileSync(mdxPath, "utf8")).content
+      );
+      links.push(...targets.links.map((href) => ({ href, origin })));
+      assets.push(...targets.assets.map((url) => ({ url, origin })));
+    }
+
     await getProjectDetailById(project.id);
   }
 
@@ -102,11 +138,22 @@ export async function checkContentIntegrity(): Promise<{
     publicationIds.add(publication.id);
   }
 
-  for (const href of localLinks) {
-    const pathname = localPathFromHref(href);
-    if (pathname && !knownPaths.has(pathname)) {
-      throw new Error(`Unknown internal content link: ${href}`);
+  for (const { href, origin } of links) {
+    const target = localAbsolute(href);
+    if (!target) continue;
+    const pathname = pathnameOf(normalizeInternalHref(target));
+    if (knownPaths.has(pathname)) continue;
+    // Not a known route: if it names a file, it must be a real public/ asset.
+    if (isAssetPath(pathname)) {
+      assertAssetExists(target, origin);
+      continue;
     }
+    throw new Error(`Unknown internal link: ${href} (${origin})`);
+  }
+
+  for (const { url, origin } of assets) {
+    const target = localAbsolute(url);
+    if (target) assertAssetExists(target, origin);
   }
 
   return {

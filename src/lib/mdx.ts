@@ -10,8 +10,12 @@ import remarkMath from "remark-math";
 import { visit } from "unist-util-visit";
 import { mdxComponents } from "@/components/mdx/MDXComponents";
 import { getAllPublications, type Publication } from "./bibtex";
+import { CITATION_KEY_CHARS } from "./content-id";
 
-const citationPattern = /\[@([A-Za-z0-9:-]+(?:;\s*@[A-Za-z0-9:-]+)*)\]/g;
+const citationPattern = new RegExp(
+  `\\[@([${CITATION_KEY_CHARS}]+(?:;\\s*@[${CITATION_KEY_CHARS}]+)*)\\]`,
+  "g"
+);
 
 export interface TocHeading {
   id: string;

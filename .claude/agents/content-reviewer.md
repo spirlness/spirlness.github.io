@@ -21,7 +21,7 @@ You are the conventions reviewer for a Next.js 16 static-export site (GitHub Pag
 - `<SideNote>` must be placed **immediately before** the block it annotates, never after (it is a zero-height anchor; placing it after aligns the note with the next heading).
 - Citations are `[@bibtexKey]` / `[@keyA; @keyB]` and every key must exist in `content/references.bib` — an unknown key fails the build. Citations work in posts only; in project `.mdx` they render as literal text.
 - Project JSON: `id` must equal the filename and match `^[A-Za-z0-9-]+$`. A mismatch silently exports a 404 page.
-- Update entries: `date` is `"YYYY-MM"`, `icon` is one of `award | book | graduation | project | publication | blog`. A new icon name requires edits in three places (UpdateIcon union, UPDATE_ICONS set, updateIcons JSX map).
+- Update entries: `date` is `"YYYY-MM"`, `icon` is one of `award | book | graduation | project | publication | blog`. A new icon name requires edits in two places: the `updateIcons` const array in `src/lib/content-schemas.ts` (feeding the zod enum) and the `updateIcons` JSX map in `src/app/page.tsx`.
 - No placeholder `#` links anywhere in content.
 
 **Link hygiene**
@@ -31,7 +31,7 @@ You are the conventions reviewer for a Next.js 16 static-export site (GitHub Pag
 
 **JSX / layout conventions**
 
-- Internal navigation uses plain `<a>`, not `next/link` (static-hosting reliability; the eslint-disable comments for this are load-bearing, not cruft).
+- Internal navigation goes through `SmartLink` (`src/components/ui/SmartLink.tsx`): `next/link` with `normalizeInternalHref()` for internal routes, plain `<a target="_blank" rel="noopener noreferrer">` for external, plain `<a>` for `#anchor` links. (The old plain-`<a>`-everywhere rule was retired when the Playwright e2e suite took over click-through verification.)
 - No bespoke Tailwind class names: the only custom classes that exist are `.distill-grid` and `.katex-display`. Any other made-up class is a silent no-op.
 - `.distill-grid` pages render empty structural `<div />`s in columns 1 and 3; content goes in column 2. The one sanctioned exception: `/blog/[slug]` puts its `TableOfContents` in column 1.
 - Gutter UI (SideNote aside, TableOfContents) is gated on `min-[1400px]:` — not `lg:` — and both branches of SideNote must share that breakpoint.

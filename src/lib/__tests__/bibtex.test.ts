@@ -3,6 +3,7 @@ import {
   formatBibtex,
   getAllPublications,
   groupPublicationsByYear,
+  parsePublications,
 } from "../bibtex";
 
 describe("getAllPublications", () => {
@@ -34,6 +35,45 @@ describe("getAllPublications", () => {
       expect(pub.title).toBeTruthy();
       expect(pub.authors).toBeTruthy();
     }
+  });
+});
+
+describe("parsePublications", () => {
+  const entry = (key: string) =>
+    `@article{${key}, title = {T}, author = {Doe, J}, year = {2020}}`;
+
+  it("normalizes a well-formed entry", () => {
+    const [pub] = parsePublications(entry("smith2020"));
+    expect(pub).toMatchObject({
+      id: "smith2020",
+      type: "article",
+      title: "T",
+      authors: "Doe, J",
+      year: "2020",
+    });
+  });
+
+  it("rejects an entry with no citation key", () => {
+    expect(() =>
+      parsePublications(
+        "@article{, title = {No Key}, author = {Doe, J}, year = {2020}}"
+      )
+    ).toThrow(/unusable citation key/);
+  });
+
+  it("rejects a key the [@key] citation syntax cannot express", () => {
+    expect(() => parsePublications(entry("smith_2020"))).toThrow(
+      /unusable citation key/
+    );
+    expect(() => parsePublications(entry("smith.2020"))).toThrow(
+      /unusable citation key/
+    );
+  });
+
+  it("fails on a parse error instead of dropping the entry", () => {
+    expect(() => parsePublications("@article{broken, title = {unclosed")).toThrow(
+      /Failed to parse/
+    );
   });
 });
 
