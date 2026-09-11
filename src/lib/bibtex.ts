@@ -46,8 +46,15 @@ export function getAllPublications(): Publication[] {
 
   const publications: Publication[] = parsed.entries.map((entry: { type: string; key: string; fields: Record<string, string> }) => {
     const fields = entry.fields;
+    if (!entry.key) {
+      // The parser accepts a keyless `@article{, ...}` entry; a missing key
+      // breaks every [@key] citation targeting it, so fail the build loudly.
+      throw new Error(
+        `BibTeX entry missing citation key: @${entry.type}{${cleanField(fields.title) ?? '(no title)'}}`
+      );
+    }
     return {
-      id: entry.key || 'anonymous',
+      id: entry.key,
       type: entry.type || 'misc',
       title: cleanField(fields.title) || '(Untitled)',
       authors: cleanField(fields.author) || 'Unknown',

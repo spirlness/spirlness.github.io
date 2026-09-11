@@ -19,10 +19,13 @@ function localPathFromHref(href: string): string | undefined {
   return pathname.endsWith("/") ? pathname : `${pathname}/`;
 }
 
-function markdownLocalLinks(source: string): string[] {
+export function markdownLocalLinks(source: string): string[] {
   const links: string[] = [];
+  // Negative lookbehind skips image syntax `![alt](/path)` (images are
+  // assets, not routes); the optional title segment keeps
+  // `[x](/blog/a/ "title")` links from silently bypassing the check.
   const patterns = [
-    /\]\((\/[^\s)]+)\)/g,
+    /(?<!!)\[[^\]]*\]\((\/[^\s)]*?)(?:\s+"[^"]*")?\)/g,
     /\bhref=["'](\/[^"']+)["']/g,
   ];
   for (const pattern of patterns) {
