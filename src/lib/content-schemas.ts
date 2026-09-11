@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { assertSafeContentSlug } from "./content-id";
+import { isSafeHttpUrl, isSafeLocalHref } from "./links";
 
 const trimmedString = z.string().trim().min(1);
 
@@ -20,13 +21,7 @@ function isYearMonth(value: string): boolean {
 }
 
 function isSafeHref(value: string): boolean {
-  if (value.startsWith("/") && !value.startsWith("//")) return true;
-  try {
-    const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
+  return isSafeLocalHref(value) || isSafeHttpUrl(value);
 }
 
 const calendarDate = trimmedString.refine(isCalendarDate, {
