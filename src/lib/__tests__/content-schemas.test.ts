@@ -88,6 +88,15 @@ describe("content schemas", () => {
         "update.json"
       )
     ).toThrow(/icon/i);
+
+    for (const link of ["/\\attacker.example", "/\\/attacker.example"]) {
+      expect(() =>
+        parseUpdate(
+          { date: "2026-09", content: "New result", icon: "publication", link },
+          "update.json"
+        )
+      ).toThrow(/link|url/i);
+    }
   });
 
   it("validates the central site profile", () => {

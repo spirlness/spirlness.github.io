@@ -29,12 +29,26 @@ export function isSafeHttpUrl(
   href: string | null | undefined
 ): href is string {
   if (!isUsableHref(href)) return false;
+  const value = href.trim();
+  if (!/^https?:\/\//i.test(value)) return false;
   try {
-    const url = new URL(href.trim());
+    const url = new URL(value);
     return url.protocol === "http:" || url.protocol === "https:";
   } catch {
     return false;
   }
+}
+
+/**
+ * Allow site-relative navigation only when URL parsing cannot reinterpret its
+ * leading path separators or whitespace as a network-path reference.
+ */
+export function isSafeLocalHref(href: string): boolean {
+  return (
+    href.startsWith("/") &&
+    !href.includes("\\") &&
+    !/^\/[\/\t\r\n]/.test(href)
+  );
 }
 
 /**
@@ -49,6 +63,6 @@ export function isSafeHref(
 
   const value = href.trim();
   if (value.startsWith("#")) return true;
-  if (value.startsWith("/") && !value.startsWith("//")) return true;
+  if (isSafeLocalHref(value)) return true;
   return isSafeHttpUrl(value);
 }

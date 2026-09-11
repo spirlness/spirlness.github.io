@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   isExternalHref,
+  isSafeHref,
   isSafeHttpUrl,
   isUsableHref,
   normalizeInternalHref,
@@ -61,5 +62,31 @@ describe("isSafeHttpUrl", () => {
     expect(isSafeHttpUrl("data:text/html,hi")).toBe(false);
     expect(isSafeHttpUrl("#")).toBe(false);
     expect(isSafeHttpUrl("/relative")).toBe(false);
+    expect(isSafeHttpUrl("http:\\attacker.example")).toBe(false);
+  });
+});
+
+describe("isSafeHref", () => {
+  it("accepts ordinary local paths, anchors, and HTTP(S) URLs", () => {
+    expect(isSafeHref("/")).toBe(true);
+    expect(isSafeHref("/projects?view=all#top")).toBe(true);
+    expect(isSafeHref("/#section")).toBe(true);
+    expect(isSafeHref("https://example.com")).toBe(true);
+    expect(isSafeHref("/%5Cevil.example")).toBe(true);
+    expect(isSafeHref("/%2F%2Fevil.example")).toBe(true);
+  });
+
+  it("rejects local paths that browser URL parsing can reinterpret as an origin", () => {
+    for (const href of [
+      "//attacker.example",
+      "/\\attacker.example",
+      "/\\/attacker.example",
+      "/\t/attacker.example",
+      "/\n/attacker.example",
+      "/\r/attacker.example",
+      "  /\\attacker.example",
+    ]) {
+      expect(isSafeHref(href)).toBe(false);
+    }
   });
 });
