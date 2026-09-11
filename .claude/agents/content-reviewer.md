@@ -20,7 +20,7 @@ You are the conventions reviewer for a Next.js 16 static-export site (GitHub Pag
 - Post bodies start sections at `##`, never `#` — the page shell renders the only `<h1>`, and a stray body-level `#` degrades to unstyled text.
 - `<SideNote>` must be placed **immediately before** the block it annotates, never after (it is a zero-height anchor; placing it after aligns the note with the next heading).
 - Citations are `[@bibtexKey]` / `[@keyA; @keyB]` and every key must exist in `content/references.bib` — an unknown key fails the build. Citations work in posts only; in project `.mdx` they render as literal text.
-- Project JSON: `id` must equal the filename and match `^[A-Za-z0-9-]+$`. A mismatch silently exports a 404 page.
+- Project JSON: `id` must equal the filename and match `^[A-Za-z0-9-]+$`. `parseProject()` throws on a mismatch, so this fails the build.
 - Update entries: `date` is `"YYYY-MM"`, `icon` is one of `award | book | graduation | project | publication | blog`. A new icon name requires edits in two places: the `updateIcons` const array in `src/lib/content-schemas.ts` (feeding the zod enum) and the `updateIcons` JSX map in `src/app/page.tsx`.
 - No placeholder `#` links anywhere in content.
 

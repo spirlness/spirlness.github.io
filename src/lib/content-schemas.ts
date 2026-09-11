@@ -52,7 +52,13 @@ export const postFrontmatterSchema = z.object({
   excerpt: trimmedString,
   tags: z
     .preprocess(
-      (value) => (typeof value === "string" ? value.split(",") : value ?? []),
+      // Drop empty segments before validating, so a trailing comma ("a, b,")
+      // surfaces as a working tag list instead of a confusing empty-string
+      // error pointing at an index the author never wrote.
+      (value) =>
+        typeof value === "string"
+          ? value.split(",").map((tag) => tag.trim()).filter(Boolean)
+          : (value ?? []),
       z.array(slug)
     )
     .transform(uniqueTrimmedStrings),

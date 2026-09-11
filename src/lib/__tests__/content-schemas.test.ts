@@ -45,6 +45,20 @@ describe("content schemas", () => {
     );
   });
 
+  it("drops empty tag segments instead of failing on them", () => {
+    expect(
+      parsePostFrontmatter(
+        {
+          title: "Post",
+          date: "2026-02-28",
+          excerpt: "Summary",
+          tags: "physics, ml,",
+        },
+        "post"
+      ).tags
+    ).toEqual(["physics", "ml"]);
+  });
+
   it("requires a project id to match its filename", () => {
     expect(() =>
       parseProject(
