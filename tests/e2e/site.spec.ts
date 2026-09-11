@@ -137,4 +137,56 @@ test.describe("academic site pages", () => {
     await expectPath(page, "/");
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Physics, Intelligence");
   });
+
+  test("marks the current section in the primary nav", async ({ page }) => {
+    const nav = page.getByRole("navigation").first();
+
+    // A top-level route and a nested one under it both light their section.
+    const cases = [
+      ["/publications/", "PUBLICATIONS"],
+      ["/projects/neural-symbolic-physics/", "PROJECTS"],
+      ["/blog/tag/physics/", "BLOG"],
+    ] as const;
+
+    for (const [pathname, label] of cases) {
+      await page.goto(pathname);
+      await expect(nav.getByRole("link", { name: label, exact: true })).toHaveAttribute(
+        "aria-current",
+        "page"
+      );
+      // Exactly one section is current at a time.
+      await expect(nav.locator('[aria-current="page"]')).toHaveCount(1);
+    }
+  });
+
+  test("tracks the active section in the table of contents while scrolling", async ({
+    page,
+  }) => {
+    await page.goto("/blog/algorithmic-resilience/");
+    test.skip(
+      !(await page.evaluate(() => window.innerWidth >= 1400)),
+      "ToC is gutter-only above 1400px"
+    );
+
+    const toc = page.getByRole("navigation", { name: "Table of contents" });
+    const current = toc.locator('a[aria-current="location"]');
+    const scrollTo = async (fraction: number) => {
+      await page.evaluate((f) => {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        window.scrollTo(0, max * f);
+      }, fraction);
+    };
+
+    // The head of the page highlights the first section rather than nothing, and
+    // the very bottom highlights the last one — the two dead zones the previous
+    // IntersectionObserver band left unlit.
+    await scrollTo(0);
+    await expect(current).toHaveText("Introduction");
+
+    await scrollTo(1);
+    await expect(current).toHaveText("Acknowledgments");
+
+    await scrollTo(0.5);
+    await expect(current).not.toHaveText("Introduction");
+  });
 });

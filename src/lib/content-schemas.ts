@@ -44,6 +44,8 @@ function uniqueTrimmedStrings(values: string[]): string[] {
   return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
 }
 
+export const postLanguages = ["en", "zh"] as const;
+
 export const postFrontmatterSchema = z.object({
   title: trimmedString,
   date: calendarDate,
@@ -54,6 +56,8 @@ export const postFrontmatterSchema = z.object({
       z.array(slug)
     )
     .transform(uniqueTrimmedStrings),
+  // Content language, used for `og:locale`. Defaults to English.
+  lang: z.enum(postLanguages).optional(),
   lastUpdated: calendarDate.optional(),
 });
 

@@ -8,6 +8,8 @@ export interface PageMetadataOptions {
   type?: "website" | "article";
   publishedTime?: string;
   authors?: string[];
+  /** ISO locale of the page content; drives `og:locale` (default `en_US`). */
+  locale?: string;
 }
 
 function absoluteSiteUrl(path: string): string {
@@ -25,6 +27,7 @@ export function buildPageMetadata({
   type = "website",
   publishedTime,
   authors,
+  locale = "en_US",
 }: PageMetadataOptions): Metadata {
   const url = absoluteSiteUrl(path);
   const image = `${siteProfile.url}/opengraph-image.png`;
@@ -32,7 +35,7 @@ export function buildPageMetadata({
     url,
     title,
     description,
-    locale: "en_US",
+    locale,
     siteName: siteProfile.title,
     images: [image],
   };
@@ -49,6 +52,8 @@ export function buildPageMetadata({
   return {
     title: path === "/" ? { absolute: title } : title,
     description,
+    // Without a canonical, crawlers treat UTM-tagged URLs as separate pages.
+    alternates: { canonical: url },
     openGraph,
     twitter: {
       card: "summary_large_image",

@@ -42,6 +42,33 @@ describe("buildPageMetadata", () => {
     });
   });
 
+  it("sets a canonical URL so tagged query strings are not separate pages", () => {
+    expect(
+      buildPageMetadata({
+        title: "Blog",
+        description: "Notes.",
+        path: "/blog/",
+      }).alternates
+    ).toEqual({ canonical: "https://spirlness.github.io/blog/" });
+  });
+
+  it("defaults og:locale to en_US and honors an explicit locale", () => {
+    expect(
+      buildPageMetadata({ title: "Blog", description: "Notes.", path: "/blog/" })
+        .openGraph
+    ).toMatchObject({ locale: "en_US" });
+
+    expect(
+      buildPageMetadata({
+        title: "一个中文文章",
+        description: "摘要。",
+        path: "/blog/zh-post/",
+        type: "article",
+        locale: "zh_CN",
+      }).openGraph
+    ).toMatchObject({ locale: "zh_CN" });
+  });
+
   it("uses an absolute home-page title and rejects non-site paths", () => {
     const metadata = buildPageMetadata({
       title: "Li Fuying",
