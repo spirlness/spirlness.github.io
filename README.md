@@ -145,7 +145,7 @@ Add one JSON file per project under `content/projects/`:
 }
 ```
 
-The `id` becomes the URL (`/projects/my-project/`) and must match `^[A-Za-z0-9-]+$`. Keep it identical to the filename: the detail route reads `content/projects/<id>.json`, so a mismatch does not fail the build — the page silently exports as a 404. CI therefore rejects any id that differs from its filename.
+The `id` becomes the URL (`/projects/my-project/`) and must match `^[A-Za-z0-9-]+$`. Keep it identical to the filename: the detail route reads `content/projects/<id>.json`. `parseProject()` rejects any id that differs from its filename at build time, so the mismatch fails the build instead of exporting a 404 page. CI re-checks the same rule against the exported artifact.
 
 `lastModified` is optional. When present, it must be a real `YYYY-MM-DD` date and is emitted as the project's sitemap `lastmod`; leave it out when only the display month is known.
 

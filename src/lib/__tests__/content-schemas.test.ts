@@ -36,6 +36,29 @@ describe("content schemas", () => {
     ).toThrow(/date/i);
   });
 
+  it("accepts a post language and defaults it to undefined (English)", () => {
+    const base = { title: "Post", date: "2026-02-28", excerpt: "Summary" };
+    expect(parsePostFrontmatter(base, "post").lang).toBeUndefined();
+    expect(parsePostFrontmatter({ ...base, lang: "zh" }, "post").lang).toBe("zh");
+    expect(() => parsePostFrontmatter({ ...base, lang: "fr" }, "post")).toThrow(
+      /lang/i
+    );
+  });
+
+  it("drops empty tag segments instead of failing on them", () => {
+    expect(
+      parsePostFrontmatter(
+        {
+          title: "Post",
+          date: "2026-02-28",
+          excerpt: "Summary",
+          tags: "physics, ml,",
+        },
+        "post"
+      ).tags
+    ).toEqual(["physics", "ml"]);
+  });
+
   it("requires a project id to match its filename", () => {
     expect(() =>
       parseProject(

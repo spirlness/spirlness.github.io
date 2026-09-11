@@ -46,6 +46,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
       type: "article",
       publishedTime: frontmatter.date,
       authors: [siteProfile.name],
+      locale: frontmatter.lang === "zh" ? "zh_CN" : "en_US",
     });
   } catch {
     return { title: siteProfile.title };

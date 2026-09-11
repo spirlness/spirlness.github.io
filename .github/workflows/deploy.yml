@@ -128,11 +128,10 @@ jobs:
           # Project detail routes are keyed on the `id` field *inside* each JSON,
           # not on the filename (see generateStaticParams in
           # src/app/projects/[id]/page.tsx), so read each id the way the build
-          # does. The id must also equal its filename: getProjectDetailById()
-          # reads content/projects/<id>.json, so a mismatch does not fail the
-          # build - the route silently exports as a 404 page whose index.html
-          # still exists, which a plain existence check cannot distinguish
-          # from a real page.
+          # does. parseProject() already fails the build on an id/filename
+          # mismatch, but this step re-checks it against the raw JSON (the
+          # exported artifact, not the source) so a regression in the schema
+          # layer cannot silently ship a 404 page that still has an index.html.
           if compgen -G "content/projects/*.json" > /dev/null; then
             for json in content/projects/*.json; do
               if ! id="$(node -p "require('./$json').id||''")"; then
