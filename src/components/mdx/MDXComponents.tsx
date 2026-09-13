@@ -62,6 +62,35 @@ export const mdxComponents: MDXComponents = {
       </SmartLink>
     );
   },
+  // 媒体目标走同一 allowlist：无 img/video/source 覆盖时，表达式 src/poster
+  // 会同时绕过 content:check 与 isSafeHref，因此这里逐属性设门。
+  img: ({ src, alt, ...props }) => {
+    if (typeof src !== "string" || !isSafeHref(src)) {
+      return null;
+    }
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={src} alt={alt ?? ""} {...props} />;
+  },
+  video: ({ src, poster, children, ...props }) => {
+    if (
+      (src !== undefined && (typeof src !== "string" || !isSafeHref(src))) ||
+      (poster !== undefined &&
+        (typeof poster !== "string" || !isSafeHref(poster)))
+    ) {
+      return null;
+    }
+    return (
+      <video src={src} poster={poster} {...props}>
+        {children}
+      </video>
+    );
+  },
+  source: ({ src, ...props }) => {
+    if (typeof src !== "string" || !isSafeHref(src)) {
+      return null;
+    }
+    return <source src={src} {...props} />;
+  },
   // 围栏代码块内的 code 带 class="language-*"（shiki 会再加 token 颜色类），
   // 行内 code 没有；className 先解构再与默认样式合并，避免 {...props} 展开覆盖默认样式
   code: ({ className, ...props }) => {

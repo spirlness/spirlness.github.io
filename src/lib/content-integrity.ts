@@ -99,7 +99,7 @@ export async function checkContentIntegrity(): Promise<{
     const body = matter(
       fs.readFileSync(path.join(postDirectory, `${post.slug}.mdx`), "utf8")
     ).content;
-    const targets = extractLocalTargets(body);
+    const targets = extractLocalTargets(body, origin);
     links.push(...targets.links.map((href) => ({ href, origin })));
     assets.push(...targets.assets.map((url) => ({ url, origin })));
     await getPostBySlug(post.slug);
@@ -114,7 +114,8 @@ export async function checkContentIntegrity(): Promise<{
     const mdxPath = path.join(projectDirectory, `${project.id}.mdx`);
     if (fs.existsSync(mdxPath)) {
       const targets = extractLocalTargets(
-        matter(fs.readFileSync(mdxPath, "utf8")).content
+        matter(fs.readFileSync(mdxPath, "utf8")).content,
+        origin
       );
       links.push(...targets.links.map((href) => ({ href, origin })));
       assets.push(...targets.assets.map((url) => ({ url, origin })));

@@ -122,6 +122,48 @@ describe("content schemas", () => {
     }
   });
 
+  it("pins the update icon set consumed by the homepage map", async () => {
+    const { updateIcons } = await import("../content-schemas");
+    expect([...updateIcons]).toEqual([
+      "award",
+      "book",
+      "graduation",
+      "project",
+      "publication",
+      "blog",
+    ]);
+  });
+
+  it("documents that project tags currently allow spaces and caps", () => {
+    const project = parseProject(
+      {
+        id: "project",
+        title: "T",
+        description: "D",
+        date: "2026-02",
+        thumbnail: "/projects/p.svg",
+        tags: ["Tag A", "Tag B"],
+      },
+      "project",
+      "project.json"
+    );
+    expect(project.tags).toEqual(["Tag A", "Tag B"]);
+  });
+
+  it("parses lastUpdated even though readers ignore it downstream", () => {
+    expect(
+      parsePostFrontmatter(
+        {
+          title: "T",
+          date: "2026-02-28",
+          excerpt: "S",
+          lastUpdated: "2026-06-01",
+        },
+        "post"
+      ).lastUpdated
+    ).toBe("2026-06-01");
+  });
+
   it("validates the central site profile", () => {
     expect(() =>
       parseSiteProfile({

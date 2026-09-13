@@ -16,4 +16,14 @@ describe("escapeXml", () => {
     );
     await expect(response.text()).resolves.toContain("<rss version=\"2.0\"");
   });
+
+  it("pins item pubDates to frontmatter dates", async () => {
+    const { getAllPostFrontmatter } = await import("@/lib/posts");
+    const xml = await GET().text();
+    for (const post of getAllPostFrontmatter()) {
+      expect(xml).toContain(
+        `<pubDate>${new Date(post.date).toUTCString()}</pubDate>`
+      );
+    }
+  });
 });

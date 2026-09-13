@@ -95,6 +95,8 @@ export const projectSchema = z.object({
       demo: safeHref.optional(),
     })
     .optional(),
+  // Display-only labels (pills, never routed): spaces and caps stay allowed,
+  // unlike post tags which must be URL-safe slugs.
   tags: z.array(trimmedString).transform(uniqueTrimmedStrings).optional(),
 });
 

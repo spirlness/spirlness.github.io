@@ -48,3 +48,28 @@ describe("compileContent", () => {
     expect(result.references).toEqual([]);
   });
 });
+
+describe("math safety (S2)", () => {
+  it.each([
+    "$\\href{javascript:alert(1)}{click}$",
+    "$$\\href{javascript:alert(1)}{click}$$",
+    "$\\url{data:text/html,hi}$",
+    "$\\href{vbscript:msgbox(1)}{x}$",
+    "$\\href{file:///etc/passwd}{x}$",
+    "$\\href{blob:https://evil/x}{x}$",
+  ])("rejects unsafe math href %j", async (source) => {
+    await expect(
+      compileContent({ source, slug: "xss" })
+    ).rejects.toThrow(/href|scheme|unsafe/i);
+  });
+
+  it("keeps legit https math links intact", async () => {
+    const { renderToStaticMarkup } = await import("react-dom/server");
+    const result = await compileContent({
+      source: "$\\href{https://example.com/a}{paper}$",
+      slug: "math-ok",
+    });
+    const html = renderToStaticMarkup(result.content as React.ReactElement);
+    expect(html).toContain('href="https://example.com/a"');
+  });
+});

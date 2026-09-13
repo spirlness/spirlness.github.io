@@ -81,11 +81,21 @@ describe("extractLocalTargets", () => {
     });
   });
 
-  it("ignores expression-valued JSX attributes", () => {
-    expect(extractLocalTargets('<a href={"/blog/expr/"}>expr</a>')).toEqual({
-      links: [],
-      assets: [],
-    });
+  it.each([
+    '<a href={"/blog/expr/"}>expr</a>',
+    '<img src={evilUrl} alt="x" />',
+    "<video poster={evilPoster} />",
+    '<source src={evilSrc} />',
+  ])("rejects expression-valued URL attribute %j", (source) => {
+    expect(() => extractLocalTargets(source, "test.mdx")).toThrow(
+      /expression-valued/i
+    );
+  });
+
+  it("rejects spread JSX attributes in content", () => {
+    expect(() => extractLocalTargets("<a {...props}>x</a>", "test.mdx")).toThrow(
+      /spread/i
+    );
   });
 
   it("leaves a file-shaped link for the caller to resolve as an asset", () => {

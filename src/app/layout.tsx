@@ -30,6 +30,9 @@ export default function RootLayout({
       className={`${inter.variable} ${serif.variable} ${display.variable} antialiased`}
     >
       <body className="min-h-screen font-serif bg-[#fdfdfd] text-gray-900">
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
         <Navbar />
         {children}
         <footer className="distill-grid py-16 border-t border-gray-100 mt-16 text-gray-400 text-sm">

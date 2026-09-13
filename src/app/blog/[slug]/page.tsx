@@ -45,6 +45,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
       path: `/blog/${slug}/`,
       type: "article",
       publishedTime: frontmatter.date,
+      modifiedTime: frontmatter.lastUpdated,
       authors: [siteProfile.name],
       locale: frontmatter.lang === "zh" ? "zh_CN" : "en_US",
     });
@@ -73,7 +74,7 @@ export default async function PostPage({ params }: PostPageProps) {
   const related = getRelatedPosts(slug, 2);
 
   return (
-    <article className="py-10 sm:py-16">
+    <article id="main-content" tabIndex={-1} className="py-10 sm:py-16">
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -81,6 +82,9 @@ export default async function PostPage({ params }: PostPageProps) {
           headline: frontmatter.title,
           description: frontmatter.excerpt,
           datePublished: frontmatter.date,
+          ...(frontmatter.lastUpdated
+            ? { dateModified: frontmatter.lastUpdated }
+            : {}),
           url: `${siteProfile.url}/blog/${slug}/`,
           author: { "@type": "Person", name: siteProfile.name },
           mainEntityOfPage: {

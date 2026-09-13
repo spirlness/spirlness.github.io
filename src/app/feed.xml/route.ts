@@ -1,5 +1,6 @@
 import { siteProfile } from "@/content/site";
 import { getAllPostFrontmatter, postHref } from "@/lib/posts";
+import { getPostEffectiveDate } from "@/lib/posts";
 
 export const dynamic = "force-static";
 
@@ -27,7 +28,7 @@ export function GET() {
       <title>${escapeXml(post.title)}</title>
       <link>${base}${postHref(post.slug)}</link>
       <guid isPermaLink="true">${base}${postHref(post.slug)}</guid>
-      <pubDate>${rssDate(post.date)}</pubDate>
+      <pubDate>${rssDate(getPostEffectiveDate(post))}</pubDate>
       <description>${escapeXml(post.excerpt)}</description>
     </item>`
     )

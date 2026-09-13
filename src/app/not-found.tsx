@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function NotFound() {
   return (
-    <main className="distill-grid py-24">
+    <main id="main-content" tabIndex={-1} className="distill-grid py-24">
       <div />
       <div className="px-6 lg:px-0 text-center">
         <p className="font-display text-sm font-bold tracking-widest text-accent uppercase mb-4">

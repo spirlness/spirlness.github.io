@@ -43,6 +43,12 @@ export function postHref(slug: string): string {
   return `/blog/${clean}/`;
 }
 
+export function getPostEffectiveDate(
+  post: Pick<PostFrontmatter, "date" | "lastUpdated">
+): string {
+  return post.lastUpdated ?? post.date;
+}
+
 export interface Post {
   content: React.ReactNode;
   frontmatter: PostFrontmatter;

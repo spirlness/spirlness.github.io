@@ -48,9 +48,17 @@ const PhysicsDemo: React.FC = () => {
   }, [count]);
 
   const dummy = useMemo(() => new THREE.Object3D(), []);
+  const prefersReducedMotion = useMemo(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    []
+  );
+  const framesRendered = useRef(0);
 
   useFrame((state) => {
     if (!meshRef.current || particles.length === 0) return;
+    if (prefersReducedMotion && framesRendered.current >= 1) return;
 
     const time = state.clock.getElapsedTime();
 
@@ -89,6 +97,7 @@ const PhysicsDemo: React.FC = () => {
     // 整个粒子群缓慢旋转
     meshRef.current.rotation.y += 0.002;
     meshRef.current.rotation.z += 0.001;
+    framesRendered.current += 1;
   });
 
   return (
