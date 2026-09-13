@@ -53,11 +53,10 @@ jobs:
         with:
           path: |
             .next/cache
-          # Generate a new cache whenever packages or source files change.
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-${{ hashFiles('src/**', 'content/**', 'public/**', 'next.config.*', 'postcss.config.*', 'tsconfig.json') }}
-          # If source files changed but packages didn't, rebuild from a prior cache.
-          restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-
+          # Exact match only. A stale restored bundle once shipped fresh HTML
+          # with stale CSS (PR #26), so no restore-keys fallback is used.
+          # The -v2 segment abandons entries saved before this fix.
+          key: ${{ runner.os }}-nextjs-v2-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-${{ hashFiles('src/**', 'content/**', 'public/**', 'next.config.*', 'postcss.config.*', 'tsconfig.json') }}
 
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
