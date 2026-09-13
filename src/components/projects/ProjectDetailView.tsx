@@ -54,7 +54,7 @@ export function ProjectDetailView({
   ];
 
   return (
-    <article className="py-10 sm:py-16">
+    <article id="main-content" tabIndex={-1} className="py-10 sm:py-16">
       <header className="max-w-4xl mx-auto px-6 lg:px-8 mb-12">
         <SmartLink
           href="/projects/"

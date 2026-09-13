@@ -7,6 +7,7 @@ export interface PageMetadataOptions {
   path: string;
   type?: "website" | "article";
   publishedTime?: string;
+  modifiedTime?: string;
   authors?: string[];
   /** ISO locale of the page content; drives `og:locale` (default `en_US`). */
   locale?: string;
@@ -26,6 +27,7 @@ export function buildPageMetadata({
   path,
   type = "website",
   publishedTime,
+  modifiedTime,
   authors,
   locale = "en_US",
 }: PageMetadataOptions): Metadata {
@@ -45,6 +47,7 @@ export function buildPageMetadata({
           ...commonOpenGraph,
           type: "article" as const,
           ...(publishedTime ? { publishedTime } : {}),
+          ...(modifiedTime ? { modifiedTime } : {}),
           ...(authors?.length ? { authors } : {}),
         }
       : { ...commonOpenGraph, type: "website" as const };

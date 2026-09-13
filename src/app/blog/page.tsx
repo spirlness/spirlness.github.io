@@ -19,7 +19,7 @@ export default async function BlogPage() {
   return (
     <div className="distill-grid py-16">
       <div />
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <PageHeader
           title="Blog"
           description="Thoughts on physics, computing, and everything in between."

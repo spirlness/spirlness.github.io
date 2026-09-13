@@ -54,7 +54,7 @@ export default async function ProjectsPage() {
   const projects = getAllProjects();
 
   return (
-    <main className="distill-grid py-16">
+    <main id="main-content" tabIndex={-1} className="distill-grid py-16">
       <div />
       <div className="px-6 lg:px-0">
         <PageHeader

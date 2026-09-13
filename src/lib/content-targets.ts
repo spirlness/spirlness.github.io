@@ -51,7 +51,10 @@ export function isAssetPath(pathname: string): boolean {
 }
 
 /** Collect every local target an MDX body declares. */
-export function extractLocalTargets(source: string): LocalTargets {
+export function extractLocalTargets(
+  source: string,
+  origin = "mdx"
+): LocalTargets {
   const links: string[] = [];
   const assets: string[] = [];
   const tree = contentParser.parse(source) as Root;
@@ -76,14 +79,24 @@ export function extractLocalTargets(source: string): LocalTargets {
       node.type === "mdxJsxFlowElement" ||
       node.type === "mdxJsxTextElement"
     ) {
+      const tagName =
+        typeof node.name === "string" ? node.name : "JSX element";
       for (const attribute of node.attributes ?? []) {
-        // `href={expr}` carries an AST, not a string — nothing static to check.
+        if (attribute.type === "mdxJsxExpressionAttribute") {
+          throw new Error(
+            `Spread JSX attribute is not allowed in content (${origin}): <${tagName} {...}>`
+          );
+        }
         if (
           attribute.type !== "mdxJsxAttribute" ||
-          typeof attribute.value !== "string" ||
           !URL_ATTRIBUTES.has(attribute.name)
         ) {
           continue;
+        }
+        if (typeof attribute.value !== "string") {
+          throw new Error(
+            `Expression-valued URL attribute is not allowed in content (${origin}): <${tagName} ${attribute.name}={...}> — use a literal string`
+          );
         }
         add(attribute.name === "href" ? links : assets, attribute.value);
       }

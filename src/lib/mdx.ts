@@ -11,6 +11,7 @@ import { visit } from "unist-util-visit";
 import { mdxComponents } from "@/components/mdx/MDXComponents";
 import { getAllPublications, type Publication } from "./bibtex";
 import { CITATION_KEY_CHARS } from "./content-id";
+import { assertSafeMathUrls, isTrustedMathUrl } from "./math-safety";
 
 const citationPattern = new RegExp(
   `\\[@([${CITATION_KEY_CHARS}]+(?:;\\s*@[${CITATION_KEY_CHARS}]+)*)\\]`,
@@ -102,8 +103,19 @@ function citationPlugin(references: Publication[], slug: string) {
   };
 }
 
-function collectHeadingsPlugin(headings: TocHeading[]) {
-  return (tree: HastRoot) => {
+function mathHrefGuardPlugin(slug: string) {
+  const guard = (node: { value?: unknown }) => {
+    if (typeof node.value === "string") {
+      assertSafeMathUrls(node.value, `post "${slug}"`);
+    }
+  };
+  return (tree: MdastRoot) => {
+    visit(tree, "inlineMath", guard as never);
+    visit(tree, "math", guard as never);
+  };
+}
+
+function collectHeadingsPlugin(headings: TocHeading[]) {  return (tree: HastRoot) => {
     visit(tree, "element", (node: HastElement) => {
       if (node.tagName !== "h2" && node.tagName !== "h3") return;
       const id = typeof node.properties.id === "string" ? node.properties.id : "";
@@ -140,10 +152,17 @@ export async function compileContent({
           // GFM (tables, strikethrough, autolinks) — without this, markdown
           // tables in posts render as literal pipe-text paragraphs.
           remarkGfm,
+          // Fail closed on dangerous \href{}/\url{} schemes before KaTeX
+          // ever sees them. Must run after remarkMath so the
+          // inlineMath/math nodes exist.
+          [mathHrefGuardPlugin, slug] as never,
           ...(citations ? [[citationPlugin, references, slug] as never] : []),
         ],
         rehypePlugins: [
-          rehypeKatex,
+          // Least-privilege trust: only http(s) math links render as <a>;
+          // anything else degrades to inert error text (backstop for the
+          // remark guard above, which throws first).
+          [rehypeKatex, { trust: isTrustedMathUrl }],
           [rehypePrettyCode, { theme: "github-dark", keepBackground: false }],
           ...(tableOfContents
             ? [rehypeSlug, [collectHeadingsPlugin, headings] as never]

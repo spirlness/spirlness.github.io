@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 @AGENTS.md
 
-Next.js is pinned to **16.3.2** with React 19 and Tailwind v4. Per `AGENTS.md`, check `node_modules/next/dist/docs/` before relying on remembered Next.js APIs — several conventions here differ from older releases.
+Next.js is pinned to **16.3.4** with React 19 and Tailwind v4. Per `AGENTS.md`, check `node_modules/next/dist/docs/` before relying on remembered Next.js APIs — several conventions here differ from older releases.
 
 ## Commands
 
@@ -22,7 +22,7 @@ npm run test:e2e  # Playwright page tests against `serve out` (build first)
 
 `npm run start` only works after `npm run build`. Because `output: "export"` produces no server, `serve out` is the only way to preview the real deployed artifact; use it to verify blog routes and internal links before pushing.
 
-Tests are Vitest, living in `src/lib/__tests__/`. They cover the pure content-layer helpers and schemas (`bibtex`, `content-id`, `content-integrity`, `content-schemas`, `content-targets`, `links`, `mdx`, `metadata`, `posts`, `projects`, `updates`) — not components, not rendering (rendering is covered by the Playwright e2e suite in `tests/e2e/`). There is no DOM environment configured (`vitest.config.ts` sets only an `@` alias and `include`), so a test that needs a browser API will fail; keep new tests on the `src/lib/` side or add an environment first.
+Tests are Vitest, living in `src/lib/__tests__/`. They cover the pure content-layer helpers and schemas (`bibtex`, `content-id`, `content-integrity`, `content-schemas`, `content-targets`, `links`, `mdx`, `metadata`, `posts`, `projects`, `updates`) — not components, not rendering (rendering is covered by the Playwright e2e suite in `tests/e2e/`). There is no DOM environment configured (`vitest.config.mts` sets only an `@` alias and `include`), so a test that needs a browser API will fail; keep new tests on the `src/lib/` side or add an environment first.
 
 The unit tests do not cover the exported artifact. That is CI's "Verify static export" step, which you can reproduce locally after a build:
 

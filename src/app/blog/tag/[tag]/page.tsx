@@ -39,7 +39,7 @@ export default async function TagPage({
   return (
     <div className="distill-grid py-16">
       <div />
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <PageHeader
           eyebrow="Tag"
           title={`#${tag}`}

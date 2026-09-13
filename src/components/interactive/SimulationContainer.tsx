@@ -37,6 +37,12 @@ const SimulationContainer: React.FC<SimulationContainerProps> = ({
           camera={{ position: [0, 0, 5], fov: 50 }}
           dpr={[1, 2]}
           className="cursor-move"
+          frameloop={
+            typeof window !== "undefined" &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches
+              ? "demand"
+              : "always"
+          }
         >
           <ambientLight intensity={0.5} />
           <pointLight position={[10, 10, 10]} />

@@ -20,8 +20,8 @@ export function ProjectMedia({
       <video
         src={src}
         aria-label={title}
-        autoPlay
-        loop
+        controls
+        preload="metadata"
         muted
         playsInline
         className="w-full h-full object-cover"

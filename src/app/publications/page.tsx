@@ -23,7 +23,7 @@ export default function PublicationsPage() {
   const years = Object.keys(grouped).sort((a, b) => parseInt(b) - parseInt(a));
 
   return (
-    <main className="distill-grid py-16">
+    <main id="main-content" tabIndex={-1} className="distill-grid py-16">
       <JsonLd
         data={{
           "@context": "https://schema.org",

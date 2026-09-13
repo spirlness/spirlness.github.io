@@ -115,3 +115,13 @@ describe("readingTime", () => {
     expect(readingTime("word ".repeat(400))).toBe(2);
   });
 });
+
+describe("getPostEffectiveDate", () => {
+  it("prefers lastUpdated over date", async () => {
+    const { getPostEffectiveDate } = await import("../posts");
+    expect(
+      getPostEffectiveDate({ date: "2026-02-28", lastUpdated: "2026-06-01" })
+    ).toBe("2026-06-01");
+    expect(getPostEffectiveDate({ date: "2026-02-28" })).toBe("2026-02-28");
+  });
+});

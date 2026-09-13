@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
-import { Calendar, Award, BookOpen, GraduationCap, Folder, FileText, Newspaper, ExternalLink } from "lucide-react";
+import { Calendar, ExternalLink } from "lucide-react";
 import { siteProfile } from "@/content/site";
 import { getAllUpdates, UpdateIcon } from "@/lib/updates";
+import {
+  updateIconClassName,
+  updateIconComponents,
+} from "@/lib/update-icons";
 import { isExternalHref, isSafeHref } from "@/lib/links";
 import { JsonLd } from "@/components/meta/JsonLd";
 import { buildPageMetadata } from "@/lib/metadata";
 import { SmartLink } from "@/components/ui/SmartLink";
 
-const updateIcons: Record<UpdateIcon, React.ReactNode> = {
-  award: <Award className="w-4 h-4 text-orange-500" />,
-  book: <BookOpen className="w-4 h-4 text-blue-500" />,
-  graduation: <GraduationCap className="w-4 h-4 text-purple-500" />,
-  project: <Folder className="w-4 h-4 text-green-500" />,
-  publication: <FileText className="w-4 h-4 text-red-500" />,
-  blog: <Newspaper className="w-4 h-4 text-indigo-500" />,
-};
+function UpdateTimelineIcon({ icon }: { icon: UpdateIcon }) {
+  const Icon = updateIconComponents[icon];
+  return <Icon className={updateIconClassName[icon]} />;
+}
 
 export const metadata: Metadata = buildPageMetadata({
   title: siteProfile.title,
@@ -38,7 +38,7 @@ export default function Home() {
         }}
       />
       <div />
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <section className="mb-24">
           <p className="font-display text-sm font-bold tracking-widest text-accent uppercase mb-5">
             {siteProfile.name}
@@ -87,7 +87,7 @@ export default function Home() {
                   <div className="absolute left-[18px] top-8 bottom-[-48px] w-px bg-gray-100 group-hover:bg-orange-100 transition-colors" />
                 )}
                 <div className="flex-none w-9 h-9 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center relative z-10 group-hover:border-orange-200 transition-colors">
-                  {updateIcons[update.icon]}
+                  <UpdateTimelineIcon icon={update.icon} />
                 </div>
                 <div className="pt-1.5 pb-2">
                   <span className="text-sm font-mono text-gray-400 mb-2 block tracking-tighter">
