@@ -95,6 +95,7 @@ export function ProjectDetailView({
               title={project.title}
               src={project.thumbnail}
               mediaType={project.mediaType}
+              interactive
               sizes="(max-width: 1024px) 100vw, 90vw"
               priority
             />

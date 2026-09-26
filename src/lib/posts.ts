@@ -28,12 +28,6 @@ export function readingTime(source: string): number {
 }
 
 /**
- * Rehype plugin factory that records `h2`/`h3` headings from the compiled MDX
- * and assigns each a stable `id` so the floating ToC can anchor and scrollspy.
- * The plugin mutates the headings array passed in; compileMDX runs rehype
- * synchronously, so the array is populated when it resolves.
- */
-/**
  * Build a normalized, trailing-slash href for a blog post. GitHub Pages serves
  * out/blog/<slug>/index.html at /blog/<slug>/, so the trailing slash must
  * always be present or an internal link silently 404s.

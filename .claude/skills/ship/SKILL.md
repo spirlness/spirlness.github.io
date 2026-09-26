@@ -42,7 +42,9 @@ If the merge reports a conflict (a parallel PR landed on the same files), merge 
 
 ## Phase 5 — watch the deploy
 
-- Find the run: `gh run list --branch master --workflow deploy.yml --limit 1 --json databaseId --jq '.[0].databaseId'`
+- Capture the merged SHA after the merge/`git pull`: `sha=$(git rev-parse HEAD)` (or `git rev-parse origin/master`).
+- Find the run **for that SHA** — never take the newest master run blindly (it can be a previous deploy, or the new push's run may not be registered yet). Poll `gh run list --branch master --workflow deploy.yml --commit "$sha" --json databaseId,status,headSha --jq '.[0].databaseId'` every few seconds (bounded retries, ~10 tries) until it prints an id.
+- Confirm the run belongs to the merged SHA before watching: the same lookup with `--jq '.[0].headSha'` must equal `$sha`. If it does not, or no run appears, stop and report rather than watching an unrelated run.
 - Watch it in the background so the user can keep working: `gh run watch <id> --repo spirlness/spirlness.github.io --exit-status --interval 20` (background task). When it completes, verify:
   - both jobs (`build`, `deploy`) are ✓ and the run conclusion is `success`;
   - there are **no annotations** (lint warnings, node deprecations, anything) — scan the watcher output; treat any annotation as a follow-up item;

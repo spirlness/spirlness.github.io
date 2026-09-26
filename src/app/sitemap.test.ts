@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { getAllPostFrontmatter, getPostEffectiveDate } from "@/lib/posts";
+import { getAllProjects } from "@/lib/projects";
 import sitemap from "./sitemap";
 
 describe("sitemap", () => {
@@ -10,18 +12,24 @@ describe("sitemap", () => {
     expect(urls).toContain("https://spirlness.github.io/blog/tag/resilience/");
   });
 
-  it("omits project lastmod when content only provides a month", () => {
-    const projectEntries = sitemap().filter((entry) =>
-      entry.url.startsWith("https://spirlness.github.io/projects/") &&
-      entry.url !== "https://spirlness.github.io/projects/"
+  it("derives project lastmod from project frontmatter", () => {
+    const projects = getAllProjects();
+    const projectEntries = sitemap().filter(
+      (entry) =>
+        entry.url.startsWith("https://spirlness.github.io/projects/") &&
+        entry.url !== "https://spirlness.github.io/projects/"
     );
 
-    expect(projectEntries).toHaveLength(2);
-    expect(projectEntries.every((entry) => entry.lastModified === undefined)).toBe(true);
+    expect(projectEntries).toHaveLength(projects.length);
+    for (const project of projects) {
+      const entry = projectEntries.find(
+        (e) => e.url === `https://spirlness.github.io/projects/${project.id}/`
+      );
+      expect(entry?.lastModified).toBe(project.lastModified);
+    }
   });
 
-  it("pins post lastmod to the frontmatter date", async () => {
-    const { getAllPostFrontmatter } = await import("@/lib/posts");
+  it("uses the effective post date for post lastmod", () => {
     const posts = getAllPostFrontmatter();
     const entries = sitemap().filter(
       (entry) =>
@@ -34,7 +42,7 @@ describe("sitemap", () => {
       const entry = entries.find(
         (e) => e.url === `https://spirlness.github.io/blog/${post.slug}/`
       );
-      expect(entry?.lastModified).toBe(post.date);
+      expect(entry?.lastModified).toBe(getPostEffectiveDate(post));
     }
   });
 });

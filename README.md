@@ -123,7 +123,7 @@ The homepage timeline is **not** in `site.ts`. Add one JSON file per entry under
 }
 ```
 
-`date` must be `"YYYY-MM"`. `link` is optional. `icon` must be one of `award`, `book`, `graduation`, `project`, `publication`, `blog` — a new name also has to be added to the `updateIcons` array in `src/lib/content-schemas.ts` (which feeds the zod enum) and to the `updateIcons` JSX map in `src/app/page.tsx`. Adding it to `src/lib/updates.ts` alone does nothing: that file only re-exports the types.
+`date` must be `"YYYY-MM"`. `link` is optional. `icon` must be one of `award`, `book`, `graduation`, `project`, `publication`, `blog` — a new name also has to be added to the `updateIcons` array in `src/lib/content-schemas.ts` (which feeds the zod enum) and to both `Record<UpdateIcon, …>` maps in `src/lib/update-icons.ts` (`updateIconComponents` and `updateIconClassName`; `src/lib/__tests__/update-icons.test.ts` fails if the maps and the enum drift apart). Adding it to `src/lib/updates.ts` alone does nothing: that file only re-exports the types.
 
 Malformed or invalid update JSON—including missing fields, invalid dates, unknown icons, or invalid links—fails the build with an error, so fix the reported file before deploying.
 

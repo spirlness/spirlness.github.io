@@ -45,3 +45,7 @@ next-env.d.ts
 # claude code (local-only artifacts; settings.json, hooks/, agents/, skills/ are committed)
 .claude/settings.local.json
 .claude/worktrees/
+
+# local tooling artifacts
+.mimosa/
+.omo/

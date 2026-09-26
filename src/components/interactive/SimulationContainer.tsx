@@ -3,6 +3,7 @@
 import React, { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Stage } from '@react-three/drei';
+import { usePrefersReducedMotion } from './usePrefersReducedMotion';
 
 interface SimulationContainerProps {
   children: React.ReactNode;
@@ -19,6 +20,9 @@ const SimulationContainer: React.FC<SimulationContainerProps> = ({
   height = "400px",
   className = ""
 }) => {
+  // 订阅系统偏好：用户切换「减少动态效果」时 frameloop 会立即跟随变化
+  const prefersReducedMotion = usePrefersReducedMotion();
+
   return (
     <div 
       className={`relative w-full rounded-xl overflow-hidden bg-slate-50 border border-slate-200 shadow-inner my-8 ${className}`}
@@ -37,12 +41,7 @@ const SimulationContainer: React.FC<SimulationContainerProps> = ({
           camera={{ position: [0, 0, 5], fov: 50 }}
           dpr={[1, 2]}
           className="cursor-move"
-          frameloop={
-            typeof window !== "undefined" &&
-            window.matchMedia("(prefers-reduced-motion: reduce)").matches
-              ? "demand"
-              : "always"
-          }
+          frameloop={prefersReducedMotion ? "demand" : "always"}
         >
           <ambientLight intensity={0.5} />
           <pointLight position={[10, 10, 10]} />

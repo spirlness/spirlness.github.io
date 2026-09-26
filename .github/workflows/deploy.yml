@@ -45,18 +45,23 @@ jobs:
           node-version: "22"
           cache: ${{ steps.detect-package-manager.outputs.manager }}
 
+      - name: Resolve Node runtime
+        id: node-runtime
+        shell: bash
+        run: echo "version=$(node --version)" >> "$GITHUB_OUTPUT"
+
       - name: Setup Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6
 
-      - name: Restore cache
+      - name: Restore/save Next.js cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
-          path: |
-            .next/cache
-          # Exact match only. A stale restored bundle once shipped fresh HTML
-          # with stale CSS (PR #26), so no restore-keys fallback is used.
-          # The -v2 segment abandons entries saved before this fix.
-          key: ${{ runner.os }}-nextjs-v2-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-${{ hashFiles('src/**', 'content/**', 'public/**', 'next.config.*', 'postcss.config.*', 'tsconfig.json') }}
+          path: .next/cache
+          # Exact key match only, with no fallback restore: a stale restore
+          # once shipped fresh HTML with stale CSS (PR #26/#27). The key
+          # covers every build input plus the Node runtime; the -v3 segment
+          # abandons entries saved under the older keys.
+          key: ${{ runner.os }}-nextjs-v3-${{ steps.node-runtime.outputs.version }}-${{ hashFiles('**/package-lock.json', 'package.json', 'src/**', 'content/**', 'public/**', 'next.config.*', 'postcss.config.*', 'tsconfig.json') }}
 
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}

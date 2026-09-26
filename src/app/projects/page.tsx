@@ -21,6 +21,7 @@ function ProjectCard({ project }: { project: ProjectFrontmatter }) {
       className="group block border-b border-gray-100 pb-10 last:border-0 hover:border-orange-100 transition-colors"
     >
       <div className="relative aspect-video bg-gray-900 overflow-hidden rounded-lg mb-5">
+        {/* No `interactive` here: the whole card, media included, is one SmartLink. */}
         <ProjectMedia
           title={project.title}
           src={project.thumbnail}

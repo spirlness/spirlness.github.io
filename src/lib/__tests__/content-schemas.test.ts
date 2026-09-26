@@ -105,6 +105,20 @@ describe("content schemas", () => {
       )
     ).toMatchObject({ icon: "publication", link: "/publications/" });
 
+    // A backslash after `?` is an ordinary query character under the WHATWG URL
+    // parser, so the safeHref refine must accept it (PR #23).
+    expect(
+      parseUpdate(
+        {
+          date: "2026-09",
+          content: "New result",
+          icon: "publication",
+          link: "/search?q=C:\\temp",
+        },
+        "update.json"
+      )
+    ).toMatchObject({ link: "/search?q=C:\\temp" });
+
     expect(() =>
       parseUpdate(
         { date: "2026-09", content: "New result", icon: "unknown" },
@@ -150,7 +164,7 @@ describe("content schemas", () => {
     expect(project.tags).toEqual(["Tag A", "Tag B"]);
   });
 
-  it("parses lastUpdated even though readers ignore it downstream", () => {
+  it("parses lastUpdated, which flows into the sitemap and page metadata", () => {
     expect(
       parsePostFrontmatter(
         {

@@ -15,12 +15,28 @@ import {
   isAssetPath,
   localAbsolute,
   pathnameOf,
+  type LocalTargets,
 } from "./content-targets";
 import { getAllUpdates } from "./updates";
 
 const projectDirectory = path.join(process.cwd(), "content", "projects");
 const postDirectory = path.join(process.cwd(), "content", "posts");
 const publicDirectory = path.join(process.cwd(), "public");
+
+/**
+ * Files the export emits at the site root that are not pages: no trailing
+ * slash (they are files), and not under `public/` either, so
+ * `assertAssetExists()` cannot vouch for them. `/feed.xml` and friends come
+ * from route handlers; the OG card and favicon are Next file conventions in
+ * `src/app/` (CI asserts the OG export in `.github/workflows/deploy.yml`).
+ */
+const exportedRootFiles = new Set([
+  "/feed.xml",
+  "/robots.txt",
+  "/sitemap.xml",
+  "/opengraph-image.png",
+  "/favicon.ico",
+]);
 
 /**
  * Resolve a site-absolute href to the file it names under `public/`, or
@@ -46,6 +62,83 @@ function assertAssetExists(url: string, origin: string): void {
   }
 }
 
+/** True for a real file the export emits at the site root outside `public/`. */
+function isExportedRootFile(url: string): boolean {
+  return exportedRootFiles.has(pathnameOf(url));
+}
+
+/** An image target must be a real exported file, whether from `public/` or the app itself. */
+export function assertAssetResolves(url: string, origin: string): void {
+  if (!isExportedRootFile(url)) assertAssetExists(url, origin);
+}
+
+/**
+ * Every path the export emits that is not a `public/` asset: the pages, the
+ * generated root files, and each post, project, and tag route. `posts` and
+ * `projects` default to the repository content so callers (and tests) build
+ * the same set the integrity check validates against.
+ */
+export function buildKnownPaths(
+  posts: ReturnType<typeof getAllPostFrontmatter> = getAllPostFrontmatter(),
+  projects: ReturnType<typeof getAllProjects> = getAllProjects()
+): Set<string> {
+  return new Set([
+    "/",
+    "/blog/",
+    "/projects/",
+    "/publications/",
+    ...exportedRootFiles,
+    ...posts.map((post) => postHref(post.slug)),
+    ...projects.map((project) => projectHref(project.id)),
+    ...new Set(
+      posts.flatMap((post) => post.tags.map((tag) => `/blog/tag/${tag}/`))
+    ),
+  ]);
+}
+
+/** Resolve one content link: a known route, or a real asset when it names a file. */
+function assertLinkResolves(
+  href: string,
+  origin: string,
+  knownPaths: ReadonlySet<string>
+): void {
+  const target = localAbsolute(href);
+  if (!target) return;
+  const pathname = pathnameOf(normalizeInternalHref(target));
+  if (knownPaths.has(pathname)) return;
+  // Not a known route: if it names a file, it must be a real exported asset.
+  if (isAssetPath(pathname)) {
+    assertAssetExists(target, origin);
+    return;
+  }
+  throw new Error(`Unknown internal link: ${href} (${origin})`);
+}
+
+/**
+ * Check every destination an MDX body declares. Relative paths come first
+ * because they are the silent failure this check exists to prevent:
+ * `localAbsolute()` ignores them and the media override renders null, so the
+ * export would ship without the image while the build stayed green.
+ */
+export function assertTargetsResolvable(
+  targets: LocalTargets,
+  origin: string,
+  knownPaths: ReadonlySet<string>
+): void {
+  for (const url of targets.relative) {
+    throw new Error(
+      `Relative asset path "${url}" is not supported — use a site-absolute path such as "/${url}" (${origin})`
+    );
+  }
+  for (const href of targets.links) {
+    assertLinkResolves(href, origin, knownPaths);
+  }
+  for (const url of targets.assets) {
+    const target = localAbsolute(url);
+    if (target) assertAssetResolves(target, origin);
+  }
+}
+
 export async function checkContentIntegrity(): Promise<{
   posts: number;
   projects: number;
@@ -57,23 +150,7 @@ export async function checkContentIntegrity(): Promise<{
   const updates = getAllUpdates();
   const publications = getAllPublications();
 
-  const knownPaths = new Set([
-    "/",
-    "/blog/",
-    "/projects/",
-    "/publications/",
-    // Exported but not pages: no trailing slash, so list them verbatim.
-    "/feed.xml",
-    "/robots.txt",
-    "/sitemap.xml",
-    ...posts.map((post) => postHref(post.slug)),
-    ...projects.map((project) => projectHref(project.id)),
-    ...new Set(
-      posts.flatMap((post) =>
-        post.tags.map((tag) => `/blog/tag/${tag}/`)
-      )
-    ),
-  ]);
+  const knownPaths = buildKnownPaths(posts, projects);
 
   const links: { href: string; origin: string }[] = [
     ...siteProfile.navLinks.map((link) => ({
@@ -92,33 +169,30 @@ export async function checkContentIntegrity(): Promise<{
       }))
     ),
   ];
-  const assets: { url: string; origin: string }[] = [];
 
   for (const post of posts) {
     const origin = `post "${post.slug}"`;
     const body = matter(
       fs.readFileSync(path.join(postDirectory, `${post.slug}.mdx`), "utf8")
     ).content;
-    const targets = extractLocalTargets(body, origin);
-    links.push(...targets.links.map((href) => ({ href, origin })));
-    assets.push(...targets.assets.map((url) => ({ url, origin })));
+    assertTargetsResolvable(extractLocalTargets(body, origin), origin, knownPaths);
     await getPostBySlug(post.slug);
   }
 
   for (const project of projects) {
     const origin = `project "${project.id}"`;
     if (project.thumbnail.startsWith("/")) {
-      assertAssetExists(project.thumbnail, `${origin} thumbnail`);
+      assertAssetResolves(project.thumbnail, `${origin} thumbnail`);
     }
 
     const mdxPath = path.join(projectDirectory, `${project.id}.mdx`);
     if (fs.existsSync(mdxPath)) {
-      const targets = extractLocalTargets(
-        matter(fs.readFileSync(mdxPath, "utf8")).content,
-        origin
+      const body = matter(fs.readFileSync(mdxPath, "utf8")).content;
+      assertTargetsResolvable(
+        extractLocalTargets(body, origin),
+        origin,
+        knownPaths
       );
-      links.push(...targets.links.map((href) => ({ href, origin })));
-      assets.push(...targets.assets.map((url) => ({ url, origin })));
     }
 
     await getProjectDetailById(project.id);
@@ -140,21 +214,7 @@ export async function checkContentIntegrity(): Promise<{
   }
 
   for (const { href, origin } of links) {
-    const target = localAbsolute(href);
-    if (!target) continue;
-    const pathname = pathnameOf(normalizeInternalHref(target));
-    if (knownPaths.has(pathname)) continue;
-    // Not a known route: if it names a file, it must be a real public/ asset.
-    if (isAssetPath(pathname)) {
-      assertAssetExists(target, origin);
-      continue;
-    }
-    throw new Error(`Unknown internal link: ${href} (${origin})`);
-  }
-
-  for (const { url, origin } of assets) {
-    const target = localAbsolute(url);
-    if (target) assertAssetExists(target, origin);
+    assertLinkResolves(href, origin, knownPaths);
   }
 
   return {
