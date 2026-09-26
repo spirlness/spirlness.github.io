@@ -3,6 +3,7 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { usePrefersReducedMotion } from './usePrefersReducedMotion';
 
 interface ParticleData {
   position: THREE.Vector3;
@@ -48,12 +49,8 @@ const PhysicsDemo: React.FC = () => {
   }, [count]);
 
   const dummy = useMemo(() => new THREE.Object3D(), []);
-  const prefersReducedMotion = useMemo(
-    () =>
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    []
-  );
+  // 订阅系统偏好：切换「减少动态效果」后动画立即冻结/恢复，无需刷新页面
+  const prefersReducedMotion = usePrefersReducedMotion();
   const framesRendered = useRef(0);
 
   useFrame((state) => {

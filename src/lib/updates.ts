@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { readContentFile } from "./content-files";
 import { parseUpdate, type UpdateFrontmatter } from "./content-schemas";
 
 export type { UpdateFrontmatter, UpdateIcon } from "./content-schemas";
@@ -28,10 +29,9 @@ export function getAllUpdates(): UpdateFrontmatter[] {
   for (const file of files) {
     if (!file.endsWith(".json")) continue;
 
-    const jsonPath = path.join(UPDATES_PATH, file);
     let parsed: unknown;
     try {
-      parsed = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
+      parsed = JSON.parse(readContentFile(UPDATES_PATH, file));
     } catch (err) {
       throw new Error(
         `Failed to parse update "${file}": ${(err as Error).message}`

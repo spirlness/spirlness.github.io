@@ -34,14 +34,28 @@ test.describe("skip link (S3)", () => {
 });
 
 test.describe("project media (S3)", () => {
-  test("video has controls and does not autoplay", async ({ page }) => {
+  // The whole list card is one link, so its video must stay non-interactive
+  // (controls nested in an anchor hijack activation); playback controls belong
+  // to the detail page, which is not anchor-wrapped.
+  test("card video is non-interactive and the detail video has controls", async ({
+    page,
+  }) => {
     await page.goto("/projects/");
-    const video = page.locator("video").first();
-    if ((await video.count()) === 0) {
+    const cardVideo = page.locator("video").first();
+    if ((await cardVideo.count()) === 0) {
       test.skip(true, "no video project fixture in content/");
     }
-    await expect(video).toHaveAttribute("controls", "");
-    await expect(video).not.toHaveAttribute("autoplay", "");
+    await expect(cardVideo).not.toHaveAttribute("controls", "");
+    await expect(cardVideo).not.toHaveAttribute("autoplay", "");
+
+    const href = await cardVideo
+      .locator("xpath=ancestor::a[1]")
+      .getAttribute("href");
+    expect(href).toBeTruthy();
+    await page.goto(href!);
+    const detailVideo = page.locator("video").first();
+    await expect(detailVideo).toHaveAttribute("controls", "");
+    await expect(detailVideo).not.toHaveAttribute("autoplay", "");
   });
 });
 

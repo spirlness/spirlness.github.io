@@ -6,6 +6,7 @@ import { CodeBlock } from './CodeBlock';
 // 交互式组件经由 LazyInteractive 的客户端边界导入，本文件保持为服务端组件
 import { SimulationContainer, PhysicsDemo } from '../interactive/LazyInteractive';
 import { isSafeHref } from '@/lib/links';
+import { isSafeSrcSet } from '@/lib/media-srcset';
 import { SmartLink } from '@/components/ui/SmartLink';
 
 /**
@@ -64,12 +65,23 @@ export const mdxComponents: MDXComponents = {
   },
   // 媒体目标走同一 allowlist：无 img/video/source 覆盖时，表达式 src/poster
   // 会同时绕过 content:check 与 isSafeHref，因此这里逐属性设门。
-  img: ({ src, alt, ...props }) => {
-    if (typeof src !== "string" || !isSafeHref(src)) {
+  // srcSet 同样是可指定加载目标的 URL 列表，只校验首项等于给浏览器留下选择
+  // 未校验候选的机会；所以每个候选都必须过校验，任一失败即整条属性不渲染。
+  img: ({ src, srcSet, srcset, alt, ...props }) => {
+    // MDX 保留属性大小写，小写 srcset 是 HTML 写法但同样会到达 DOM，必须一起校验，
+    // 否则它会绕过上面的门从 {...props} 原样透出。
+    const declaredSrcSets = [srcSet, srcset].filter((value) => value !== undefined);
+    if (
+      typeof src !== "string" ||
+      !isSafeHref(src) ||
+      declaredSrcSets.some((value) => !isSafeSrcSet(value))
+    ) {
       return null;
     }
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={src} alt={alt ?? ""} {...props} />;
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={src} srcSet={srcSet ?? srcset} alt={alt ?? ""} {...props} />
+    );
   },
   video: ({ src, poster, children, ...props }) => {
     if (
@@ -85,12 +97,99 @@ export const mdxComponents: MDXComponents = {
       </video>
     );
   },
-  source: ({ src, ...props }) => {
+  // <picture> 的标准写法只在 <source> 上给 srcSet 而不给 src，不能沿用
+  // “src 必须是安全字符串”的单条件；src 与 srcSet 一旦声明就必须全部通过
+  // 校验，只放行其中安全的一项仍会让未校验的候选被浏览器采用，因此任一失败
+  // 即整条不渲染（失败关闭）。两者都未声明则没有可加载目标，同样不渲染。
+  source: ({ src, srcSet, srcset, ...props }) => {
+    const declaredSrcSets = [srcSet, srcset].filter((value) => value !== undefined);
+    const srcIsSafe = typeof src === "string" && isSafeHref(src);
+    const srcSetIsSafe =
+      declaredSrcSets.length > 0 &&
+      declaredSrcSets.every((value) => isSafeSrcSet(value));
+    if (
+      (src !== undefined && !srcIsSafe) ||
+      declaredSrcSets.some((value) => !isSafeSrcSet(value)) ||
+      (!srcIsSafe && !srcSetIsSafe)
+    ) {
+      return null;
+    }
+    return (
+      <source
+        src={srcIsSafe ? src : undefined}
+        srcSet={srcSetIsSafe ? srcSet ?? srcset : undefined}
+        {...props}
+      />
+    );
+  },
+  // iframe/object/embed/audio 同样以 URL 属性指定加载目标，且 React 19 只中和
+  // javascript:，不拦 iframe 的 data:text/html 或 srcdoc，因此这四个标签也逐属性
+  // 设门：目标缺失或未过 isSafeHref 一律不渲染（失败关闭）。
+  iframe: ({ src, srcdoc, srcDoc, children, ...props }) => {
+    // srcdoc 是整段 HTML 文档注入面，无法用 URL allowlist 表达；HTML 写法
+    // srcdoc 与 JSX 写法 srcDoc 都会到达 DOM，任一出现即拒绝。
+    if (srcdoc !== undefined || srcDoc !== undefined) {
+      return null;
+    }
     if (typeof src !== "string" || !isSafeHref(src)) {
       return null;
     }
-    return <source src={src} {...props} />;
+    return (
+      <iframe src={src} {...props}>
+        {children}
+      </iframe>
+    );
   },
+  // object 的加载目标在 data 属性（不是 src）上，同样只放行安全目标。
+  object: ({ data, children, ...props }) => {
+    if (typeof data !== "string" || !isSafeHref(data)) {
+      return null;
+    }
+    return (
+      <object data={data} {...props}>
+        {children}
+      </object>
+    );
+  },
+  embed: ({ src, ...props }) => {
+    if (typeof src !== "string" || !isSafeHref(src)) {
+      return null;
+    }
+    return <embed src={src} {...props} />;
+  },
+  // audio 可以从自身 src 或直接子级 <source src> 加载；已声明的不安全 src
+  // 仍须拒绝，且仅有无效子级不能形成可用的播放器。
+  audio: ({ src, children, ...props }) => {
+    const hasSafeChildSource = React.Children.toArray(children).some(
+      (child) =>
+        React.isValidElement<{ src?: unknown; srcSet?: unknown; srcset?: unknown }>(child) &&
+        child.type === mdxComponents.source &&
+        typeof child.props.src === "string" &&
+        isSafeHref(child.props.src) &&
+        [child.props.srcSet, child.props.srcset].every(
+          (value) => value === undefined || isSafeSrcSet(value)
+        )
+    );
+    if (
+      (src !== undefined && (typeof src !== "string" || !isSafeHref(src))) ||
+      (src === undefined && !hasSafeChildSource)
+    ) {
+      return null;
+    }
+    return (
+      <audio src={src} {...props}>
+        {children}
+      </audio>
+    );
+  },
+  // 显式小写媒体 JSX 被 MDX 视为原生标签；编译时改名到这些映射。
+  get MdxImage() { return mdxComponents.img; },
+  get MdxVideo() { return mdxComponents.video; },
+  get MdxSource() { return mdxComponents.source; },
+  get MdxIframe() { return mdxComponents.iframe; },
+  get MdxObject() { return mdxComponents.object; },
+  get MdxEmbed() { return mdxComponents.embed; },
+  get MdxAudio() { return mdxComponents.audio; },
   // 围栏代码块内的 code 带 class="language-*"（shiki 会再加 token 颜色类），
   // 行内 code 没有；className 先解构再与默认样式合并，避免 {...props} 展开覆盖默认样式
   code: ({ className, ...props }) => {

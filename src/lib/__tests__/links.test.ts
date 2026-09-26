@@ -3,6 +3,7 @@ import {
   isExternalHref,
   isSafeHref,
   isSafeHttpUrl,
+  isSafeLocalHref,
   isUsableHref,
   normalizeInternalHref,
 } from "../links";
@@ -66,6 +67,35 @@ describe("isSafeHttpUrl", () => {
   });
 });
 
+describe("isSafeLocalHref", () => {
+  it("accepts site-relative paths, including backslashes after ? or #", () => {
+    expect(isSafeLocalHref("/")).toBe(true);
+    expect(isSafeLocalHref("/projects/foo/")).toBe(true);
+    expect(isSafeLocalHref("/search?q=C:\\temp")).toBe(true);
+    expect(isSafeLocalHref("/docs/#C:\\API")).toBe(true);
+  });
+
+  it("rejects a backslash in the path portion", () => {
+    expect(isSafeLocalHref("/foo\\bar")).toBe(false);
+    expect(isSafeLocalHref("/foo\\bar?q=1")).toBe(false);
+    expect(isSafeLocalHref("/foo?q=1#\\bar")).toBe(true);
+  });
+
+  it("rejects protocol-relative, leading-backslash, and leading-whitespace forms", () => {
+    for (const href of ["//evil", "/\\evil", "/\t/evil", "/\n/evil", "/\r/evil"]) {
+      expect(isSafeLocalHref(href)).toBe(false);
+    }
+  });
+
+  it("rejects values without a leading slash", () => {
+    expect(isSafeLocalHref("\\evil")).toBe(false);
+    expect(isSafeLocalHref("\\\\evil")).toBe(false);
+    expect(isSafeLocalHref("search?q=C:\\temp")).toBe(false);
+    expect(isSafeLocalHref("https://example.com")).toBe(false);
+    expect(isSafeLocalHref("")).toBe(false);
+  });
+});
+
 describe("isSafeHref", () => {
   it("accepts ordinary local paths, anchors, and HTTP(S) URLs", () => {
     expect(isSafeHref("/")).toBe(true);
@@ -74,6 +104,8 @@ describe("isSafeHref", () => {
     expect(isSafeHref("https://example.com")).toBe(true);
     expect(isSafeHref("/%5Cevil.example")).toBe(true);
     expect(isSafeHref("/%2F%2Fevil.example")).toBe(true);
+    expect(isSafeHref("/search?q=C:\\temp")).toBe(true);
+    expect(isSafeHref("/docs/#C:\\API")).toBe(true);
   });
 
   it("rejects local paths that browser URL parsing can reinterpret as an origin", () => {
@@ -85,6 +117,8 @@ describe("isSafeHref", () => {
       "/\n/attacker.example",
       "/\r/attacker.example",
       "  /\\attacker.example",
+      "/foo\\bar",
+      "\\\\attacker.example",
     ]) {
       expect(isSafeHref(href)).toBe(false);
     }

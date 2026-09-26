@@ -11,8 +11,9 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
-    "coverage/**",
     "next-env.d.ts",
+    // Repo-added ignore: generated coverage reports are not linted.
+    "coverage/**",
     // Claude Code tool directory (may hold nested worktree checkouts).
     ".claude/**",
   ]),

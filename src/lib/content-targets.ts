@@ -24,6 +24,9 @@ const contentParser = unified()
 /** JSX attributes carrying a destination the browser will follow or fetch. */
 const URL_ATTRIBUTES = new Set(["href", "src", "poster"]);
 
+/** A `scheme:` prefix, e.g. `https:`, `mailto:`, `data:`. */
+const URL_SCHEME = /^[a-z][a-z0-9+.-]*:/i;
+
 export interface LocalTargets {
   /**
    * Site-absolute destinations reached as links. Each must resolve to a known
@@ -34,11 +37,27 @@ export interface LocalTargets {
   links: string[];
   /** Site-absolute destinations named by an image or JSX `src`/`poster`. */
   assets: string[];
+  /**
+   * Destinations the export cannot resolve: paths relative to the current
+   * page (`figures/x.png`, `./x.png`, `blog/a/`). `localAbsolute()` drops
+   * them and the media override renders null, so the caller must reject them
+   * instead of letting a post ship with a missing image.
+   */
+  relative: string[];
 }
 
 /** Site-absolute only: `//host/x` is external, `#anchor` and relative are out of scope. */
 export function localAbsolute(url: string): string | undefined {
   return url.startsWith("/") && !url.startsWith("//") ? url : undefined;
+}
+
+/** Destinations the browser resolves on its own: http(s), mailto, `#anchor`, `//host`. */
+function isBrowserResolved(url: string): boolean {
+  return (
+    url.startsWith("#") ||
+    url.startsWith("//") ||
+    /^(?:https?:\/\/|mailto:)/i.test(url)
+  );
 }
 
 export function pathnameOf(url: string): string {
@@ -57,11 +76,22 @@ export function extractLocalTargets(
 ): LocalTargets {
   const links: string[] = [];
   const assets: string[] = [];
+  const relative: string[] = [];
   const tree = contentParser.parse(source) as Root;
 
   const add = (bucket: string[], url: string) => {
     const target = localAbsolute(url);
-    if (target) bucket.push(target);
+    if (target) {
+      bucket.push(target);
+      return;
+    }
+    if (!url || isBrowserResolved(url)) return;
+    if (URL_SCHEME.test(url)) {
+      throw new Error(
+        `Unsupported URL scheme in content (${origin}): "${url}" — use a site-absolute path or an http(s) URL`
+      );
+    }
+    relative.push(url);
   };
 
   visit(tree, (node) => {
@@ -103,5 +133,5 @@ export function extractLocalTargets(
     }
   });
 
-  return { links, assets };
+  return { links, assets, relative };
 }

@@ -56,7 +56,12 @@ export function buildPageMetadata({
     title: path === "/" ? { absolute: title } : title,
     description,
     // Without a canonical, crawlers treat UTM-tagged URLs as separate pages.
-    alternates: { canonical: url },
+    // Next.js shallowly merges segment metadata, so this `alternates` object replaces the
+    // layout's wholesale; the RSS `types` entry must be repeated here to keep the feed link.
+    alternates: {
+      canonical: url,
+      types: { "application/rss+xml": `${siteProfile.url}/feed.xml` },
+    },
     openGraph,
     twitter: {
       card: "summary_large_image",

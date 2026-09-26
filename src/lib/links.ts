@@ -42,13 +42,19 @@ export function isSafeHttpUrl(
 /**
  * Allow site-relative navigation only when URL parsing cannot reinterpret its
  * leading path separators or whitespace as a network-path reference.
+ *
+ * The WHATWG URL parser normalizes `\` to `/` only in the path state of a
+ * special (http/https) URL. Once the first `?` or `#` is consumed the parser
+ * moves to the query/fragment state, where `\` is an ordinary character and
+ * cannot change the origin. So the backslash check applies only to the path
+ * portion — everything before the first `?` or `#` — while a leading `//`,
+ * `/\`, tab, CR, or LF must stay rejected in any input.
  */
 export function isSafeLocalHref(href: string): boolean {
-  return (
-    href.startsWith("/") &&
-    !href.includes("\\") &&
-    !/^\/[\/\t\r\n]/.test(href)
-  );
+  if (!href.startsWith("/")) return false;
+  if (/^\/[\/\t\r\n]/.test(href)) return false;
+  const path = href.split(/[?#]/, 1)[0];
+  return !path.includes("\\");
 }
 
 /**

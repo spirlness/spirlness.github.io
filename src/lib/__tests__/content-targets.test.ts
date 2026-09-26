@@ -6,6 +6,7 @@ describe("extractLocalTargets", () => {
     expect(extractLocalTargets("see [my post](/blog/a/) here")).toEqual({
       links: ["/blog/a/"],
       assets: [],
+      relative: [],
     });
   });
 
@@ -14,6 +15,7 @@ describe("extractLocalTargets", () => {
       {
         links: ["/blog/a/"],
         assets: [],
+        relative: [],
       }
     );
   });
@@ -24,6 +26,7 @@ describe("extractLocalTargets", () => {
     ).toEqual({
       links: ["/blog/b/"],
       assets: ["/projects/pic.png"],
+      relative: [],
     });
   });
 
@@ -31,6 +34,7 @@ describe("extractLocalTargets", () => {
     expect(extractLocalTargets("[![plot](/projects/p.png)](/blog/a/)")).toEqual({
       links: ["/blog/a/"],
       assets: ["/projects/p.png"],
+      relative: [],
     });
   });
 
@@ -38,13 +42,48 @@ describe("extractLocalTargets", () => {
     expect(extractLocalTargets("![oops](/blog/a/)")).toEqual({
       links: [],
       assets: ["/blog/a/"],
+      relative: [],
     });
   });
 
-  it("ignores external, anchor, and relative destinations", () => {
+  it("ignores external, anchor, mail, and protocol-relative destinations", () => {
     const source =
-      "[ext](https://example.com) [top](#top) [rel](blog/a/) [proto](//cdn.example.com/x)";
-    expect(extractLocalTargets(source)).toEqual({ links: [], assets: [] });
+      "[ext](https://example.com) [top](#top) [mail](mailto:x@example.com) [proto](//cdn.example.com/x)";
+    expect(extractLocalTargets(source)).toEqual({
+      links: [],
+      assets: [],
+      relative: [],
+    });
+  });
+
+  it("collects relative destinations for the integrity check", () => {
+    const source = [
+      "[rel](blog/a/)",
+      "![img](figures/x.png)",
+      "![dot](./x.png)",
+      '<a href="docs/guide/">jsx link</a>',
+      '<img src="images/hero.png" alt="x" />',
+    ].join("\n\n");
+    expect(extractLocalTargets(source)).toEqual({
+      links: [],
+      assets: [],
+      relative: [
+        "blog/a/",
+        "figures/x.png",
+        "./x.png",
+        "docs/guide/",
+        "images/hero.png",
+      ],
+    });
+  });
+
+  it("rejects URL schemes other than http(s) and mailto", () => {
+    expect(() =>
+      extractLocalTargets("![x](data:image/png;base64,AAAA)", "test.mdx")
+    ).toThrow(/Unsupported URL scheme/);
+    expect(() =>
+      extractLocalTargets("[call](tel:+15551234)", "test.mdx")
+    ).toThrow(/Unsupported URL scheme/);
   });
 
   it("keeps query strings for the caller to strip", () => {
@@ -61,12 +100,21 @@ describe("extractLocalTargets", () => {
       '[fenced](/blog/nope/) and <a href="/blog/raw/">x</a>',
       "```",
     ].join("\n");
-    expect(extractLocalTargets(source)).toEqual({ links: [], assets: [] });
+    expect(extractLocalTargets(source)).toEqual({
+      links: [],
+      assets: [],
+      relative: [],
+    });
   });
 
   it("resolves reference-style links through their definition", () => {
     const source = "[ref][label]\n\n[label]: /blog/ref-target/";
     expect(extractLocalTargets(source).links).toEqual(["/blog/ref-target/"]);
+  });
+
+  it("collects a relative reference-style definition", () => {
+    const source = "[ref][label]\n\n[label]: figures/x.png";
+    expect(extractLocalTargets(source).relative).toEqual(["figures/x.png"]);
   });
 
   it("reads literal hrefs and srcs off JSX elements", () => {
@@ -78,6 +126,7 @@ describe("extractLocalTargets", () => {
     expect(extractLocalTargets(source)).toEqual({
       links: ["/blog/jsx/", "/blog/c/"],
       assets: ["/projects/jsx.png"],
+      relative: [],
     });
   });
 

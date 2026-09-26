@@ -49,7 +49,10 @@ describe("buildPageMetadata", () => {
         description: "Notes.",
         path: "/blog/",
       }).alternates
-    ).toEqual({ canonical: "https://spirlness.github.io/blog/" });
+    ).toEqual({
+      canonical: "https://spirlness.github.io/blog/",
+      types: { "application/rss+xml": "https://spirlness.github.io/feed.xml" },
+    });
   });
 
   it("defaults og:locale to en_US and honors an explicit locale", () => {

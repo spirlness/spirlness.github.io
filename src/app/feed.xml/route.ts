@@ -1,6 +1,5 @@
 import { siteProfile } from "@/content/site";
 import { getAllPostFrontmatter, postHref } from "@/lib/posts";
-import { getPostEffectiveDate } from "@/lib/posts";
 
 export const dynamic = "force-static";
 
@@ -22,13 +21,17 @@ export function GET() {
   const base = siteProfile.url;
   const posts = getAllPostFrontmatter();
 
+  // <pubDate> means first publication in RSS, so it deliberately uses
+  // post.date rather than getPostEffectiveDate() (lastUpdated). The update
+  // date reaches crawlers via the sitemap's lastmod and readers via the page's
+  // JSON-LD dateModified / og:modified_time.
   const items = posts
     .map(
       (post) => `    <item>
       <title>${escapeXml(post.title)}</title>
       <link>${base}${postHref(post.slug)}</link>
       <guid isPermaLink="true">${base}${postHref(post.slug)}</guid>
-      <pubDate>${rssDate(getPostEffectiveDate(post))}</pubDate>
+      <pubDate>${rssDate(post.date)}</pubDate>
       <description>${escapeXml(post.excerpt)}</description>
     </item>`
     )

@@ -34,10 +34,11 @@ export function SmartLink({ href, children, ...props }: SmartLinkProps) {
   }
 
   return (
-    // prefetch={false}: on a plain static host (`serve out`, GitHub Pages) the
-    // RSC payload files next/link prefetches (`__next.*.txt?_rsc=…`) do not
-    // exist, so every internal link logged a console 404. Clicks still work —
-    // they fall back to full page loads, which is all a static export has.
+    // prefetch={false}: the static export does emit the RSC payload files
+    // next/link prefetches (`__next.*.txt`), so internal links still navigate
+    // client-side; prefetch stays off deliberately because a static host has
+    // no server to absorb one payload request per in-viewport internal link.
+    // Navigations fetch the payload on demand instead.
     <Link href={normalizeInternalHref(href)} prefetch={false} {...props}>
       {children}
     </Link>

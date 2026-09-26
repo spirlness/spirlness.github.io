@@ -24,6 +24,26 @@ export interface TocHeading {
   level: 2 | 3;
 }
 
+const MEDIA_COMPONENT_NAMES = new Map([
+  ["img", "MdxImage"],
+  ["video", "MdxVideo"],
+  ["source", "MdxSource"],
+  ["iframe", "MdxIframe"],
+  ["object", "MdxObject"],
+  ["embed", "MdxEmbed"],
+  ["audio", "MdxAudio"],
+]);
+
+function mapExplicitMediaPlugin() {
+  return (tree: MdastRoot) => {
+    visit(tree, (node) => {
+      if (node.type === "mdxJsxFlowElement" || node.type === "mdxJsxTextElement") {
+        node.name = MEDIA_COMPONENT_NAMES.get(node.name ?? "") ?? node.name;
+      }
+    });
+  };
+}
+
 interface CompileContentOptions {
   source: string;
   slug: string;
@@ -115,7 +135,16 @@ function mathHrefGuardPlugin(slug: string) {
   };
 }
 
-function collectHeadingsPlugin(headings: TocHeading[]) {  return (tree: HastRoot) => {
+/**
+ * Rehype plugin factory that records `h2`/`h3` headings from the compiled MDX
+ * onto the headings array passed in. The stable `id` is assigned by
+ * `rehype-slug`, which runs first; this plugin only records that existing `id`
+ * (plus level and text) so the floating ToC can anchor and scrollspy. The
+ * plugin mutates the array in place; compileMDX runs rehype synchronously, so
+ * the array is populated when it resolves.
+ */
+function collectHeadingsPlugin(headings: TocHeading[]) {
+  return (tree: HastRoot) => {
     visit(tree, "element", (node: HastElement) => {
       if (node.tagName !== "h2" && node.tagName !== "h3") return;
       const id = typeof node.properties.id === "string" ? node.properties.id : "";
@@ -148,6 +177,7 @@ export async function compileContent({
       parseFrontmatter: false,
       mdxOptions: {
         remarkPlugins: [
+          mapExplicitMediaPlugin,
           remarkMath,
           // GFM (tables, strikethrough, autolinks) — without this, markdown
           // tables in posts render as literal pipe-text paragraphs.

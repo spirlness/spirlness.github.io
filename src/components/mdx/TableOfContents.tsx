@@ -7,14 +7,17 @@ import type { TocHeading } from "@/lib/posts";
  * Distill-style floating table of contents for the left gutter of
  * `.distill-grid`. Gated at the same `min-[1400px]:` breakpoint as SideNote:
  * below it the gutter is too narrow for a readable column and the aside would
- * overflow, so the nav is hidden entirely rather than clipped.
+ * overflow, so the nav is hidden entirely rather than clipped. At the
+ * breakpoint the nav is right-aligned in the left track at the same 240px
+ * width as SideNote's gutter, so it hugs the article column instead of the
+ * viewport edge.
  *
  * Active-section tracking is position-based rather than IntersectionObserver's
- * `isIntersecting`: an observer only fires while a heading sits inside a narrow
- * band of the viewport, so a short final section (which scrolls past the band
- * before the page bottom) never activates, and neither do the leading sections
- * before the first one reaches the band. Comparing each heading's top against
- * one threshold line has neither dead zone.
+ * `isIntersecting`, whose narrow band never activates for the leading sections:
+ * they sit above the band until the page scrolls. Instead each heading's top
+ * is compared against one threshold line, plus an explicit clamp to the last
+ * heading once the document is scrolled to its end — without that clamp a
+ * short final section can never cross the line before scrolling stops.
  */
 const ACTIVE_LINE_RATIO = 0.2;
 
@@ -33,6 +36,13 @@ export function TableOfContents({ headings }: { headings: TocHeading[] }) {
         const el = document.getElementById(heading.id);
         if (el && el.getBoundingClientRect().top <= line) next = heading.id;
       }
+      // End-of-document clamp: a short final section can bottom out below the
+      // threshold line, so once the page cannot scroll further the last heading
+      // must win. The 2px slack absorbs fractional scroll/zoom positions.
+      const atDocumentEnd =
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 2;
+      if (atDocumentEnd) next = headings[headings.length - 1].id;
       setActiveId(next);
     };
 
@@ -56,7 +66,7 @@ export function TableOfContents({ headings }: { headings: TocHeading[] }) {
   return (
     <nav
       aria-label="Table of contents"
-      className="hidden min-[1400px]:block sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto"
+      className="hidden min-[1400px]:block min-[1400px]:ml-auto min-[1400px]:w-[240px] sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto"
     >
       <p className="text-xs font-display font-bold tracking-widest text-gray-400 uppercase mb-3">
         Contents

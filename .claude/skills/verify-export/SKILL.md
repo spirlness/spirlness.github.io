@@ -26,10 +26,11 @@ for f in content/projects/*.json; do id=$(node -p "require('./$f').id"); base=$(
 
 Any `MISSING` or `ID MISMATCH` line is a failure — diagnose before continuing (a mismatch means the route exported as a silent 404).
 
-## Step 3 — XML sanity
+## Step 3 — XML and robots.txt sanity
 
-- `out/feed.xml`, `out/sitemap.xml`, `out/robots.txt` parse (`node -e` with a quick well-formedness check or xmllint if available) and contain absolute `https://spirlness.github.io/...` URLs.
+- `out/feed.xml` and `out/sitemap.xml` are well-formed XML (`node -e` with a quick well-formedness check or xmllint if available) and contain absolute `https://spirlness.github.io/...` URLs.
 - `out/feed.xml` has one `<item>` per post.
+- `out/robots.txt` is plain text, not XML — `src/app/robots.ts` emits it via `MetadataRoute.Robots`, so a well-formedness check on it always fails on a valid export. Validate it as text: it must contain `User-Agent:`, `Allow: /`, and the absolute sitemap URL `https://spirlness.github.io/sitemap.xml`.
 
 ## Step 4 — serve and spot-check in the browser
 

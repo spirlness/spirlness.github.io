@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 import { assertSafeContentSlug } from "./content-id";
+import { readContentFile } from "./content-files";
 import { parseProject, type ProjectFrontmatter } from "./content-schemas";
 import { compileContent } from "./mdx";
 
@@ -32,8 +33,7 @@ export function getAllProjects(): ProjectFrontmatter[] {
       file.replace(/\.json$/, ""),
       "project id"
     );
-    const jsonPath = path.join(PROJECTS_PATH, file);
-    const raw = fs.readFileSync(jsonPath, "utf8");
+    const raw = readContentFile(PROJECTS_PATH, file);
     projects.push(parseProject(JSON.parse(raw) as unknown, filenameId, file));
   }
 
@@ -48,7 +48,7 @@ export function getProjectById(id: string): ProjectFrontmatter {
   if (!fs.existsSync(jsonPath)) {
     throw new Error(`Project not found: ${id}`);
   }
-  const raw = fs.readFileSync(jsonPath, "utf8");
+  const raw = readContentFile(PROJECTS_PATH, `${cleanId}.json`);
   return parseProject(JSON.parse(raw) as unknown, cleanId, `${cleanId}.json`);
 }
 
@@ -66,7 +66,7 @@ export async function getProjectDetailById(id: string): Promise<{
 
   // Strip optional YAML frontmatter (or a lone `---` fence) the same way posts
   // do — otherwise markdown treats the opening `---` as a thematic break <hr>.
-  const fileContent = fs.readFileSync(mdxPath, "utf8");
+  const fileContent = readContentFile(PROJECTS_PATH, `${cleanId}.mdx`);
   const { content: mdxBody } = matter(fileContent);
   const { content } = await compileContent({
     source: mdxBody,

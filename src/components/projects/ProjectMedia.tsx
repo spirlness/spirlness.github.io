@@ -4,6 +4,7 @@ export function ProjectMedia({
   title,
   src,
   mediaType,
+  interactive = false,
   priority = false,
   sizes,
   className = "object-cover",
@@ -11,6 +12,13 @@ export function ProjectMedia({
   title: string;
   src: string;
   mediaType?: "image" | "video";
+  /**
+   * Show native playback controls. Leave off (the default) whenever the media
+   * is wrapped in a link: interactive controls nested inside an anchor are
+   * invalid HTML, and their click/keyboard interaction would trigger the parent
+   * navigation. Enable only where the media is not anchor-wrapped (detail page).
+   */
+  interactive?: boolean;
   priority?: boolean;
   sizes: string;
   className?: string;
@@ -20,7 +28,7 @@ export function ProjectMedia({
       <video
         src={src}
         aria-label={title}
-        controls
+        controls={interactive}
         preload="metadata"
         muted
         playsInline

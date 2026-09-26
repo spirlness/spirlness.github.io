@@ -18,6 +18,9 @@ describe("escapeXml", () => {
   });
 
   it("pins item pubDates to frontmatter dates", async () => {
+    // <pubDate> is the RSS first-publication date; a post's lastUpdated is
+    // deliberately surfaced through the sitemap lastmod and the page's
+    // JSON-LD dateModified instead.
     const { getAllPostFrontmatter } = await import("@/lib/posts");
     const xml = await GET().text();
     for (const post of getAllPostFrontmatter()) {
