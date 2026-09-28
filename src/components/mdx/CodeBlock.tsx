@@ -32,11 +32,15 @@ export function CodeBlock({
       <button
         type="button"
         onClick={copy}
-        aria-label="Copy code"
-        className="absolute top-2 right-2 z-10 rounded-md p-1.5 text-gray-500 hover:text-white hover:bg-gray-700 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+        aria-label={copied ? "Code copied to clipboard" : "Copy code"}
+        title={copied ? "Copied!" : "Copy code"}
+        className="absolute top-2 right-2 z-10 inline-flex items-center gap-1.5 rounded-md p-1.5 text-xs text-gray-400 hover:text-white hover:bg-gray-700/80 transition-colors opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         {copied ? (
-          <Check size={14} className="text-green-400" />
+          <>
+            <Check size={14} className="text-green-400" />
+            <span className="text-green-400 font-medium text-xs">Copied!</span>
+          </>
         ) : (
           <Copy size={14} />
         )}
