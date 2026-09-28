@@ -10,6 +10,8 @@ export type { ProjectFrontmatter } from "./content-schemas";
 
 const PROJECTS_PATH = path.join(process.cwd(), "content/projects");
 
+let cachedProjects: ProjectFrontmatter[] | null = null;
+
 /**
  * Build a normalized, trailing-slash href for a project. Matches the rule in
  * `postHref()` so that GitHub Pages links remain valid.
@@ -20,6 +22,10 @@ export function projectHref(id: string): string {
 }
 
 export function getAllProjects(): ProjectFrontmatter[] {
+  if (cachedProjects) {
+    return cachedProjects;
+  }
+
   if (!fs.existsSync(PROJECTS_PATH)) {
     return [];
   }
@@ -37,9 +43,11 @@ export function getAllProjects(): ProjectFrontmatter[] {
     projects.push(parseProject(JSON.parse(raw) as unknown, filenameId, file));
   }
 
-  return projects.sort(
+  cachedProjects = projects.sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
+
+  return cachedProjects;
 }
 
 export function getProjectById(id: string): ProjectFrontmatter {
