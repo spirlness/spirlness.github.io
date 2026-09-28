@@ -17,12 +17,39 @@ import { SmartLink } from '@/components/ui/SmartLink';
  * already constrains width to 800px.
  */
 export const articleProse = [
-  'prose prose-lg max-w-none',
-  'prose-headings:font-display prose-headings:text-gray-800',
-  'prose-h2:mt-12 prose-h2:mb-6 prose-h2:pb-2 prose-h2:border-b prose-h2:border-gray-100 prose-h2:text-2xl',
-  'prose-h3:mt-8 prose-h3:mb-4 prose-h3:text-xl',
-  'prose-blockquote:border-orange-200 prose-blockquote:bg-orange-50/20 prose-blockquote:rounded-r-lg prose-blockquote:py-2 prose-blockquote:pl-6 prose-blockquote:text-gray-600',
-  'prose-img:rounded-lg prose-img:my-8',
+  // Base typography layout
+  'prose',
+  'prose-lg',
+  'max-w-none',
+
+  // Headings
+  'prose-headings:font-display',
+  'prose-headings:text-gray-800',
+
+  // H2 headings
+  'prose-h2:mt-12',
+  'prose-h2:mb-6',
+  'prose-h2:pb-2',
+  'prose-h2:border-b',
+  'prose-h2:border-gray-100',
+  'prose-h2:text-2xl',
+
+  // H3 headings
+  'prose-h3:mt-8',
+  'prose-h3:mb-4',
+  'prose-h3:text-xl',
+
+  // Blockquotes
+  'prose-blockquote:border-orange-200',
+  'prose-blockquote:bg-orange-50/20',
+  'prose-blockquote:rounded-r-lg',
+  'prose-blockquote:py-2',
+  'prose-blockquote:pl-6',
+  'prose-blockquote:text-gray-600',
+
+  // Images & HR
+  'prose-img:rounded-lg',
+  'prose-img:my-8',
   'prose-hr:border-gray-100',
 ].join(' ');
 
