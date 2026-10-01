@@ -82,8 +82,24 @@ test.describe("reduced motion (S3)", () => {
   });
 
   test("physics demo freezes a static frame", async ({ page }) => {
+    const externalRequests: string[] = [];
+    const pageErrors: string[] = [];
+    await page.route("**/*", async (route) => {
+      const url = new URL(route.request().url());
+      if (url.origin !== "http://127.0.0.1:3000") {
+        externalRequests.push(url.href);
+        await route.abort();
+      } else {
+        await route.continue();
+      }
+    });
+    page.on("pageerror", (error) => pageErrors.push(error.message));
     await page.emulateMedia({ reducedMotion: "reduce" });
+    const environmentLoaded = page.waitForResponse((response) =>
+      new URL(response.url()).pathname === "/environments/potsdamer_platz_1k.hdr"
+    );
     await page.goto("/blog/algorithmic-resilience/");
+    expect((await environmentLoaded).status()).toBe(200);
     const canvas = page.locator("canvas").first();
     await expect(canvas).toBeVisible();
     const hasGL = await page.evaluate(() => {
@@ -98,5 +114,7 @@ test.describe("reduced motion (S3)", () => {
     await page.waitForTimeout(1200);
     const shot2 = await canvas.screenshot();
     expect(shot2.equals(shot1)).toBe(true);
+    expect(externalRequests).toEqual([]);
+    expect(pageErrors).toEqual([]);
   });
 });
