@@ -21,6 +21,7 @@ export const articleProse = [
   'prose',
   'prose-lg',
   'max-w-none',
+  'min-w-0',
 
   // Headings
   'prose-headings:font-display',
@@ -217,22 +218,22 @@ export const mdxComponents: MDXComponents = {
   get MdxObject() { return mdxComponents.object; },
   get MdxEmbed() { return mdxComponents.embed; },
   get MdxAudio() { return mdxComponents.audio; },
-  // 围栏代码块内的 code 带 class="language-*"（shiki 会再加 token 颜色类），
-  // 行内 code 没有；className 先解构再与默认样式合并，避免 {...props} 展开覆盖默认样式
+  // rehype-pretty-code 标记块级代码时使用 data-language，而不一定有 language-* 类。
+  // 保留行内代码样式；块级代码按内容宽度展开，由外层 pre 提供横向滚动。
   code: ({ className, ...props }) => {
-    const isBlock = /language-/.test(className ?? '');
+    const isBlock = /language-/.test(className ?? '') || 'data-language' in props;
     return isBlock ? (
-      <code className={`${className} font-mono`} {...props} />
+      <code className={`block w-max min-w-full bg-transparent p-0 font-mono text-inherit ${className ?? ''}`} {...props} />
     ) : (
       <code
-        className={`bg-gray-100 rounded px-1.5 py-0.5 text-sm font-mono text-pink-600 ${className ?? ''}`}
+        className={`bg-gray-100 rounded px-1.5 py-0.5 text-sm font-mono text-pink-600 wrap-anywhere ${className ?? ''}`}
         {...props}
       />
     );
   },
   pre: ({ className, ...props }) => (
     <CodeBlock
-      className={`bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-8 font-mono text-sm ${className ?? ''}`}
+      className={`min-w-0 max-w-full bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-8 font-mono text-sm ${className ?? ''}`}
       {...props}
     />
   ),
