@@ -112,19 +112,38 @@ test.describe("academic site pages", () => {
     const bibtexButton = publication.getByRole("button", { name: "BibTeX", exact: true });
     await expect(bibtexButton).toBeVisible();
 
-    await bibtexButton.click();
+    await page.keyboard.press("Tab");
+    await bibtexButton.focus();
+    await expect(bibtexButton).not.toHaveCSS("box-shadow", "none");
+    await page.keyboard.press("Enter");
     const dialog = page.getByRole("dialog", { name: "BibTeX" });
     await expect(dialog).toBeVisible();
     await expect(dialog).toHaveAttribute("aria-describedby");
     await expect(dialog.locator("pre")).toContainText("@article{li2024deep");
-    const closeButton = dialog.getByRole("button", { name: "Close", exact: true });
+    const closeButton = dialog.getByRole("button", { name: "Close BibTeX dialog", exact: true });
     await expect(closeButton).toBeFocused();
+    await expect(closeButton).not.toHaveCSS("box-shadow", "none");
+
+    const announcement = dialog.locator('[aria-live="polite"]');
+    await expect(announcement).toBeEmpty();
 
     const copyButton = dialog.getByRole("button", { name: "Copy to clipboard", exact: true });
-    await copyButton.click();
+    await page.keyboard.press("Tab");
+    await expect(copyButton).toBeFocused();
+    await expect(copyButton).not.toHaveCSS("box-shadow", "none");
+    await page.keyboard.press("Enter");
     await expect(dialog.getByRole("button", { name: "Copied", exact: true })).toBeVisible();
+    await expect(announcement).toHaveText("BibTeX citation copied to clipboard");
 
     await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(bibtexButton).toBeFocused();
+
+    await page.keyboard.press("Enter");
+    await expect(dialog).toBeVisible();
+    await expect(announcement).toBeEmpty();
+    await expect(copyButton).toBeVisible();
+    await closeButton.click();
     await expect(dialog).toBeHidden();
     await expect(bibtexButton).toBeFocused();
   });

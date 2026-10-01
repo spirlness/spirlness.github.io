@@ -45,7 +45,7 @@ const SimulationContainer: React.FC<SimulationContainerProps> = ({
         >
           <ambientLight intensity={0.5} />
           <pointLight position={[10, 10, 10]} />
-          <Stage environment="city" intensity={0.5}>
+          <Stage environment={{ files: '/environments/potsdamer_platz_1k.hdr' }} intensity={0.5}>
             {children}
           </Stage>
           <OrbitControls makeDefault />

@@ -33,7 +33,7 @@ export function BibTeXButton({ bibtex }: BibTeXButtonProps) {
       <Dialog.Trigger asChild>
         <button
           type="button"
-          className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
+          className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1"
         >
           <Quote size={14} />
           <span>BibTeX</span>
@@ -55,7 +55,8 @@ export function BibTeXButton({ bibtex }: BibTeXButtonProps) {
             <Dialog.Close asChild>
               <button
                 type="button"
-                className="text-sm text-gray-400 hover:text-gray-700"
+                className="text-sm text-gray-400 hover:text-gray-700 rounded p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                aria-label="Close BibTeX dialog"
               >
                 Close
               </button>
@@ -67,17 +68,20 @@ export function BibTeXButton({ bibtex }: BibTeXButtonProps) {
           <button
             type="button"
             onClick={copy}
-            className="inline-flex items-center gap-2 text-sm font-medium text-white bg-accent px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
+            className="inline-flex items-center gap-2 text-sm font-medium text-white bg-accent px-4 py-2 rounded-lg hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
             {copied ? (
               <>
                 <Check size={14} />
-                Copied
+                <span>Copied</span>
               </>
             ) : (
               "Copy to clipboard"
             )}
           </button>
+          <span className="sr-only" aria-live="polite">
+            {copied ? "BibTeX citation copied to clipboard" : ""}
+          </span>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
