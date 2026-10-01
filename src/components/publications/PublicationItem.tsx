@@ -22,15 +22,20 @@ function normalizeAuthor(name: string): string {
   return cleaned;
 }
 
+// Optimization: Pre-normalize site profile author names once at module evaluation.
+// Direct Set lookup converts O(N_pubs * A_authors * M_names) string normalizations
+// and array iterations into a single O(1) Set lookup per author during render.
+const NORMALIZED_MY_NAMES = new Set(
+  siteProfile.publicationAuthorNames.map(normalizeAuthor)
+);
+
 function HighlightAuthors({ authors }: { authors: string }) {
   const parts = authors.split(" and ");
   return (
     <span>
       {parts.map((author, index) => {
         const normalized = normalizeAuthor(author);
-        const isMe = siteProfile.publicationAuthorNames.some(
-          (name) => normalizeAuthor(name) === normalized
-        );
+        const isMe = NORMALIZED_MY_NAMES.has(normalized);
         return (
           <span key={index}>
             {isMe ? (
