@@ -56,7 +56,7 @@ export function BibTeXButton({ bibtex }: BibTeXButtonProps) {
               <button
                 type="button"
                 className="text-sm text-gray-400 hover:text-gray-700 rounded p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                aria-label="Close dialog"
+                aria-label="Close BibTeX dialog"
               >
                 Close
               </button>

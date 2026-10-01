@@ -9,6 +9,17 @@ const ROUTES = [
   "/projects/neural-symbolic-physics/",
 ];
 
+test("project action links show a keyboard focus ring", async ({ page }) => {
+  await page.goto("/projects/neural-symbolic-physics/");
+  const codeLink = page.getByRole("link", { name: "Code", exact: true });
+  for (let tabs = 0; tabs < 20; tabs++) {
+    await page.keyboard.press("Tab");
+    if (await codeLink.evaluate((link) => link === document.activeElement)) break;
+  }
+  await expect(codeLink).toBeFocused();
+  await expect(codeLink).not.toHaveCSS("box-shadow", "none");
+});
+
 test.describe("skip link (S3)", () => {
   for (const width of [360, 1400]) {
     test(`Tab lands on skip link and activates to #main-content @ ${width}px`, async ({
