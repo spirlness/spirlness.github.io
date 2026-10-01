@@ -27,14 +27,23 @@ export function TableOfContents({ headings }: { headings: TocHeading[] }) {
   useEffect(() => {
     if (headings.length === 0) return;
 
+    // Cache DOM element references on setup to avoid calling document.getElementById
+    // N times on every frame during 60 FPS scroll updates.
+    const headingElements = headings.map((heading) => ({
+      id: heading.id,
+      el: document.getElementById(heading.id),
+    }));
+
     let frame = 0;
     const updateActive = () => {
       frame = 0;
       const line = window.innerHeight * ACTIVE_LINE_RATIO;
       let next: string | null = headings[0].id;
-      for (const heading of headings) {
-        const el = document.getElementById(heading.id);
-        if (el && el.getBoundingClientRect().top <= line) next = heading.id;
+      for (const item of headingElements) {
+        // Fall back to document.getElementById if element was not present at setup time
+        if (!item.el?.isConnected) item.el = document.getElementById(item.id);
+        const el = item.el;
+        if (el && el.getBoundingClientRect().top <= line) next = item.id;
       }
       // End-of-document clamp: a short final section can bottom out below the
       // threshold line, so once the page cannot scroll further the last heading
