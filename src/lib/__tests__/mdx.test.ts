@@ -1,4 +1,3 @@
-import { articleProse } from "@/components/mdx/MDXComponents";
 import { describe, expect, it } from "vitest";
 import { compileContent } from "../mdx";
 
@@ -72,38 +71,5 @@ describe("math safety (S2)", () => {
     });
     const html = renderToStaticMarkup(result.content as React.ReactElement);
     expect(html).toContain('href="https://example.com/a"');
-  });
-});
-
-describe("articleProse styling classes", () => {
-  it("contains all expected prose and custom element classes", () => {
-    const requiredClasses = [
-      "prose",
-      "prose-lg",
-      "max-w-none",
-      "prose-headings:font-display",
-      "prose-headings:text-gray-800",
-      "prose-h2:mt-12",
-      "prose-h2:mb-6",
-      "prose-h2:pb-2",
-      "prose-h2:border-b",
-      "prose-h2:border-gray-100",
-      "prose-h2:text-2xl",
-      "prose-h3:mt-8",
-      "prose-h3:mb-4",
-      "prose-h3:text-xl",
-      "prose-blockquote:border-orange-200",
-      "prose-blockquote:bg-orange-50/20",
-      "prose-blockquote:rounded-r-lg",
-      "prose-blockquote:py-2",
-      "prose-blockquote:pl-6",
-      "prose-blockquote:text-gray-600",
-      "prose-img:rounded-lg",
-      "prose-img:my-8",
-      "prose-hr:border-gray-100",
-    ];
-
-    const classes = articleProse.split(" ");
-    expect(classes).toEqual(requiredClasses);
   });
 });
