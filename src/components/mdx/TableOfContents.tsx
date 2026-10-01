@@ -41,7 +41,8 @@ export function TableOfContents({ headings }: { headings: TocHeading[] }) {
       let next: string | null = headings[0].id;
       for (const item of headingElements) {
         // Fall back to document.getElementById if element was not present at setup time
-        const el = item.el ?? document.getElementById(item.id);
+        if (!item.el?.isConnected) item.el = document.getElementById(item.id);
+        const el = item.el;
         if (el && el.getBoundingClientRect().top <= line) next = item.id;
       }
       // End-of-document clamp: a short final section can bottom out below the
