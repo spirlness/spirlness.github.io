@@ -57,6 +57,10 @@ function citationPlugin(references: Publication[], slug: string) {
   );
 
   return (tree: MdastRoot) => {
+    // Map existing references to an index lookup for O(1) key lookups instead of O(N) array scans
+    const refIndexMap = new Map<string, number>();
+    references.forEach((pub, idx) => refIndexMap.set(pub.id, idx));
+
     visit(tree, "text", (node: Text, index, parent: Parent | undefined) => {
       if (index === undefined || !parent || !citationPattern.test(node.value)) {
         citationPattern.lastIndex = 0;
@@ -78,10 +82,9 @@ function citationPlugin(references: Publication[], slug: string) {
           .map((key) => key.replace(/^@/, "").trim());
 
         for (const key of keys) {
-          let referenceIndex = references.findIndex(
-            (publication) => publication.id === key
-          );
-          if (referenceIndex === -1) {
+          // O(1) hash lookup instead of Array.prototype.findIndex (O(N) search per key)
+          let referenceIndex = refIndexMap.get(key);
+          if (referenceIndex === undefined) {
             const publication = publications.get(key);
             if (!publication) {
               throw new Error(
@@ -90,6 +93,7 @@ function citationPlugin(references: Publication[], slug: string) {
             }
             references.push(publication);
             referenceIndex = references.length - 1;
+            refIndexMap.set(key, referenceIndex);
           }
 
           const number = referenceIndex + 1;

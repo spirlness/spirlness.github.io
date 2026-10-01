@@ -39,6 +39,22 @@ describe("compileContent", () => {
     ).rejects.toThrow(/does-not-exist/);
   });
 
+  it("reuses citation numbers without leaking references between articles", async () => {
+    const first = await compileContent({
+      source: "Repeated [@li2023neural; @li2024deep; @li2023neural].",
+      slug: "first", citations: true,
+    });
+    const second = await compileContent({
+      source: "Only [@li2024deep].", slug: "second", citations: true,
+    });
+    const { renderToStaticMarkup } = await import("react-dom/server");
+    const html = renderToStaticMarkup(first.content as React.ReactElement);
+    expect(first.references.map((ref) => ref.id)).toEqual(["li2023neural", "li2024deep"]);
+    expect(html.match(/href="#ref-1"/g)).toHaveLength(2);
+    expect(html.match(/href="#ref-2"/g)).toHaveLength(1);
+    expect(second.references.map((ref) => ref.id)).toEqual(["li2024deep"]);
+  });
+
   it("does not enable article citations for project content", async () => {
     const result = await compileContent({
       source: "Project text [@does-not-exist].",
