@@ -10,6 +10,9 @@ export type { ProjectFrontmatter } from "./content-schemas";
 
 const PROJECTS_PATH = path.join(process.cwd(), "content/projects");
 
+// Content is fixed for a production export; development must pick up JSON edits.
+let cachedProjects: ProjectFrontmatter[] | null = null;
+
 /**
  * Build a normalized, trailing-slash href for a project. Matches the rule in
  * `postHref()` so that GitHub Pages links remain valid.
@@ -20,6 +23,11 @@ export function projectHref(id: string): string {
 }
 
 export function getAllProjects(): ProjectFrontmatter[] {
+  const cacheEnabled = process.env.NODE_ENV === "production";
+  if (cacheEnabled && cachedProjects) {
+    return cachedProjects;
+  }
+
   if (!fs.existsSync(PROJECTS_PATH)) {
     return [];
   }
@@ -37,9 +45,12 @@ export function getAllProjects(): ProjectFrontmatter[] {
     projects.push(parseProject(JSON.parse(raw) as unknown, filenameId, file));
   }
 
-  return projects.sort(
+  const sortedProjects = projects.sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
+
+  if (cacheEnabled) cachedProjects = sortedProjects;
+  return sortedProjects;
 }
 
 export function getProjectById(id: string): ProjectFrontmatter {
