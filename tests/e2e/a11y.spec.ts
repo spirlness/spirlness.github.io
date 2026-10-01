@@ -9,6 +9,17 @@ const ROUTES = [
   "/projects/neural-symbolic-physics/",
 ];
 
+test("project action links show a keyboard focus ring", async ({ page }) => {
+  await page.goto("/projects/neural-symbolic-physics/");
+  const codeLink = page.getByRole("link", { name: "Code", exact: true });
+  for (let tabs = 0; tabs < 20; tabs++) {
+    await page.keyboard.press("Tab");
+    if (await codeLink.evaluate((link) => link === document.activeElement)) break;
+  }
+  await expect(codeLink).toBeFocused();
+  await expect(codeLink).not.toHaveCSS("box-shadow", "none");
+});
+
 test.describe("skip link (S3)", () => {
   for (const width of [360, 1400]) {
     test(`Tab lands on skip link and activates to #main-content @ ${width}px`, async ({
@@ -71,8 +82,24 @@ test.describe("reduced motion (S3)", () => {
   });
 
   test("physics demo freezes a static frame", async ({ page }) => {
+    const externalRequests: string[] = [];
+    const pageErrors: string[] = [];
+    await page.route("**/*", async (route) => {
+      const url = new URL(route.request().url());
+      if (url.origin !== "http://127.0.0.1:3000") {
+        externalRequests.push(url.href);
+        await route.abort();
+      } else {
+        await route.continue();
+      }
+    });
+    page.on("pageerror", (error) => pageErrors.push(error.message));
     await page.emulateMedia({ reducedMotion: "reduce" });
+    const environmentLoaded = page.waitForResponse((response) =>
+      new URL(response.url()).pathname === "/environments/potsdamer_platz_1k.hdr"
+    );
     await page.goto("/blog/algorithmic-resilience/");
+    expect((await environmentLoaded).status()).toBe(200);
     const canvas = page.locator("canvas").first();
     await expect(canvas).toBeVisible();
     const hasGL = await page.evaluate(() => {
@@ -87,5 +114,7 @@ test.describe("reduced motion (S3)", () => {
     await page.waitForTimeout(1200);
     const shot2 = await canvas.screenshot();
     expect(shot2.equals(shot1)).toBe(true);
+    expect(externalRequests).toEqual([]);
+    expect(pageErrors).toEqual([]);
   });
 });

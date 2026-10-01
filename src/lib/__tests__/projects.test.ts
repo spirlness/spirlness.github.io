@@ -21,10 +21,4 @@ describe("getAllProjects", () => {
       expect(project.title).toBeTruthy();
     }
   });
-
-  it("returns cached array reference on subsequent calls", () => {
-    const firstCall = getAllProjects();
-    const secondCall = getAllProjects();
-    expect(firstCall).toBe(secondCall);
-  });
 });

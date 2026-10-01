@@ -10,6 +10,7 @@ export type { ProjectFrontmatter } from "./content-schemas";
 
 const PROJECTS_PATH = path.join(process.cwd(), "content/projects");
 
+// Content is fixed for a production export; development must pick up JSON edits.
 let cachedProjects: ProjectFrontmatter[] | null = null;
 
 /**
@@ -22,7 +23,8 @@ export function projectHref(id: string): string {
 }
 
 export function getAllProjects(): ProjectFrontmatter[] {
-  if (cachedProjects) {
+  const cacheEnabled = process.env.NODE_ENV === "production";
+  if (cacheEnabled && cachedProjects) {
     return cachedProjects;
   }
 
@@ -43,11 +45,12 @@ export function getAllProjects(): ProjectFrontmatter[] {
     projects.push(parseProject(JSON.parse(raw) as unknown, filenameId, file));
   }
 
-  cachedProjects = projects.sort(
+  const sortedProjects = projects.sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 
-  return cachedProjects;
+  if (cacheEnabled) cachedProjects = sortedProjects;
+  return sortedProjects;
 }
 
 export function getProjectById(id: string): ProjectFrontmatter {
