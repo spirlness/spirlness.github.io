@@ -17,9 +17,12 @@ export function PostCard({
 }: PostCardProps) {
   return (
     <article className="group">
-      <SmartLink href={href}>
+      <SmartLink
+        href={href}
+        className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4"
+      >
         <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-2">
-          <h2 className="text-2xl font-bold font-display group-hover:text-accent transition-colors">
+          <h2 className="text-2xl font-bold font-display group-hover:text-accent group-focus-visible:text-accent transition-colors">
             {post.title}
           </h2>
           <time className="text-sm font-mono text-gray-400">
@@ -37,8 +40,8 @@ export function PostCard({
           </div>
         )}
         {showReadMore && (
-          <div className="mt-4 flex items-center gap-1 text-sm font-display font-bold text-accent opacity-0 group-hover:opacity-100 transition-opacity">
-            READ MORE <span>→</span>
+          <div className="mt-4 flex items-center gap-1 text-sm font-display font-bold text-accent opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity">
+            READ MORE <span aria-hidden="true">→</span>
           </div>
         )}
       </SmartLink>
