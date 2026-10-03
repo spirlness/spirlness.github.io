@@ -14,6 +14,9 @@ export type { TocHeading } from "./mdx";
 
 const POSTS_PATH = path.join(process.cwd(), "content/posts");
 
+// Content is fixed for a production export; development must pick up MDX edits.
+let cachedPostsFrontmatter: PostFrontmatter[] | null = null;
+
 /**
  * Rough reading time in minutes: strip fenced code blocks and JSX tags, then
  * divide the word count by 200 wpm. The result is deliberately approximate.
@@ -92,7 +95,20 @@ export function getPostFrontmatter(slug: string): PostFrontmatter {
   return parsePostFrontmatter(matter(fileContent).data, realSlug);
 }
 
+/**
+ * Return frontmatter for all blog posts sorted descending by date.
+ * Production builds cache parsing across calls (e.g. getAdjacentPosts, getRelatedPosts,
+ * tag pages, feed.xml, sitemap). Development reads source each time to pick up edits.
+ *
+ * Optimization: Caching frontmatter in production reduces file I/O (readdir/readFileSync)
+ * and YAML frontmatter parsing (gray-matter) from O(N^2) across page builds to O(N).
+ */
 export function getAllPostFrontmatter(): PostFrontmatter[] {
+  const cacheEnabled = process.env.NODE_ENV === "production";
+  if (cacheEnabled && cachedPostsFrontmatter) {
+    return [...cachedPostsFrontmatter];
+  }
+
   if (!fs.existsSync(POSTS_PATH)) {
     return [];
   }
@@ -106,7 +122,15 @@ export function getAllPostFrontmatter(): PostFrontmatter[] {
       return getPostFrontmatter(slug);
     });
 
-  return posts.sort((a, b) => compareDatesDescending(a.date, b.date));
+  const sortedPosts = posts.sort((a, b) =>
+    compareDatesDescending(a.date, b.date)
+  );
+
+  if (cacheEnabled) {
+    cachedPostsFrontmatter = sortedPosts;
+  }
+
+  return [...sortedPosts];
 }
 
 export async function getAllPosts() {
