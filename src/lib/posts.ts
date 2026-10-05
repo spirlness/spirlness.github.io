@@ -92,7 +92,17 @@ export function getPostFrontmatter(slug: string): PostFrontmatter {
   return parsePostFrontmatter(matter(fileContent).data, realSlug);
 }
 
+// Optimization: Cache parsed post frontmatter in production exports to prevent
+// redundant filesystem reads, gray-matter frontmatter parsing, and Zod schema
+// validation across static page exports (generateStaticParams, adjacent/related posts).
+let cachedPostFrontmatter: PostFrontmatter[] | null = null;
+
 export function getAllPostFrontmatter(): PostFrontmatter[] {
+  const cacheEnabled = process.env.NODE_ENV === "production";
+  if (cacheEnabled && cachedPostFrontmatter) {
+    return cachedPostFrontmatter;
+  }
+
   if (!fs.existsSync(POSTS_PATH)) {
     return [];
   }
@@ -106,7 +116,10 @@ export function getAllPostFrontmatter(): PostFrontmatter[] {
       return getPostFrontmatter(slug);
     });
 
-  return posts.sort((a, b) => compareDatesDescending(a.date, b.date));
+  const sortedPosts = posts.sort((a, b) => compareDatesDescending(a.date, b.date));
+
+  if (cacheEnabled) cachedPostFrontmatter = sortedPosts;
+  return sortedPosts;
 }
 
 export async function getAllPosts() {

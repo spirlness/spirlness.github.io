@@ -1,3 +1,7 @@
 ## 2025-09-28 - Avoid Redundant Vector Normalization in Animation Loops
 **Learning:** Calling `vector.normalize().multiplyScalar(-k * dist)` when `dist = vector.length()` is mathematically redundant: `(v / dist) * (-k * dist) = v * -k`. Calling `normalize()` inside a 60 FPS frame loop re-computes `Math.sqrt()` and executes 3 floating-point divisions per particle, running ~3.2x slower and introducing minor floating-point precision noise.
 **Action:** Simplify spring/gravity acceleration calculations to direct scalar multiplication (`v.multiplyScalar(-k)`), bypassing `normalize()` and `length()` multiplication in animation/physics loops.
+
+## 2025-09-28 - Avoid Uncached Disk I/O and YAML Frontmatter Parsing in Static Export Routes
+**Learning:** During Next.js static exports (`output: "export"`), content functions like `getAllPostFrontmatter()` are invoked repeatedly across `generateStaticParams`, adjacent post queries, related post calculations, sitemap, and RSS feed generation. Without in-memory caching in production mode (`process.env.NODE_ENV === "production"`), this causes O(N^2) disk reads (`fs.readdirSync`, `fs.readFileSync`), `gray-matter` frontmatter parsing, and Zod schema validations per post page export.
+**Action:** Always verify that all content-loading modules (`posts.ts`, `projects.ts`, `bibtex.ts`) implement in-memory module-level caching when `process.env.NODE_ENV === "production"`, while bypassing the cache in development mode.
