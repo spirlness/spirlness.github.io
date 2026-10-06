@@ -9,7 +9,7 @@ import {
 interface SmartLinkProps
   extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> {
   href: string;
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 export function SmartLink({ href, children, ...props }: SmartLinkProps) {
