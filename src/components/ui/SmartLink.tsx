@@ -18,9 +18,23 @@ export function SmartLink({ href, children, ...props }: SmartLinkProps) {
   }
 
   if (isExternalHref(href)) {
+    const { "aria-label": ariaLabel, ...restProps } = props;
+    const computedAriaLabel = ariaLabel
+      ? `${ariaLabel} (opens in a new tab)`
+      : undefined;
+
     return (
-      <a href={href} {...props} target="_blank" rel="noopener noreferrer">
+      <a
+        href={href}
+        {...restProps}
+        {...(computedAriaLabel ? { "aria-label": computedAriaLabel } : {})}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         {children}
+        {!ariaLabel && (
+          <span className="sr-only"> (opens in a new tab)</span>
+        )}
       </a>
     );
   }
