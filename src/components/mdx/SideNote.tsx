@@ -35,7 +35,7 @@ export const SideNote: React.FC<SideNoteProps> = ({ children, label = "Note" }) 
         <Collapsible.Trigger asChild>
           <button
             type="button"
-            className="flex items-center justify-between w-full text-sm font-medium text-orange-800"
+            className="flex items-center justify-between w-full text-sm font-medium text-orange-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm"
           >
             <span>{label}</span>
             <span aria-hidden className="text-lg leading-none">

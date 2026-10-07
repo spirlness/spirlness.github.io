@@ -68,7 +68,11 @@ export function BibTeXButton({ bibtex }: BibTeXButtonProps) {
           <button
             type="button"
             onClick={copy}
-            aria-label={copied ? "BibTeX citation copied to clipboard" : "Copy BibTeX citation to clipboard"}
+            aria-label={
+              copied
+                ? "BibTeX citation copied to clipboard"
+                : "Copy BibTeX citation to clipboard"
+            }
             title={copied ? "Copied!" : "Copy BibTeX to clipboard"}
             className="inline-flex items-center gap-2 text-sm font-medium text-white bg-accent px-4 py-2 rounded-lg hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
