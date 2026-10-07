@@ -1,5 +1,14 @@
 import { expect, test } from "@playwright/test";
 
+test("external links retain their names and announce the new tab as a description", async ({ page }) => {
+  await page.goto("/projects/neural-symbolic-physics/");
+  const codeLink = page.getByRole("link", { name: "Code", exact: true });
+  await expect(codeLink).toBeVisible();
+  await expect(codeLink).toHaveAccessibleName("Code");
+  await expect(codeLink).toHaveAccessibleDescription("Opens in a new tab.");
+  await expect(codeLink).toHaveAttribute("target", "_blank");
+});
+
 test.describe("metadata bytes (S3 regression)", () => {
   test("feed serves RSS 2.0 with correct content type", async ({
     request,
