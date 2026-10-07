@@ -16,7 +16,10 @@ export default function Navbar() {
     <nav className="distill-grid py-5 sm:py-8 border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
       <div />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <SmartLink href="/" className="font-display font-bold text-xl tracking-tight text-accent">
+        <SmartLink
+          href="/"
+          className="font-display font-bold text-xl tracking-tight text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md"
+        >
           {siteProfile.navTitle}
         </SmartLink>
         <div className="flex flex-wrap gap-x-4 gap-y-2 sm:gap-8">
@@ -35,7 +38,7 @@ export default function Navbar() {
                 key={href}
                 href={href}
                 aria-current={isActive ? "page" : undefined}
-                className={`font-display text-sm font-medium transition-colors ${
+                className={`font-display text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md ${
                   isActive ? "text-accent" : "text-gray-500 hover:text-accent"
                 }`}
               >

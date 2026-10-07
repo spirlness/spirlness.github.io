@@ -1,5 +1,7 @@
+"use client";
+
 import Link from "next/link";
-import type { AnchorHTMLAttributes, ReactNode } from "react";
+import { useId, type AnchorHTMLAttributes, type ReactNode } from "react";
 import {
   isExternalHref,
   isSafeHref,
@@ -9,32 +11,28 @@ import {
 interface SmartLinkProps
   extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> {
   href: string;
-  children?: ReactNode;
+  children: ReactNode;
 }
 
 export function SmartLink({ href, children, ...props }: SmartLinkProps) {
+  const newTabNoticeId = useId();
+
   if (!isSafeHref(href)) {
     return <span className={props.className}>{children}</span>;
   }
 
   if (isExternalHref(href)) {
-    const { "aria-label": ariaLabel, ...restProps } = props;
-    const computedAriaLabel = ariaLabel
-      ? `${ariaLabel} (opens in a new tab)`
-      : undefined;
-
     return (
       <a
         href={href}
-        {...restProps}
-        {...(computedAriaLabel ? { "aria-label": computedAriaLabel } : {})}
+        {...props}
+        aria-describedby={[props["aria-describedby"], newTabNoticeId].filter(Boolean).join(" ")}
         target="_blank"
         rel="noopener noreferrer"
       >
         {children}
-        {!ariaLabel && (
-          <span className="sr-only"> (opens in a new tab)</span>
-        )}
+        {/* Referenced hidden text describes the action without changing the link name. */}
+        <span id={newTabNoticeId} hidden>Opens in a new tab.</span>
       </a>
     );
   }
