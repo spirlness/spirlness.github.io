@@ -14,6 +14,9 @@ export type { TocHeading } from "./mdx";
 
 const POSTS_PATH = path.join(process.cwd(), "content/posts");
 
+// Content is fixed for a production export; development must pick up MDX edits.
+let cachedPostFrontmatter: PostFrontmatter[] | null = null;
+
 /**
  * Rough reading time in minutes: strip fenced code blocks and JSX tags, then
  * divide the word count by 200 wpm. The result is deliberately approximate.
@@ -93,6 +96,13 @@ export function getPostFrontmatter(slug: string): PostFrontmatter {
 }
 
 export function getAllPostFrontmatter(): PostFrontmatter[] {
+  // Optimization: Cache post frontmatter in production to eliminate redundant
+  // fs reads and frontmatter parsing across static exports (e.g. tags, adjacent/related posts, sitemap).
+  const cacheEnabled = process.env.NODE_ENV === "production";
+  if (cacheEnabled && cachedPostFrontmatter) {
+    return cachedPostFrontmatter;
+  }
+
   if (!fs.existsSync(POSTS_PATH)) {
     return [];
   }
@@ -106,7 +116,10 @@ export function getAllPostFrontmatter(): PostFrontmatter[] {
       return getPostFrontmatter(slug);
     });
 
-  return posts.sort((a, b) => compareDatesDescending(a.date, b.date));
+  const sortedPosts = posts.sort((a, b) => compareDatesDescending(a.date, b.date));
+
+  if (cacheEnabled) cachedPostFrontmatter = sortedPosts;
+  return sortedPosts;
 }
 
 export async function getAllPosts() {
