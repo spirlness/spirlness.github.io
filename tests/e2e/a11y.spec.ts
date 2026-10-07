@@ -9,6 +9,37 @@ const ROUTES = [
   "/projects/neural-symbolic-physics/",
 ];
 
+test("blog cards reveal read-more and highlight the title on keyboard focus", async ({ page }) => {
+  await page.goto("/blog/");
+  const card = page.locator("main article").first();
+  const link = card.getByRole("link");
+  const title = card.getByRole("heading", { level: 2 });
+  const prompt = card.getByText("READ MORE");
+  const originalColor = await title.evaluate(el => getComputedStyle(el).color);
+  await expect(prompt).toHaveCSS("opacity", "0");
+
+  await page.keyboard.press("Tab");
+  await link.focus();
+  await expect(link).toBeFocused();
+  await expect(link).not.toHaveCSS("box-shadow", "none");
+  await expect(title).not.toHaveCSS("color", originalColor);
+  await expect(prompt).toHaveCSS("opacity", "1");
+  await expect(link).not.toHaveAccessibleName(/→/);
+});
+
+for (const route of ["/blog/algorithmic-resilience/", "/blog/how-this-site-is-built/"]) {
+  test(`adjacent post titles respond to keyboard focus on ${route}`, async ({ page }) => {
+    await page.goto(route);
+    const link = page.locator("footer").getByRole("link").first();
+    const title = link.locator("span.font-medium");
+    const originalColor = await title.evaluate(el => getComputedStyle(el).color);
+    await page.keyboard.press("Tab");
+    await link.focus();
+    await expect(link).toBeFocused();
+    await expect(title).not.toHaveCSS("color", originalColor);
+  });
+}
+
 test("project action links show a keyboard focus ring", async ({ page }) => {
   await page.goto("/projects/neural-symbolic-physics/");
   const codeLink = page.getByRole("link", { name: "Code", exact: true });

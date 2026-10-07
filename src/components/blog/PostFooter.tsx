@@ -38,7 +38,7 @@ export function PostFooter({ newer, older, related }: PostFooterProps) {
                 <span className="block text-xs font-display font-bold tracking-widest text-gray-400 uppercase mb-1">
                   Older
                 </span>
-                <span className="font-medium text-gray-700 group-hover:text-accent transition-colors">
+                <span className="font-medium text-gray-700 group-hover:text-accent group-focus-visible:text-accent transition-colors">
                   {older.title}
                 </span>
               </SmartLink>
@@ -50,7 +50,7 @@ export function PostFooter({ newer, older, related }: PostFooterProps) {
                 <span className="block text-xs font-display font-bold tracking-widest text-gray-400 uppercase mb-1">
                   Newer
                 </span>
-                <span className="font-medium text-gray-700 group-hover:text-accent transition-colors">
+                <span className="font-medium text-gray-700 group-hover:text-accent group-focus-visible:text-accent transition-colors">
                   {newer.title}
                 </span>
               </SmartLink>
@@ -72,7 +72,7 @@ export function PostFooter({ newer, older, related }: PostFooterProps) {
                     href={post.href}
                     className="group inline-flex flex-col gap-0.5"
                   >
-                    <span className="font-medium text-gray-700 group-hover:text-accent transition-colors">
+                    <span className="font-medium text-gray-700 group-hover:text-accent group-focus-visible:text-accent transition-colors">
                       {post.title}
                     </span>
                     <span className="text-sm text-gray-400 font-mono">
