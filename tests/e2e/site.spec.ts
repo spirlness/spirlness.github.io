@@ -127,13 +127,20 @@ test.describe("academic site pages", () => {
     const announcement = dialog.locator('[aria-live="polite"]');
     await expect(announcement).toBeEmpty();
 
-    const copyButton = dialog.getByRole("button", { name: "Copy to clipboard", exact: true });
+    const copyButton = dialog.getByRole("button", { name: "Copy BibTeX citation to clipboard", exact: true });
+    await expect(copyButton).toHaveAttribute("title", "Copy BibTeX to clipboard");
     await page.keyboard.press("Tab");
     await expect(copyButton).toBeFocused();
     await expect(copyButton).not.toHaveCSS("box-shadow", "none");
     await page.keyboard.press("Enter");
-    await expect(dialog.getByRole("button", { name: "Copied", exact: true })).toBeVisible();
+    const copiedButton = dialog.getByRole("button", { name: "BibTeX citation copied to clipboard", exact: true });
+    await expect(copiedButton).toBeVisible();
+    await expect(copiedButton).toHaveAttribute("title", "Copied!");
     await expect(announcement).toHaveText("BibTeX citation copied to clipboard");
+
+    await expect(copyButton).toBeVisible({ timeout: 5000 });
+    await expect(copyButton).toHaveAttribute("title", "Copy BibTeX to clipboard");
+    await expect(announcement).toBeEmpty();
 
     await page.keyboard.press("Escape");
     await expect(dialog).toBeHidden();
