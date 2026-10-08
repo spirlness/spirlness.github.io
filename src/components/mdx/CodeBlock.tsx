@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { Check, Copy } from "lucide-react";
+import { useClipboard } from "@/hooks/useClipboard";
 
 /**
  * Client wrapper for fenced code blocks: renders the styled <pre> unchanged
- * and adds a hover-revealed copy button. `className` carries the shiki token
+ * and adds a copy button visible on touch or hover/focus. `className` carries the shiki token
  * classes plus the dark-block utilities from the MDXComponents `pre` override.
  */
 export function CodeBlock({
@@ -14,27 +15,20 @@ export function CodeBlock({
   ...props
 }: React.HTMLAttributes<HTMLPreElement>) {
   const preRef = useRef<HTMLPreElement>(null);
-  const [copied, setCopied] = useState(false);
-
-  async function copy() {
-    const text = preRef.current?.innerText ?? "";
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setCopied(false);
-    }
-  }
+  const { status, copy } = useClipboard();
+  const copied = status === "copied";
 
   return (
-    <div className="relative group min-w-0 max-w-full">
+    <div className="code-block relative group min-w-0 max-w-full">
       <button
         type="button"
-        onClick={copy}
+        onClick={() => copy(preRef.current?.innerText ?? "")}
+        disabled={status === "copying"}
+        aria-busy={status === "copying"}
+        lang="en"
         aria-label={copied ? "Code copied to clipboard" : "Copy code"}
         title={copied ? "Copied!" : "Copy code"}
-        className="absolute top-2 right-2 z-10 inline-flex items-center gap-1.5 rounded-md p-1.5 text-xs text-gray-400 hover:text-white hover:bg-gray-700/80 transition-colors opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="code-copy-button absolute top-2 right-2 z-10 inline-flex items-center justify-center gap-1.5 min-h-11 min-w-11 sm:min-h-8 sm:min-w-8 rounded-md p-1.5 text-xs text-gray-300 bg-gray-900 hover:text-white hover:bg-gray-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-wait"
       >
         {copied ? (
           <>
@@ -45,9 +39,12 @@ export function CodeBlock({
           <Copy size={14} />
         )}
       </button>
-      <pre ref={preRef} className={className} {...props}>
+      <pre ref={preRef} className={className} {...props} tabIndex={props.tabIndex ?? 0}>
         {children}
       </pre>
+      <span role="status" lang="en" className={status === "error" ? "block text-sm text-gray-700 mt-2" : "sr-only"}>
+        {status === "error" ? "Copy failed. Select the code and copy it manually, or try again." : copied ? "Code copied to clipboard" : ""}
+      </span>
     </div>
   );
 }

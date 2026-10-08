@@ -63,9 +63,8 @@ export const articleProse = [
  * - `a` adds target=_blank + accent styling for external links;
  * - `pre`/`code` keep the dark block / pink inline look over shiki token spans
  *   (utilities on the element beat the plugin's `:where()` selectors).
- * There is deliberately no h1 mapping and prose h1 styling is reset in
- * globals.css: the page shell renders the article's only <h1>, so a stray
- * body-level `#` degrades to plain text. Post sections start at `##`.
+ * The page shell renders the article's only h1. Compilation rejects body h1
+ * headings (including explicit JSX); post sections start at ##.
  */
 export const mdxComponents: MDXComponents = {
   // 基础组件

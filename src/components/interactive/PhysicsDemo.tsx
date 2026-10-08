@@ -1,118 +1,42 @@
 "use client";
 
-import React, { useRef, useMemo } from 'react';
-import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
-import { usePrefersReducedMotion } from './usePrefersReducedMotion';
+import { useRef, useMemo } from "react";
+import { useFrame } from "@react-three/fiber";
+import * as THREE from "three";
+import { advanceSimulation, createParticles } from "@/lib/particle-simulation";
+import { usePrefersReducedMotion } from "./usePrefersReducedMotion";
 
-interface ParticleData {
-  position: THREE.Vector3;
-  velocity: THREE.Vector3;
-  accel: THREE.Vector3;
-}
+const COUNT = 120;
 
-/**
- * 伪随机数生成器 (纯函数)，用于绕过严格的 lint 检查
- */
-const seededRandom = (s: number): number => {
-  const x = Math.sin(s) * 10000;
-  return x - Math.floor(x);
-};
-
-/**
- * 一个简单的物理演示组件
- * 使用 @react-three/fiber 实现模拟引力作用下的粒子运动
- */
-const PhysicsDemo: React.FC = () => {
-  const count = 120;
+export default function PhysicsDemo() {
   const meshRef = useRef<THREE.InstancedMesh>(null);
-  
-  // 使用 useMemo 初始化，seededRandom 是纯函数，符合 lint 要求
-  const particles = useMemo(() => {
-    const temp: ParticleData[] = [];
-    for (let i = 0; i < count; i++) {
-      temp.push({
-        position: new THREE.Vector3(
-          (seededRandom(i + 0.1) - 0.5) * 6,
-          (seededRandom(i + 0.2) - 0.5) * 6,
-          (seededRandom(i + 0.3) - 0.5) * 6
-        ),
-        velocity: new THREE.Vector3(
-          (seededRandom(i + 0.4) - 0.5) * 0.05,
-          (seededRandom(i + 0.5) - 0.5) * 0.05,
-          (seededRandom(i + 0.6) - 0.5) * 0.05
-        ),
-        accel: new THREE.Vector3(0, 0, 0),
-      });
-    }
-    return temp;
-  }, [count]);
-
+  const particles = useMemo(() => createParticles(COUNT), []);
   const dummy = useMemo(() => new THREE.Object3D(), []);
-  // 订阅系统偏好：切换「减少动态效果」后动画立即冻结/恢复，无需刷新页面
+  const simulation = useRef({ time: 0, accumulator: 0 });
+  const rendered = useRef(false);
   const prefersReducedMotion = usePrefersReducedMotion();
-  const framesRendered = useRef(0);
 
-  useFrame((state) => {
-    if (!meshRef.current || particles.length === 0) return;
-    if (prefersReducedMotion && framesRendered.current >= 1) return;
+  useFrame((_, delta) => {
+    if (!meshRef.current || (prefersReducedMotion && rendered.current)) return;
+    if (!prefersReducedMotion) advanceSimulation(simulation.current, particles, delta);
 
-    const time = state.clock.getElapsedTime();
-
-    particles.forEach((particle, i) => {
-      // 模拟引力逻辑：向中心 (0,0,0) 的力
-      const dist = particle.position.length();
-      
-      // 引力大小与距离成正比（类似弹簧）
-      const gravityStrength = 0.0005;
-      // Optimization: (position / dist) * (-gravityStrength * dist) = position * (-gravityStrength).
-      // Direct multiplication avoids redundant Vector3.normalize() calls (which re-calculate
-      // Math.sqrt and perform 3 floating-point divisions per particle per frame).
-      // Benchmark: ~3.2x faster calculation step in 60 FPS animation loop (7200 iterations/sec).
-      particle.accel.copy(particle.position).multiplyScalar(-gravityStrength);
-      
-      // 加上一些噪声/扰动
-      particle.accel.x += Math.sin(time + i) * 0.0001;
-      particle.accel.y += Math.cos(time * 0.5 + i) * 0.0001;
-      
-      // 更新速度和位置
-      particle.velocity.add(particle.accel);
-      particle.position.add(particle.velocity);
-      
-      // 阻尼：防止速度无限增加
-      particle.velocity.multiplyScalar(0.98);
-
-      // 设置实例矩阵
-      dummy.position.copy(particle.position);
-      
-      // 距离中心越近，粒子越亮/越大
-      const s = Math.max(0.05, 0.2 - dist * 0.02);
-      dummy.scale.set(s, s, s);
-      
+    for (const [i, { position }] of particles.entries()) {
+      dummy.position.set(position.x, position.y, position.z);
+      const scale = Math.max(0.05, 0.2 - Math.hypot(position.x, position.y, position.z) * 0.02);
+      dummy.scale.setScalar(scale);
       dummy.updateMatrix();
-      meshRef.current!.setMatrixAt(i, dummy.matrix);
-    });
-    
+      meshRef.current.setMatrixAt(i, dummy.matrix);
+    }
     meshRef.current.instanceMatrix.needsUpdate = true;
-    
-    // 整个粒子群缓慢旋转
-    meshRef.current.rotation.y += 0.002;
-    meshRef.current.rotation.z += 0.001;
-    framesRendered.current += 1;
+    meshRef.current.rotation.y = simulation.current.time * 0.12;
+    meshRef.current.rotation.z = simulation.current.time * 0.06;
+    rendered.current = true;
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow receiveShadow>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]}>
       <sphereGeometry args={[1, 12, 12]} />
-      <meshStandardMaterial 
-        color="#6366f1" 
-        emissive="#4338ca" 
-        emissiveIntensity={0.5} 
-        roughness={0.2} 
-        metalness={0.8} 
-      />
+      <meshStandardMaterial color="#6366f1" emissive="#4338ca" emissiveIntensity={0.5} roughness={0.2} metalness={0.8} />
     </instancedMesh>
   );
-};
-
-export default PhysicsDemo;
+}

@@ -113,6 +113,8 @@ test.describe("reduced motion (S3)", () => {
   });
 
   test("physics demo freezes a static frame", async ({ page }) => {
+    // Scene readiness allows 30 seconds; screenshots and static comparison follow it.
+    test.setTimeout(60000);
     const externalRequests: string[] = [];
     const pageErrors: string[] = [];
     await page.route("**/*", async (route) => {

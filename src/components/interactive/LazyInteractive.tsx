@@ -71,7 +71,7 @@ export function SimulationContainer({ children, height = "400px", className = ""
           <Scene active={active} onReady={onReady}>{children}</Scene>
           {!ready && <p role="status" className="pointer-events-none absolute inset-0 flex items-center justify-center text-gray-700">Loading simulation…</p>}
           {ready && (
-            <button type="button" aria-pressed={paused} onClick={() => setPaused((value) => !value)} className="absolute top-3 right-3 rounded-md bg-white px-3 py-2 text-sm text-gray-700 border border-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+            <button type="button" aria-pressed={paused} onClick={() => setPaused((value) => !value)} className="absolute top-3 right-3 min-h-11 touch-manipulation rounded-md bg-white px-3 py-2 text-sm text-gray-700 border border-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
               {paused ? "Resume simulation" : "Pause simulation"}
             </button>
           )}
@@ -79,7 +79,7 @@ export function SimulationContainer({ children, height = "400px", className = ""
       ) : (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center">
           <p className="text-gray-700">Explore the particle simulation. Drag to rotate the view.</p>
-          <button type="button" onClick={start} className="rounded-md bg-accent px-4 py-2 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2">Start simulation</button>
+          <button type="button" onClick={start} className="min-h-11 touch-manipulation rounded-md bg-accent px-4 py-2 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2">Start simulation</button>
         </div>
       )}
     </div>

@@ -213,9 +213,9 @@ To cite a publication inline, use its BibTeX key: `[@li2024deep]`, or `[@li2024d
 
 Several post features are automatic:
 
-- Start sections at `##` (the page renders the title as the only `<h1>`). The build slugs `##`/`###` headings into anchor ids and renders a floating table of contents in the left margin on viewports 1400px and wider, with scrollspy highlighting.
-- Reading time is computed from the body and shown next to the date.
-- Fenced code blocks get a hover copy button.
+- Start sections at `##`; body-level Markdown and JSX h1 headings fail the build because the page owns the title. The table of contents floats in the left margin at 1400px and wider and expands above the article on narrower screens, with scrollspy highlighting.
+- Reading time estimates 200 words or 400 Chinese characters per minute, excluding fenced code, JSX attributes and link destinations.
+- Fenced code blocks show copy controls on touch devices and on desktop hover/focus. Copy success and failure are announced; failed writes offer manual selection or retry. BibTeX copying shares the same reset and cleanup behavior.
 - Previous/next links (by date) and related posts (shared tags) are appended automatically as the blog grows.
 
 ## Notes for Static Hosting

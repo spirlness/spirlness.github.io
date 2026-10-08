@@ -3,6 +3,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { useState } from "react";
 import { Check, Quote } from "lucide-react";
+import { useClipboard } from "@/hooks/useClipboard";
 
 interface BibTeXButtonProps {
   bibtex: string;
@@ -10,24 +11,15 @@ interface BibTeXButtonProps {
 
 export function BibTeXButton({ bibtex }: BibTeXButtonProps) {
   const [open, setOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(bibtex);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setCopied(false);
-    }
-  }
+  const { status, copy, reset } = useClipboard();
+  const copied = status === "copied";
 
   return (
     <Dialog.Root
       open={open}
       onOpenChange={(nextOpen) => {
         setOpen(nextOpen);
-        if (!nextOpen) setCopied(false);
+        if (!nextOpen) reset();
       }}
     >
       <Dialog.Trigger asChild>
@@ -62,32 +54,36 @@ export function BibTeXButton({ bibtex }: BibTeXButtonProps) {
               </button>
             </Dialog.Close>
           </div>
-          <pre className="bg-gray-900 text-gray-100 text-xs font-mono p-4 rounded-lg min-h-0 overflow-auto mb-4 whitespace-pre-wrap">
+          <pre tabIndex={0} role="region" aria-label="BibTeX citation" className="bg-gray-900 text-gray-100 text-xs font-mono p-4 rounded-lg min-h-0 overflow-auto mb-4 whitespace-pre-wrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
             {bibtex}
           </pre>
-          <button
-            type="button"
-            onClick={copy}
-            aria-label={
-              copied
-                ? "BibTeX citation copied to clipboard"
-                : "Copy BibTeX citation to clipboard"
-            }
-            title={copied ? "Copied!" : "Copy BibTeX to clipboard"}
-            className="justify-self-start inline-flex items-center gap-2 text-sm font-medium text-white bg-accent px-4 py-2 rounded-lg hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-          >
-            {copied ? (
-              <>
-                <Check size={14} />
-                <span>Copied</span>
-              </>
-            ) : (
-              "Copy to clipboard"
-            )}
-          </button>
-          <span className="sr-only" aria-live="polite">
-            {copied ? "BibTeX citation copied to clipboard" : ""}
-          </span>
+          <div>
+            <button
+              type="button"
+              onClick={() => copy(bibtex)}
+              disabled={status === "copying"}
+              aria-busy={status === "copying"}
+              aria-label={
+                copied
+                  ? "BibTeX citation copied to clipboard"
+                  : "Copy BibTeX citation to clipboard"
+              }
+              title={copied ? "Copied!" : "Copy BibTeX to clipboard"}
+              className="inline-flex items-center gap-2 text-sm font-medium text-white bg-accent px-4 py-2 rounded-lg hover:bg-accent-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            >
+              {copied ? (
+                <>
+                  <Check size={14} />
+                  <span>Copied</span>
+                </>
+              ) : (
+                "Copy to clipboard"
+              )}
+            </button>
+            <span role="status" className={status === "error" ? "block text-sm text-orange-800 mt-2" : "sr-only"}>
+              {status === "error" ? "Copy failed. Select the citation and copy it manually, or try again." : copied ? "BibTeX citation copied to clipboard" : ""}
+            </span>
+          </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
