@@ -5,6 +5,7 @@ import { useId, type AnchorHTMLAttributes, type ReactNode } from "react";
 import {
   isExternalHref,
   isSafeHref,
+  isSafeMailtoHref,
   normalizeInternalHref,
 } from "@/lib/links";
 
@@ -16,6 +17,7 @@ interface SmartLinkProps
 
 export function SmartLink({ href, children, ...props }: SmartLinkProps) {
   const newTabNoticeId = useId();
+  href = href.trim();
 
   if (!isSafeHref(href)) {
     return <span className={props.className}>{children}</span>;
@@ -37,7 +39,7 @@ export function SmartLink({ href, children, ...props }: SmartLinkProps) {
     );
   }
 
-  if (href.startsWith("#")) {
+  if (href.startsWith("#") || isSafeMailtoHref(href)) {
     return (
       <a href={href} {...props}>
         {children}

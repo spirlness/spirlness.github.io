@@ -1,6 +1,3 @@
-"use client";
-
-import * as Collapsible from "@radix-ui/react-collapsible";
 import React from "react";
 
 interface SideNoteProps {
@@ -31,30 +28,25 @@ export const SideNote: React.FC<SideNoteProps> = ({ children, label = "Note" }) 
   return (
     <div className="relative">
       {/* Narrow view (incl. most laptops): collapsible inline note */}
-      <Collapsible.Root className="min-[1400px]:hidden my-4 border-l-4 border-orange-200 bg-orange-50/30 p-4 rounded-r-md group/note">
-        <Collapsible.Trigger asChild>
-          <button
-            type="button"
-            className="flex items-center justify-between w-full text-sm font-medium text-orange-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm"
-          >
-            <span>{label}</span>
-            <span aria-hidden className="text-lg leading-none">
-              <span className="group-data-[state=open]/note:hidden">+</span>
-              <span className="hidden group-data-[state=open]/note:inline">−</span>
-            </span>
-          </button>
-        </Collapsible.Trigger>
-        <Collapsible.Content>
-          <div className="mt-2 text-sm text-gray-700 leading-relaxed [&_p]:text-sm [&_p]:leading-relaxed [&_p]:mb-3">
-            {children}
-          </div>
-        </Collapsible.Content>
-      </Collapsible.Root>
+      <details className="min-[1400px]:hidden my-4 border-l-4 border-orange-200 bg-orange-50/30 p-4 rounded-r-md group/note">
+        <summary
+          className="flex cursor-pointer list-none items-center justify-between w-full text-sm font-medium text-orange-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm [&::-webkit-details-marker]:hidden"
+        >
+          <span>{label}</span>
+          <span aria-hidden className="text-lg leading-none">
+            <span className="group-open/note:hidden">+</span>
+            <span className="hidden group-open/note:inline">−</span>
+          </span>
+        </summary>
+        <div className="mt-2 text-sm text-gray-700 leading-relaxed [&_p]:text-sm [&_p]:leading-relaxed [&_p]:mb-3">
+          {children}
+        </div>
+      </details>
 
       {/* Wide view: true margin note，对齐紧随其后的块的顶部。
           共享映射的 p 覆盖规则（text-lg/gray-700/mb-6）会渗入侧注，用任意
           变体把侧注内段落拉回 text-sm 小字号。 */}
-      <aside className="hidden min-[1400px]:block absolute left-[calc(100%+2.5rem)] top-0 w-[240px] text-sm text-gray-500 italic border-l-2 border-orange-100 pl-4 leading-relaxed [&_p]:text-sm [&_p]:leading-relaxed [&_p]:text-gray-500 [&_p]:mb-2">
+      <aside className="hidden min-[1400px]:block absolute left-[calc(100%+2.5rem)] top-0 w-[240px] text-sm text-gray-600 italic border-l-2 border-orange-100 pl-4 leading-relaxed [&_p]:text-sm [&_p]:leading-relaxed [&_p]:text-gray-600 [&_p]:mb-2">
         {children}
       </aside>
     </div>

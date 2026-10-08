@@ -29,7 +29,7 @@ export default function PublicationsPage() {
           "@context": "https://schema.org",
           "@type": "ItemList",
           name: "Publications",
-          itemListElement: publications.map((pub, index) => ({
+          itemListElement: publications.filter((pub) => pub.verification !== "unverified").map((pub, index) => ({
             "@type": "ListItem",
             position: index + 1,
             item: {
@@ -60,11 +60,11 @@ export default function PublicationsPage() {
         {years.map((year) => (
           <section key={year} className="mb-12 relative">
             <div className="absolute -left-16 top-6 hidden lg:block">
-              <span className="text-2xl font-display font-bold text-gray-200 rotate-180 [writing-mode:vertical-lr]">
+              <span className="text-2xl font-display font-bold text-gray-600 rotate-180 [writing-mode:vertical-lr]">
                 {year}
               </span>
             </div>
-            <h2 className="text-2xl font-display font-bold text-gray-400 mb-6 lg:hidden">
+            <h2 className="text-2xl font-display font-bold text-gray-600 mb-6 lg:sr-only">
               {year}
             </h2>
             <div className="space-y-2">

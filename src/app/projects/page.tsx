@@ -30,7 +30,7 @@ function ProjectCard({ project }: { project: ProjectFrontmatter }) {
           sizes="(max-width: 800px) 100vw, 800px"
         />
       </div>
-      <div className="flex items-center gap-3 text-sm text-gray-400 font-mono mb-3">
+      <div className="flex items-center gap-3 text-sm text-gray-600 font-mono mb-3">
         <Calendar className="w-3.5 h-3.5" />
         <span>{project.date}</span>
       </div>

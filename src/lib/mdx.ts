@@ -51,6 +51,18 @@ interface CompileContentOptions {
   tableOfContents?: boolean;
 }
 
+/** The page owns h1; reject accidental extra titles instead of only restyling them. */
+function bodyHeadingGuardPlugin(slug: string) {
+  return (tree: MdastRoot) => {
+    visit(tree, (node) => {
+      if ((node.type === "heading" && node.depth === 1) ||
+          ((node.type === "mdxJsxFlowElement" || node.type === "mdxJsxTextElement") && node.name === "h1")) {
+        throw new Error(`Body headings must start at ##, not h1 (content: ${slug}); the page provides its title.`);
+      }
+    });
+  };
+}
+
 function citationPlugin(references: Publication[], slug: string) {
   const publications = new Map(
     getAllPublications().map((publication) => [publication.id, publication])
@@ -181,6 +193,7 @@ export async function compileContent({
       parseFrontmatter: false,
       mdxOptions: {
         remarkPlugins: [
+          [bodyHeadingGuardPlugin, slug] as never,
           mapExplicitMediaPlugin,
           remarkMath,
           // GFM (tables, strikethrough, autolinks) — without this, markdown
@@ -197,7 +210,7 @@ export async function compileContent({
           // anything else degrades to inert error text (backstop for the
           // remark guard above, which throws first).
           [rehypeKatex, { trust: isTrustedMathUrl }],
-          [rehypePrettyCode, { theme: "github-dark", keepBackground: false }],
+          [rehypePrettyCode, { theme: "github-dark-high-contrast", keepBackground: false }],
           ...(tableOfContents
             ? [rehypeSlug, [collectHeadingsPlugin, headings] as never]
             : []),

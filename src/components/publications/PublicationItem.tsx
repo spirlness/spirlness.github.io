@@ -71,10 +71,13 @@ export function PublicationItem({ pub, bibtex }: PublicationItemProps) {
       <div className="text-gray-600 mb-2">
         <HighlightAuthors authors={pub.authors} />
       </div>
-      <div className="text-gray-500 italic mb-4">
+      <div className="text-gray-600 italic mb-4">
         {pub.journal || pub.booktitle}
         {pub.year ? `, ${pub.year}` : ""}
       </div>
+      {pub.verification === "unverified" && (
+        <p className="text-sm text-gray-600 mb-3">Publication details awaiting verification.</p>
+      )}
       <div className="flex flex-wrap gap-3">
         {isSafeHttpUrl(pub.url) && (
           <ActionLink href={pub.url} icon={<LinkIcon size={14} />}>

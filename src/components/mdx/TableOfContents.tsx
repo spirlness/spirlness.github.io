@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import type { TocHeading } from "@/lib/posts";
 
 /**
  * Distill-style floating table of contents for the left gutter of
  * `.distill-grid`. Gated at the same `min-[1400px]:` breakpoint as SideNote:
  * below it the gutter is too narrow for a readable column and the aside would
- * overflow, so the nav is hidden entirely rather than clipped. At the
+ * overflow, so narrower layouts use a disclosure above the article. At the
  * breakpoint the nav is right-aligned in the left track at the same 240px
  * width as SideNote's gutter, so it hugs the article column instead of the
  * viewport edge.
@@ -23,6 +23,8 @@ const ACTIVE_LINE_RATIO = 0.2;
 
 export function TableOfContents({ headings }: { headings: TocHeading[] }) {
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const navigationId = useId();
 
   useEffect(() => {
     if (headings.length === 0) return;
@@ -73,35 +75,41 @@ export function TableOfContents({ headings }: { headings: TocHeading[] }) {
   if (headings.length === 0) return null;
 
   return (
-    <nav
-      aria-label="Table of contents"
-      className="hidden min-[1400px]:block min-[1400px]:ml-auto min-[1400px]:w-[240px] sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto"
-    >
-      <p className="text-xs font-display font-bold tracking-widest text-gray-400 uppercase mb-3">
-        Contents
-      </p>
-      <ul className="space-y-0.5 border-l border-gray-100">
-        {headings.map((heading) => {
-          const active = activeId === heading.id;
-          return (
-            <li key={heading.id}>
-              <a
-                href={`#${heading.id}`}
-                aria-current={active ? "location" : undefined}
-                className={`block text-sm leading-snug py-1 border-l-2 -ml-px pl-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-r-sm ${
-                  heading.level === 3 ? "pl-6" : ""
-                } ${
-                  active
-                    ? "border-accent text-accent"
-                    : "border-transparent text-gray-400 hover:text-gray-600"
-                }`}
-              >
-                {heading.text}
-              </a>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+    <div className="not-prose mb-6 min-[1400px]:mb-0 min-[1400px]:sticky min-[1400px]:top-24 min-[1400px]:ml-auto min-[1400px]:w-[240px]">
+      <button type="button" lang="en" aria-expanded={expanded} aria-controls={navigationId} onClick={() => setExpanded(value => !value)} className="min-[1400px]:hidden inline-flex items-center justify-between gap-4 w-full rounded-md border border-gray-200 px-4 py-3 font-display text-sm text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+        Contents <span aria-hidden="true">{expanded ? "−" : "+"}</span>
+      </button>
+      <nav
+        id={navigationId}
+        aria-label="Table of contents"
+        className={`${expanded ? "block" : "hidden"} min-[1400px]:block mt-3 min-[1400px]:mt-0 max-h-[50dvh] min-[1400px]:max-h-[calc(100dvh-8rem)] overflow-y-auto`}
+      >
+        <p lang="en" className="hidden min-[1400px]:block text-xs font-display font-bold tracking-widest text-gray-600 uppercase mb-3">
+          Contents
+        </p>
+        <ul className="space-y-0.5 border-l border-gray-100">
+          {headings.map((heading) => {
+            const active = activeId === heading.id;
+            return (
+              <li key={heading.id}>
+                <a
+                  href={`#${heading.id}`}
+                  aria-current={active ? "location" : undefined}
+                  className={`block text-sm leading-snug py-1 border-l-2 -ml-px pl-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-r-sm ${
+                    heading.level === 3 ? "pl-6" : ""
+                  } ${
+                    active
+                      ? "border-accent text-accent"
+                      : "border-transparent text-gray-600 hover:text-accent"
+                  }`}
+                >
+                  {heading.text}
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </div>
   );
 }

@@ -113,6 +113,8 @@ test.describe("reduced motion (S3)", () => {
   });
 
   test("physics demo freezes a static frame", async ({ page }) => {
+    // Scene readiness allows 30 seconds; screenshots and static comparison follow it.
+    test.setTimeout(60000);
     const externalRequests: string[] = [];
     const pageErrors: string[] = [];
     await page.route("**/*", async (route) => {
@@ -130,7 +132,9 @@ test.describe("reduced motion (S3)", () => {
       new URL(response.url()).pathname === "/environments/potsdamer_platz_1k.hdr"
     );
     await page.goto("/blog/algorithmic-resilience/");
+    await page.getByRole("button", { name: "Start simulation", exact: true }).click();
     expect((await environmentLoaded).status()).toBe(200);
+    await expect(page.getByRole("button", { name: "Pause simulation", exact: true })).toBeVisible({ timeout: 30000 });
     const canvas = page.locator("canvas").first();
     await expect(canvas).toBeVisible();
     const hasGL = await page.evaluate(() => {

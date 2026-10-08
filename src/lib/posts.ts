@@ -8,27 +8,16 @@ import {
 } from "./content-schemas";
 import { compileContent, type TocHeading } from "./mdx";
 import type { Publication } from "./bibtex";
+import { readingTime } from "./reading-time";
 
 export type { PostFrontmatter } from "./content-schemas";
 export type { TocHeading } from "./mdx";
+export { readingTime } from "./reading-time";
 
 const POSTS_PATH = path.join(process.cwd(), "content/posts");
 
 // Content is fixed for a production export; development must pick up MDX edits.
 let cachedPosts: PostFrontmatter[] | null = null;
-
-/**
- * Rough reading time in minutes: strip fenced code blocks and JSX tags, then
- * divide the word count by 200 wpm. The result is deliberately approximate.
- */
-export function readingTime(source: string): number {
-  const body = source
-    .replace(/```[\s\S]*?```/g, " ")
-    .replace(/<[^>]+>/g, " ")
-    .trim();
-  const words = body.split(/\s+/).filter(Boolean).length;
-  return Math.max(1, Math.round(words / 200));
-}
 
 /**
  * Build a normalized, trailing-slash href for a blog post. GitHub Pages serves

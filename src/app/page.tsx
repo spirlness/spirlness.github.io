@@ -58,7 +58,7 @@ export default function Home() {
         </section>
 
         <section className="mb-24">
-          <h2 className="font-display text-2xl font-bold mb-12 tracking-widest text-gray-400 uppercase">
+          <h2 className="font-display text-2xl font-bold mb-12 tracking-widest text-gray-600 uppercase">
             Focus Areas
           </h2>
           <div className="grid grid-cols-1 gap-10">
@@ -76,7 +76,7 @@ export default function Home() {
         </section>
 
         <section className="mb-24">
-          <h2 className="font-display text-2xl font-bold mb-12 flex items-center gap-3 tracking-widest text-gray-400 uppercase">
+          <h2 className="font-display text-2xl font-bold mb-12 flex items-center gap-3 tracking-widest text-gray-600 uppercase">
             <Calendar className="w-5 h-5" />
             Latest Updates
           </h2>
@@ -90,7 +90,7 @@ export default function Home() {
                   <UpdateTimelineIcon icon={update.icon} />
                 </div>
                 <div className="pt-1.5 pb-2">
-                  <span className="text-sm font-mono text-gray-400 mb-2 block tracking-tighter">
+                  <span className="text-sm font-mono text-gray-600 mb-2 block tracking-tighter">
                     {update.date}
                   </span>
                   {isSafeHref(update.link) ? (
@@ -122,7 +122,7 @@ export default function Home() {
           <p className="text-gray-600 mb-8 leading-relaxed">
             {siteProfile.contactIntro}
           </p>
-          <div className="flex flex-wrap gap-6 font-display text-sm font-medium text-gray-500">
+          <div className="flex flex-wrap gap-6 font-display text-sm font-medium text-gray-600">
             {siteProfile.links.map((link) => (
               <SmartLink
                 key={link.href}

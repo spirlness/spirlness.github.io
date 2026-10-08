@@ -5,6 +5,8 @@ import remarkMdx from "remark-mdx";
 import remarkParse from "remark-parse";
 import { unified } from "unified";
 import { visit } from "unist-util-visit";
+import { isSafeHref } from "./links";
+import { isSafeMediaUrl, parseSrcSet } from "./media-srcset";
 
 /**
  * Local destinations declared by an MDX body, split by what they must resolve
@@ -22,7 +24,7 @@ const contentParser = unified()
   .use(remarkMdx);
 
 /** JSX attributes carrying a destination the browser will follow or fetch. */
-const URL_ATTRIBUTES = new Set(["href", "src", "poster"]);
+const URL_ATTRIBUTES = new Set(["href", "src", "poster", "srcSet", "srcset"]);
 
 /** A `scheme:` prefix, e.g. `https:`, `mailto:`, `data:`. */
 const URL_SCHEME = /^[a-z][a-z0-9+.-]*:/i;
@@ -51,15 +53,6 @@ export function localAbsolute(url: string): string | undefined {
   return url.startsWith("/") && !url.startsWith("//") ? url : undefined;
 }
 
-/** Destinations the browser resolves on its own: http(s), mailto, `#anchor`, `//host`. */
-function isBrowserResolved(url: string): boolean {
-  return (
-    url.startsWith("#") ||
-    url.startsWith("//") ||
-    /^(?:https?:\/\/|mailto:)/i.test(url)
-  );
-}
-
 export function pathnameOf(url: string): string {
   return url.split(/[?#]/, 1)[0];
 }
@@ -80,22 +73,34 @@ export function extractLocalTargets(
   const tree = contentParser.parse(source) as Root;
 
   const add = (bucket: string[], url: string) => {
+    url = url.trim();
+    const safe = bucket === links ? isSafeHref(url) : isSafeMediaUrl(url);
+    if (!safe && (URL_SCHEME.test(url) || url.startsWith("//") || url.startsWith("#"))) {
+      throw new Error(`Unsupported URL scheme or target in content (${origin}): "${url}"`);
+    }
     const target = localAbsolute(url);
     if (target) {
       bucket.push(target);
       return;
     }
-    if (!url || isBrowserResolved(url)) return;
-    if (URL_SCHEME.test(url)) {
-      throw new Error(
-        `Unsupported URL scheme in content (${origin}): "${url}" — use a site-absolute path or an http(s) URL`
-      );
-    }
+    if (!url || safe) return;
     relative.push(url);
   };
 
+  const definitions = new Map<string, string>();
+  visit(tree, "definition", (node) => {
+    const key = node.identifier.toUpperCase();
+    if (!definitions.has(key)) definitions.set(key, node.url);
+  });
+
   visit(tree, (node) => {
-    if (node.type === "link" || node.type === "definition") {
+    if (node.type === "definition") return;
+    if (node.type === "linkReference" || node.type === "imageReference") {
+      const url = definitions.get(node.identifier.toUpperCase());
+      if (url) add(node.type === "imageReference" ? assets : links, url);
+      return;
+    }
+    if (node.type === "link") {
       add(links, node.url);
       return;
     }
@@ -119,7 +124,7 @@ export function extractLocalTargets(
         }
         if (
           attribute.type !== "mdxJsxAttribute" ||
-          !URL_ATTRIBUTES.has(attribute.name)
+          !(URL_ATTRIBUTES.has(attribute.name) || (tagName === "object" && attribute.name === "data"))
         ) {
           continue;
         }
@@ -128,7 +133,13 @@ export function extractLocalTargets(
             `Expression-valued URL attribute is not allowed in content (${origin}): <${tagName} ${attribute.name}={...}> — use a literal string`
           );
         }
-        add(attribute.name === "href" ? links : assets, attribute.value);
+        if (attribute.name === "srcSet" || attribute.name === "srcset") {
+          const urls = parseSrcSet(attribute.value);
+          if (!urls) throw new Error(`Invalid srcSet in content (${origin}): "${attribute.value}"`);
+          for (const url of urls) add(assets, url);
+        } else {
+          add(attribute.name === "href" ? links : assets, attribute.value);
+        }
       }
     }
   });

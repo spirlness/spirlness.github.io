@@ -57,8 +57,13 @@ export function isSafeLocalHref(href: string): boolean {
   return !path.includes("\\");
 }
 
+/** Mail actions stay separate from media and HTTP-only publication links. */
+export function isSafeMailtoHref(href: string): boolean {
+  return /^mailto:[^?@\s<>]+@[^?\s<>]+(?:\?[^\s<>]*)?$/i.test(href.trim());
+}
+
 /**
- * Allow safe local navigation plus absolute HTTP(S) links.
+ * Allow safe local navigation, absolute HTTP(S) links, and email actions.
  * Protocol-relative URLs are deliberately rejected because their destination
  * changes with the current scheme and they bypass the local-path check.
  */
@@ -70,5 +75,5 @@ export function isSafeHref(
   const value = href.trim();
   if (value.startsWith("#")) return true;
   if (isSafeLocalHref(value)) return true;
-  return isSafeHttpUrl(value);
+  return isSafeHttpUrl(value) || isSafeMailtoHref(value);
 }

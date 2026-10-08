@@ -65,7 +65,7 @@ test.describe("academic site pages", () => {
     await expectNoHorizontalOverflow(page);
 
     const toc = page.getByRole("navigation", { name: "Table of contents" });
-    const noteButton = page.getByRole("button", { name: "Note" });
+    const noteButton = page.locator("summary").filter({ hasText: "Note" });
     const isWide = await page.evaluate(() => window.innerWidth >= 1400);
 
     if (isWide) {
@@ -75,11 +75,11 @@ test.describe("academic site pages", () => {
     } else {
       await expect(toc).toBeHidden();
       await expect(noteButton).toBeVisible();
-      await expect(noteButton).toHaveAttribute("aria-expanded", "false");
       const inlineNote = noteButton.locator("xpath=..");
+      await expect(inlineNote).toHaveJSProperty("open", false);
       await expect(inlineNote.getByText(/Algorithmic Resilience is defined here/)).toBeHidden();
       await noteButton.click();
-      await expect(noteButton).toHaveAttribute("aria-expanded", "true");
+      await expect(inlineNote).toHaveJSProperty("open", true);
       await expect(inlineNote.getByText(/Algorithmic Resilience is defined here/)).toBeVisible();
     }
   });
@@ -124,11 +124,13 @@ test.describe("academic site pages", () => {
     await expect(closeButton).toBeFocused();
     await expect(closeButton).not.toHaveCSS("box-shadow", "none");
 
-    const announcement = dialog.locator('[aria-live="polite"]');
+    const announcement = dialog.getByRole("status");
     await expect(announcement).toBeEmpty();
 
     const copyButton = dialog.getByRole("button", { name: "Copy BibTeX citation to clipboard", exact: true });
     await expect(copyButton).toHaveAttribute("title", "Copy BibTeX to clipboard");
+    await page.keyboard.press("Tab");
+    await expect(dialog.getByRole("region", { name: "BibTeX citation" })).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(copyButton).toBeFocused();
     await expect(copyButton).not.toHaveCSS("box-shadow", "none");
@@ -189,10 +191,9 @@ test.describe("academic site pages", () => {
     page,
   }) => {
     await page.goto("/blog/algorithmic-resilience/");
-    test.skip(
-      !(await page.evaluate(() => window.innerWidth >= 1400)),
-      "ToC is gutter-only above 1400px"
-    );
+    if (await page.getByRole("button", { name: "Contents", exact: true }).isVisible()) {
+      await page.getByRole("button", { name: "Contents", exact: true }).click();
+    }
 
     const toc = page.getByRole("navigation", { name: "Table of contents" });
     const current = toc.locator('a[aria-current="location"]');

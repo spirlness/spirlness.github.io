@@ -3,14 +3,24 @@
 
 :root {
   --bg: #fdfdfd;
-  --accent: #d86b4a;
+  --accent: #a84227;
+  --accent-hover: #8d3520;
 }
 
 @theme {
   --color-accent: var(--accent);
-  --font-inter: var(--font-inter);
+  --color-accent-hover: var(--accent-hover);
   --font-serif: var(--font-serif);
   --font-display: var(--font-display);
+}
+
+html {
+  /* Account for the sticky header when following any fragment link. */
+  scroll-padding-top: 9rem;
+}
+
+@media (min-width: 640px) {
+  html { scroll-padding-top: 7rem; }
 }
 
 body {
@@ -44,12 +54,19 @@ body {
   content: none;
 }
 
-/* The page shell renders an article's only <h1>; any body-level h1 in MDX must
-   degrade to plain preflight text instead of getting prose h1 sizing. */
-.prose :where(h1) {
-  font-size: inherit;
-  font-weight: inherit;
-  margin: 0;
+.code-copy-button {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  /* Reserve a toolbar row so the always-visible touch control cannot cover code. */
+  .code-block > pre { padding-top: 3.75rem; }
+}
+
+@media (hover: hover) {
+  .code-copy-button { opacity: 0; }
+  .group:hover .code-copy-button,
+  .code-copy-button:focus-visible { opacity: 1; }
 }
 
 .skip-link {

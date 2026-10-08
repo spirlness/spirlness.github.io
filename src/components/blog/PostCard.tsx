@@ -25,7 +25,7 @@ export function PostCard({
           <h2 className="text-2xl font-bold font-display group-hover:text-accent group-focus-within:text-accent transition-colors">
             {post.title}
           </h2>
-          <time className="text-sm font-mono text-gray-400">
+          <time className="text-sm font-mono text-gray-600">
             {post.date}
           </time>
         </div>

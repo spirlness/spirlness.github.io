@@ -18,12 +18,15 @@ export function PostBody({
 }: PostBodyProps) {
   return (
     <div className="distill-grid">
-      <div>{headings.length > 0 && <TableOfContents headings={headings} />}</div>
-      <div className={`relative ${articleProse}`}>
+      {headings.length > 0 && (
+        <div className="col-start-2 min-[1400px]:col-start-1 min-[1400px]:row-start-1">
+          <TableOfContents headings={headings} />
+        </div>
+      )}
+      <div className={`col-start-2 min-[1400px]:row-start-1 relative ${articleProse}`}>
         {content}
         {references.length > 0 && <References references={references} />}
       </div>
-      <div />
     </div>
   );
 }
