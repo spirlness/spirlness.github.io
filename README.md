@@ -169,6 +169,18 @@ Supported fields include:
 
 Author highlighting is controlled by `publicationAuthorNames` in `src/content/site.ts`.
 
+The current three records are marked `verification={unverified}` after source
+checks could not confirm their title, authors, year and venue. Their incorrect
+links have been removed. The UI and copied citations disclose their status;
+unverified entries are excluded from scholarly structured data. See
+[publication source checks](docs/publication-verification.md) before replacing
+metadata or adding links.
+
+Interactive simulations load only after selecting **Start simulation**. They
+pause outside the viewport, in background tabs, or when paused by the reader.
+Unsupported WebGL and failed resources display a local fallback so the article
+remains readable.
+
 ### Blog Posts
 
 Create a new `.mdx` file under `content/posts/`.
@@ -208,4 +220,4 @@ Several post features are automatic:
 
 ## Notes for Static Hosting
 
-Internal navigation uses full static page loads for reliability on GitHub Pages. If you change routing behavior, verify the exported site with a static server before pushing.
+Internal navigation uses Next Link with prefetch disabled. The static export includes the payloads needed for client navigation; verify routing against the exported site before pushing.

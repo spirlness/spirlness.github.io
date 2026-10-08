@@ -1,4 +1,4 @@
-import { isSafeHref } from "./links";
+import { isSafeHttpUrl, isSafeLocalHref } from "./links";
 
 /**
  * Descriptor tokens allowed after a candidate URL: density (`2x`) or
@@ -25,10 +25,10 @@ function isLoopbackHostname(hostname: string): boolean {
  * (localhost / 127.0.0.0/8 / [::1]) are rejected because a static export can
  * only ever point a visitor back at their own machine.
  */
-function isSafeMediaUrl(value: string): boolean {
-  if (!isSafeHref(value)) return false;
-  if (value.startsWith("#")) return false;
-  if (value.startsWith("/")) return true;
+export function isSafeMediaUrl(value: string): boolean {
+  value = value.trim();
+  if (isSafeLocalHref(value)) return true;
+  if (!isSafeHttpUrl(value)) return false;
   try {
     return !isLoopbackHostname(new URL(value).hostname);
   } catch {

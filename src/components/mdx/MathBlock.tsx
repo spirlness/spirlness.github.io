@@ -31,7 +31,7 @@ export const MathBlock: React.FC<MathBlockProps> = ({ equation, id, label }) => 
         className="overflow-x-auto overflow-y-hidden py-2"
       />
       {label && (
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-gray-400 bg-white/80 px-1">
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-gray-600 bg-white/80 px-1">
           ({label})
         </div>
       )}

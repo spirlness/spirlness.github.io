@@ -1,58 +1,47 @@
 "use client";
 
-import React, { Suspense } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Stage } from '@react-three/drei';
-import { usePrefersReducedMotion } from './usePrefersReducedMotion';
+import { Suspense, useEffect, type ReactNode } from "react";
+import { Canvas, useThree } from "@react-three/fiber";
+import { OrbitControls, Stage, useEnvironment } from "@react-three/drei";
+import { usePrefersReducedMotion } from "./usePrefersReducedMotion";
 
-interface SimulationContainerProps {
-  children: React.ReactNode;
-  height?: string;
-  className?: string;
+const environment = { files: "/environments/potsdamer_platz_1k.hdr" };
+
+export function clearSimulationResources() {
+  useEnvironment.clear(environment);
 }
 
-/**
- * 一个能够容纳 Three.js Canvas 的容器
- * 支持懒加载 (通过 Suspense) 和尺寸自适应
- */
-const SimulationContainer: React.FC<SimulationContainerProps> = ({ 
-  children, 
-  height = "400px",
-  className = ""
-}) => {
-  // 订阅系统偏好：用户切换「减少动态效果」时 frameloop 会立即跟随变化
+function SceneReady({ onReady }: { onReady: () => void }) {
+  const invalidate = useThree((state) => state.invalidate);
+  useEffect(() => {
+    invalidate();
+    onReady();
+  }, [invalidate, onReady]);
+  return null;
+}
+
+export default function SimulationContainer({ children, active, onReady }: {
+  children: ReactNode;
+  active: boolean;
+  onReady: () => void;
+}) {
   const prefersReducedMotion = usePrefersReducedMotion();
 
   return (
-    <div 
-      className={`relative w-full rounded-xl overflow-hidden bg-slate-50 border border-slate-200 shadow-inner my-8 ${className}`}
-      style={{ height }}
+    <Canvas
+      camera={{ position: [0, 0, 5], fov: 50 }}
+      dpr={[1, 1.5]}
+      className="cursor-move"
+      frameloop={active ? (prefersReducedMotion ? "demand" : "always") : "never"}
+      fallback={<p role="status" className="p-6 text-gray-700">Your browser does not support this interactive preview. You can continue reading the article.</p>}
     >
-      <Suspense fallback={
-        <div className="absolute inset-0 flex items-center justify-center text-slate-400 font-medium">
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            <span>Loading Simulation...</span>
-          </div>
-        </div>
-      }>
-        <Canvas
-          shadows
-          camera={{ position: [0, 0, 5], fov: 50 }}
-          dpr={[1, 2]}
-          className="cursor-move"
-          frameloop={prefersReducedMotion ? "demand" : "always"}
-        >
-          <ambientLight intensity={0.5} />
-          <pointLight position={[10, 10, 10]} />
-          <Stage environment={{ files: '/environments/potsdamer_platz_1k.hdr' }} intensity={0.5}>
-            {children}
-          </Stage>
-          <OrbitControls makeDefault />
-        </Canvas>
+      <ambientLight intensity={0.5} />
+      <pointLight position={[10, 10, 10]} />
+      <Suspense fallback={null}>
+        <Stage environment={environment} intensity={0.5} shadows={false}>{children}</Stage>
+        <SceneReady onReady={onReady} />
       </Suspense>
-    </div>
+      <OrbitControls makeDefault enabled={active} />
+    </Canvas>
   );
-};
-
-export default SimulationContainer;
+}

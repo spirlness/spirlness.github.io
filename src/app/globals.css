@@ -3,7 +3,7 @@
 
 :root {
   --bg: #fdfdfd;
-  --accent: #d86b4a;
+  --accent: #a84227;
 }
 
 @theme {
@@ -11,6 +11,15 @@
   --font-inter: var(--font-inter);
   --font-serif: var(--font-serif);
   --font-display: var(--font-display);
+}
+
+html {
+  /* Account for the sticky header when following any fragment link. */
+  scroll-padding-top: 8rem;
+}
+
+@media (min-width: 640px) {
+  html { scroll-padding-top: 7rem; }
 }
 
 body {

@@ -74,43 +74,45 @@ export default async function PostPage({ params }: PostPageProps) {
   const related = getRelatedPosts(slug, 2);
 
   return (
-    <article id="main-content" tabIndex={-1} className="py-10 sm:py-16">
-      <JsonLd
-        data={{
-          "@context": "https://schema.org",
-          "@type": "BlogPosting",
-          headline: frontmatter.title,
-          description: frontmatter.excerpt,
-          datePublished: frontmatter.date,
-          ...(frontmatter.lastUpdated
-            ? { dateModified: frontmatter.lastUpdated }
-            : {}),
-          url: `${siteProfile.url}/blog/${slug}/`,
-          author: { "@type": "Person", name: siteProfile.name },
-          mainEntityOfPage: {
-            "@type": "WebPage",
-            "@id": `${siteProfile.url}/blog/${slug}/`,
-          },
-        }}
-      />
-      <PostHeader
-        frontmatter={frontmatter}
-        readingMinutes={readingMinutes}
-      />
-      <PostBody
-        content={content}
-        headings={headings}
-        references={references}
-      />
-      <PostFooter
-        newer={newer ? { href: postHref(newer.slug), title: newer.title } : undefined}
-        older={older ? { href: postHref(older.slug), title: older.title } : undefined}
-        related={related.map((relatedPost) => ({
-          href: postHref(relatedPost.slug),
-          title: relatedPost.title,
-          date: relatedPost.date,
-        }))}
-      />
-    </article>
+    <main id="main-content" tabIndex={-1} className="py-10 sm:py-16">
+      <article lang={frontmatter.lang ?? "en"}>
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            headline: frontmatter.title,
+            description: frontmatter.excerpt,
+            datePublished: frontmatter.date,
+            ...(frontmatter.lastUpdated
+              ? { dateModified: frontmatter.lastUpdated }
+              : {}),
+            url: `${siteProfile.url}/blog/${slug}/`,
+            author: { "@type": "Person", name: siteProfile.name },
+            mainEntityOfPage: {
+              "@type": "WebPage",
+              "@id": `${siteProfile.url}/blog/${slug}/`,
+            },
+          }}
+        />
+        <PostHeader
+          frontmatter={frontmatter}
+          readingMinutes={readingMinutes}
+        />
+        <PostBody
+          content={content}
+          headings={headings}
+          references={references}
+        />
+        <PostFooter
+          newer={newer ? { href: postHref(newer.slug), title: newer.title } : undefined}
+          older={older ? { href: postHref(older.slug), title: older.title } : undefined}
+          related={related.map((relatedPost) => ({
+            href: postHref(relatedPost.slug),
+            title: relatedPost.title,
+            date: relatedPost.date,
+          }))}
+        />
+      </article>
+    </main>
   );
 }

@@ -54,7 +54,7 @@ export const SideNote: React.FC<SideNoteProps> = ({ children, label = "Note" }) 
       {/* Wide view: true margin note，对齐紧随其后的块的顶部。
           共享映射的 p 覆盖规则（text-lg/gray-700/mb-6）会渗入侧注，用任意
           变体把侧注内段落拉回 text-sm 小字号。 */}
-      <aside className="hidden min-[1400px]:block absolute left-[calc(100%+2.5rem)] top-0 w-[240px] text-sm text-gray-500 italic border-l-2 border-orange-100 pl-4 leading-relaxed [&_p]:text-sm [&_p]:leading-relaxed [&_p]:text-gray-500 [&_p]:mb-2">
+      <aside className="hidden min-[1400px]:block absolute left-[calc(100%+2.5rem)] top-0 w-[240px] text-sm text-gray-600 italic border-l-2 border-orange-100 pl-4 leading-relaxed [&_p]:text-sm [&_p]:leading-relaxed [&_p]:text-gray-600 [&_p]:mb-2">
         {children}
       </aside>
     </div>

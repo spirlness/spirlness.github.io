@@ -20,8 +20,8 @@ export function PageHeader({
     variant === "compact"
       ? "text-lg text-gray-600 max-w-2xl"
       : variant === "tag"
-        ? "text-lg text-gray-500"
-        : "text-xl text-gray-500 font-serif italic";
+        ? "text-lg text-gray-600"
+        : "text-xl text-gray-600 font-serif italic";
 
   return (
     <header className={compact ? "mb-12" : "mb-16"}>

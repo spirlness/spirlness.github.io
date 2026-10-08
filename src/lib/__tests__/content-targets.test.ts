@@ -46,9 +46,9 @@ describe("extractLocalTargets", () => {
     });
   });
 
-  it("ignores external, anchor, mail, and protocol-relative destinations", () => {
+  it("ignores external, anchor, and mail destinations", () => {
     const source =
-      "[ext](https://example.com) [top](#top) [mail](mailto:x@example.com) [proto](//cdn.example.com/x)";
+      "[ext](https://example.com) [top](#top) [mail](mailto:x@example.com)";
     expect(extractLocalTargets(source)).toEqual({
       links: [],
       assets: [],

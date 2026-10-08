@@ -1,15 +1,15 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { siteProfile } from "@/content/site";
 import { SmartLink } from "@/components/ui/SmartLink";
 
-/**
- * Site header. Client-side because the current-page highlight needs
- * `usePathname()`; the nav data still comes from the server-only `siteProfile`
- * import, which is a plain object literal and therefore safe to bundle.
- */
-export default function Navbar() {
+interface NavbarProps {
+  navTitle: string;
+  navLinks: { href: string; label: string }[];
+}
+
+/** Keep configuration validation on the server; only navigation data hydrates. */
+export default function Navbar({ navTitle, navLinks }: NavbarProps) {
   const pathname = usePathname();
 
   return (
@@ -20,10 +20,10 @@ export default function Navbar() {
           href="/"
           className="font-display font-bold text-xl tracking-tight text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md"
         >
-          {siteProfile.navTitle}
+          {navTitle}
         </SmartLink>
         <div className="flex flex-wrap gap-x-4 gap-y-2 sm:gap-8">
-          {siteProfile.navLinks.map((link) => {
+          {navLinks.map((link) => {
             // `usePathname()` returns the un-trailed form Next normalizes to;
             // compare on the route prefix so `/projects/<id>/` still lights
             // PROJECTS. HOME (`/`) only matches the exact root.
@@ -39,7 +39,7 @@ export default function Navbar() {
                 href={href}
                 aria-current={isActive ? "page" : undefined}
                 className={`font-display text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md ${
-                  isActive ? "text-accent" : "text-gray-500 hover:text-accent"
+                  isActive ? "text-accent" : "text-gray-600 hover:text-accent"
                 }`}
               >
                 {link.label}

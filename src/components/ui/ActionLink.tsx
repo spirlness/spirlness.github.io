@@ -15,7 +15,7 @@ export function ActionLink({
   return (
     <SmartLink
       href={href}
-      className={`inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded ${className}`}
+      className={`inline-flex items-center gap-1 text-sm font-medium text-orange-700 hover:text-orange-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded ${className}`}
     >
       {icon}
       {children}

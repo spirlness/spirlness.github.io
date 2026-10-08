@@ -6,7 +6,7 @@ import { CodeBlock } from './CodeBlock';
 // 交互式组件经由 LazyInteractive 的客户端边界导入，本文件保持为服务端组件
 import { SimulationContainer, PhysicsDemo } from '../interactive/LazyInteractive';
 import { isSafeHref } from '@/lib/links';
-import { isSafeSrcSet } from '@/lib/media-srcset';
+import { isSafeSrcSet, isSafeMediaUrl } from '@/lib/media-srcset';
 import { SmartLink } from '@/components/ui/SmartLink';
 
 /**
@@ -101,7 +101,7 @@ export const mdxComponents: MDXComponents = {
     const declaredSrcSets = [srcSet, srcset].filter((value) => value !== undefined);
     if (
       typeof src !== "string" ||
-      !isSafeHref(src) ||
+      !isSafeMediaUrl(src) ||
       declaredSrcSets.some((value) => !isSafeSrcSet(value))
     ) {
       return null;
@@ -113,9 +113,9 @@ export const mdxComponents: MDXComponents = {
   },
   video: ({ src, poster, children, ...props }) => {
     if (
-      (src !== undefined && (typeof src !== "string" || !isSafeHref(src))) ||
+      (src !== undefined && (typeof src !== "string" || !isSafeMediaUrl(src))) ||
       (poster !== undefined &&
-        (typeof poster !== "string" || !isSafeHref(poster)))
+        (typeof poster !== "string" || !isSafeMediaUrl(poster)))
     ) {
       return null;
     }
@@ -131,7 +131,7 @@ export const mdxComponents: MDXComponents = {
   // 即整条不渲染（失败关闭）。两者都未声明则没有可加载目标，同样不渲染。
   source: ({ src, srcSet, srcset, ...props }) => {
     const declaredSrcSets = [srcSet, srcset].filter((value) => value !== undefined);
-    const srcIsSafe = typeof src === "string" && isSafeHref(src);
+    const srcIsSafe = typeof src === "string" && isSafeMediaUrl(src);
     const srcSetIsSafe =
       declaredSrcSets.length > 0 &&
       declaredSrcSets.every((value) => isSafeSrcSet(value));
@@ -159,7 +159,7 @@ export const mdxComponents: MDXComponents = {
     if (srcdoc !== undefined || srcDoc !== undefined) {
       return null;
     }
-    if (typeof src !== "string" || !isSafeHref(src)) {
+    if (typeof src !== "string" || !isSafeMediaUrl(src)) {
       return null;
     }
     return (
@@ -170,7 +170,7 @@ export const mdxComponents: MDXComponents = {
   },
   // object 的加载目标在 data 属性（不是 src）上，同样只放行安全目标。
   object: ({ data, children, ...props }) => {
-    if (typeof data !== "string" || !isSafeHref(data)) {
+    if (typeof data !== "string" || !isSafeMediaUrl(data)) {
       return null;
     }
     return (
@@ -180,7 +180,7 @@ export const mdxComponents: MDXComponents = {
     );
   },
   embed: ({ src, ...props }) => {
-    if (typeof src !== "string" || !isSafeHref(src)) {
+    if (typeof src !== "string" || !isSafeMediaUrl(src)) {
       return null;
     }
     return <embed src={src} {...props} />;
@@ -193,13 +193,13 @@ export const mdxComponents: MDXComponents = {
         React.isValidElement<{ src?: unknown; srcSet?: unknown; srcset?: unknown }>(child) &&
         child.type === mdxComponents.source &&
         typeof child.props.src === "string" &&
-        isSafeHref(child.props.src) &&
+        isSafeMediaUrl(child.props.src) &&
         [child.props.srcSet, child.props.srcset].every(
           (value) => value === undefined || isSafeSrcSet(value)
         )
     );
     if (
-      (src !== undefined && (typeof src !== "string" || !isSafeHref(src))) ||
+      (src !== undefined && (typeof src !== "string" || !isSafeMediaUrl(src))) ||
       (src === undefined && !hasSafeChildSource)
     ) {
       return null;
@@ -226,7 +226,7 @@ export const mdxComponents: MDXComponents = {
       <code className={`block w-max min-w-full bg-transparent p-0 font-mono text-inherit ${className ?? ''}`} {...props} />
     ) : (
       <code
-        className={`bg-gray-100 rounded px-1.5 py-0.5 text-sm font-mono text-pink-600 wrap-anywhere ${className ?? ''}`}
+        className={`bg-gray-100 rounded px-1.5 py-0.5 text-sm font-mono text-pink-700 wrap-anywhere ${className ?? ''}`}
         {...props}
       />
     );

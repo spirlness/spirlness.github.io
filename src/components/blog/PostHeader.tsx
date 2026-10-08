@@ -15,14 +15,14 @@ export function PostHeader({
       <div />
       <div>
         <div className="flex flex-wrap items-center gap-4 mb-6">
-          <time className="font-mono text-sm text-gray-400">{frontmatter.date}</time>
+          <time className="font-mono text-sm text-gray-600">{frontmatter.date}</time>
           {frontmatter.lastUpdated && (
-            <time className="font-mono text-sm text-gray-400">
+            <time className="font-mono text-sm text-gray-600">
               Updated {frontmatter.lastUpdated}
             </time>
           )}
           <span className="w-1 h-1 rounded-full bg-gray-200" />
-          <span className="text-sm text-gray-400">{readingMinutes} min read</span>
+          <span className="text-sm text-gray-600">{readingMinutes} min read</span>
           <span className="w-1 h-1 rounded-full bg-gray-200" />
           <span className="font-display text-xs font-bold tracking-widest text-accent uppercase">Article</span>
           {frontmatter.tags.length > 0 && (

@@ -77,7 +77,7 @@ export function TableOfContents({ headings }: { headings: TocHeading[] }) {
       aria-label="Table of contents"
       className="hidden min-[1400px]:block min-[1400px]:ml-auto min-[1400px]:w-[240px] sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto"
     >
-      <p className="text-xs font-display font-bold tracking-widest text-gray-400 uppercase mb-3">
+      <p className="text-xs font-display font-bold tracking-widest text-gray-600 uppercase mb-3">
         Contents
       </p>
       <ul className="space-y-0.5 border-l border-gray-100">
@@ -93,7 +93,7 @@ export function TableOfContents({ headings }: { headings: TocHeading[] }) {
                 } ${
                   active
                     ? "border-accent text-accent"
-                    : "border-transparent text-gray-400 hover:text-gray-600"
+                    : "border-transparent text-gray-600 hover:text-gray-600"
                 }`}
               >
                 {heading.text}

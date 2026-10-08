@@ -33,9 +33,9 @@ export default function RootLayout({
         <a href="#main-content" className="skip-link">
           Skip to main content
         </a>
-        <Navbar />
+        <Navbar navTitle={siteProfile.navTitle} navLinks={siteProfile.navLinks} />
         {children}
-        <footer className="distill-grid py-16 border-t border-gray-100 mt-16 text-gray-400 text-sm">
+        <footer className="distill-grid py-16 border-t border-gray-100 mt-16 text-gray-600 text-sm">
           <div />
           <div>
             © {new Date().getFullYear()} {siteProfile.name}. Built with Next.js and Distill aesthetics.

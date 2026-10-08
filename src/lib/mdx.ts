@@ -197,7 +197,7 @@ export async function compileContent({
           // anything else degrades to inert error text (backstop for the
           // remark guard above, which throws first).
           [rehypeKatex, { trust: isTrustedMathUrl }],
-          [rehypePrettyCode, { theme: "github-dark", keepBackground: false }],
+          [rehypePrettyCode, { theme: "github-dark-high-contrast", keepBackground: false }],
           ...(tableOfContents
             ? [rehypeSlug, [collectHeadingsPlugin, headings] as never]
             : []),

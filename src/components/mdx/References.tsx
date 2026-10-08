@@ -29,18 +29,21 @@ export function References({ references }: ReferencesProps) {
             <li
               key={pub.id}
               id={`ref-${index + 1}`}
-              className="flex gap-4 text-gray-700 scroll-mt-24"
+              className="flex gap-4 text-gray-700"
             >
-              <span className="font-mono text-gray-400 flex-none">
+              <span className="font-mono text-gray-600 flex-none">
                 [{index + 1}]
               </span>
               <div>
                 <p className="font-medium text-gray-900 leading-snug">
                   {pub.title}
                 </p>
-                <p className="text-sm text-gray-500 italic mt-1">
+                <p className="text-sm text-gray-600 italic mt-1">
                   {pub.authors} — {pub.journal || pub.booktitle} ({pub.year})
                 </p>
+                {pub.verification === "unverified" && (
+                  <p className="text-sm text-gray-600 mt-1">Publication details awaiting verification.</p>
+                )}
                 <div className="flex flex-wrap gap-4 mt-2">
                   {isSafeHttpUrl(pub.pdf) && (
                     <ActionLink href={pub.pdf} icon={<FileText className="w-3.5 h-3.5" />}>

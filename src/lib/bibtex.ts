@@ -15,6 +15,7 @@ export interface Publication {
   pdf?: string;
   code?: string;
   arxiv?: string;
+  verification?: "unverified";
 }
 
 function cleanField(value: unknown): string | undefined {
@@ -72,6 +73,9 @@ export function parsePublications(bibContent: string): Publication[] {
       pdf: cleanField(fields.pdf),
       code: cleanField(fields.code),
       arxiv: cleanField(fields.arxiv),
+      ...(cleanField(fields.verification) === "unverified"
+        ? { verification: "unverified" as const }
+        : {}),
     };
   });
 
@@ -130,6 +134,9 @@ export function formatBibtex(pub: Publication): string {
   field("pdf", pub.pdf);
   field("code", pub.code);
   field("arxiv", pub.arxiv);
+  if (pub.verification === "unverified") {
+    field("note", "Publication details have not been verified");
+  }
 
   // Drop trailing comma on the last field line for valid BibTeX style.
   const last = lines.length - 1;
