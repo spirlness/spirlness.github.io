@@ -1,7 +1,7 @@
 import { FileText, Code, ExternalLink, Link as LinkIcon } from "lucide-react";
 import type { Publication } from "@/lib/bibtex";
 import { siteProfile } from "@/content/site";
-import { isSafeHttpUrl } from "@/lib/links";
+import { getPublicationLinks } from "@/lib/publication-links";
 import { BibTeXButton } from "@/components/publications/BibTeXButton";
 import { ActionLink } from "@/components/ui/ActionLink";
 
@@ -56,12 +56,9 @@ interface PublicationItemProps {
   bibtex: string;
 }
 
+const icons = { project: <LinkIcon size={14} />, pdf: <FileText size={14} />, code: <Code size={14} />, arxiv: <ExternalLink size={14} /> };
+
 export function PublicationItem({ pub, bibtex }: PublicationItemProps) {
-  const arxivHref = pub.arxiv
-    ? pub.arxiv.startsWith("http")
-      ? pub.arxiv
-      : `https://arxiv.org/abs/${pub.arxiv}`
-    : undefined;
 
   return (
     <div className="py-6 border-b border-gray-100 last:border-0">
@@ -79,26 +76,11 @@ export function PublicationItem({ pub, bibtex }: PublicationItemProps) {
         <p className="text-sm text-gray-600 mb-3">Publication details awaiting verification.</p>
       )}
       <div className="flex flex-wrap gap-3">
-        {isSafeHttpUrl(pub.url) && (
-          <ActionLink href={pub.url} icon={<LinkIcon size={14} />}>
-            <span>Project</span>
+        {getPublicationLinks(pub).map(link => (
+          <ActionLink key={link.kind} href={link.href} icon={icons[link.kind]}>
+            <span>{link.label}</span>
           </ActionLink>
-        )}
-        {isSafeHttpUrl(pub.pdf) && (
-          <ActionLink href={pub.pdf} icon={<FileText size={14} />}>
-            <span>PDF</span>
-          </ActionLink>
-        )}
-        {isSafeHttpUrl(pub.code) && (
-          <ActionLink href={pub.code} icon={<Code size={14} />}>
-            <span>Code</span>
-          </ActionLink>
-        )}
-        {isSafeHttpUrl(arxivHref) && (
-          <ActionLink href={arxivHref} icon={<ExternalLink size={14} />}>
-            <span>arXiv</span>
-          </ActionLink>
-        )}
+        ))}
         <BibTeXButton bibtex={bibtex} />
       </div>
     </div>

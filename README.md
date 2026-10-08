@@ -46,6 +46,10 @@ npm run build
 
 `npm run content:check` validates every content schema, local content link, image and other `public/` asset (in MDX bodies as well as project thumbnails), citation, and MDX document. `npm test` runs the Vitest suite once (`npm run test:watch` to iterate).
 
+`npm run test:coverage` reports all production TS/TSX files under `src/`, excluding tests and type declarations. Core logic under `src/lib/` must reach 80% statements, lines and functions, plus 75% branches. UI interactions are checked by Playwright; its browser execution is not included in the Vitest percentages. CI and deployment run the coverage check and retain its report for 14 days.
+
+The post, project and publication collection readers return owned deep snapshots on every read. Callers may reorder arrays or edit records, tags and links without changing cached data. Production retains parsed content internally; development continues to read edits from disk.
+
 `npm run build` creates the static export in `out/`.
 
 Page-level browser tests run against the production static export. Install the Chromium browser once after `npm ci`, then run:
@@ -56,6 +60,8 @@ npm run test:e2e
 ```
 
 `npm run test:e2e` builds `out/`, serves it locally, and checks the core site journeys in desktop and mobile Chromium. Failures save screenshots and retry traces in `playwright-report/` and `test-results/`.
+
+Video checks use a small synthetic fixture from `tests/fixtures/`, rendered with the production media component and served through Playwright routes. They check card navigation and detail playback without adding sample projects or assets to the deployment. Unit tests also verify the actual project pages pass the correct media-control options.
 
 Preview the built static site locally (the `output: "export"` app has no server, so use `serve`):
 
@@ -76,7 +82,7 @@ Deployment behavior:
 - Pushes to `master` trigger `.github/workflows/deploy.yml`.
 - The workflow installs dependencies with `npm ci`.
 - It runs ESLint.
-- It runs the Vitest suite with `npm test`.
+- It runs the Vitest suite and core-logic coverage gate with `npm run test:coverage`.
 - It installs Chromium and runs the Playwright page suite, which builds and serves the static export.
 - It verifies that these required pages and files exist:
   - `out/index.html`
@@ -168,6 +174,8 @@ Supported fields include:
 - `arxiv`
 
 Author highlighting is controlled by `publicationAuthorNames` in `src/content/site.ts`.
+
+Publication lists and article references share destination validation and arXiv identifier expansion in `src/lib/publication-links.ts`, while retaining their own layout and link order.
 
 The current three records are marked `verification={unverified}` after source
 checks could not confirm their title, authors, year and venue. Their incorrect

@@ -37,3 +37,13 @@ it("picks up BibTeX edits during development", async () => {
   fs.writeFileSync(file, "@article{example, title={Updated}, year={2024}, author={Doe, Jane}}");
   expect(getAllPublications()[0].title).toBe("Updated");
 });
+
+it("isolates array and record edits on both cold and warm reads", async () => {
+  const { getAllPublications } = await fixture("production");
+  for (let i = 0; i < 2; i++) {
+    const publications = getAllPublications();
+    publications[0].title = "Caller edit";
+    publications.length = 0;
+    expect(getAllPublications()).toMatchObject([{ title: "Original" }]);
+  }
+});

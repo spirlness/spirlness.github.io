@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { installVideoFixture } from "../fixtures/video-pages";
 
 const ROUTES = [
   "/",
@@ -82,11 +83,10 @@ test.describe("project media (S3)", () => {
   test("card video is non-interactive and the detail video has controls", async ({
     page,
   }) => {
-    await page.goto("/projects/");
+    await installVideoFixture(page);
+    await page.goto("/__fixtures__/video-card/");
     const cardVideo = page.locator("video").first();
-    if ((await cardVideo.count()) === 0) {
-      test.skip(true, "no video project fixture in content/");
-    }
+    await expect(cardVideo).toBeVisible();
     await expect(cardVideo).not.toHaveAttribute("controls", "");
     await expect(cardVideo).not.toHaveAttribute("autoplay", "");
 
@@ -94,10 +94,16 @@ test.describe("project media (S3)", () => {
       .locator("xpath=ancestor::a[1]")
       .getAttribute("href");
     expect(href).toBeTruthy();
-    await page.goto(href!);
+    await cardVideo.click();
+    await expect(page).toHaveURL(new URL(href!, page.url()).href);
     const detailVideo = page.locator("video").first();
     await expect(detailVideo).toHaveAttribute("controls", "");
     await expect(detailVideo).not.toHaveAttribute("autoplay", "");
+    await expect.poll(() => detailVideo.evaluate(video => (video as HTMLVideoElement).readyState)).toBeGreaterThanOrEqual(1);
+    await detailVideo.evaluate(video => (video as HTMLVideoElement).play());
+    await expect.poll(() => detailVideo.evaluate(video => (video as HTMLVideoElement).currentTime)).toBeGreaterThan(0);
+    await detailVideo.evaluate(video => (video as HTMLVideoElement).pause());
+    await expect(detailVideo).toHaveJSProperty("paused", true);
   });
 });
 

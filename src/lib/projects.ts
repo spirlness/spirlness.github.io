@@ -10,7 +10,7 @@ export type { ProjectFrontmatter } from "./content-schemas";
 
 const PROJECTS_PATH = path.join(process.cwd(), "content/projects");
 
-// Content is fixed for a production export; development must pick up JSON edits.
+// Production caches stay private; callers own deep snapshots, including tags/links.
 let cachedProjects: ProjectFrontmatter[] | null = null;
 
 /**
@@ -25,7 +25,7 @@ export function projectHref(id: string): string {
 export function getAllProjects(): ProjectFrontmatter[] {
   const cacheEnabled = process.env.NODE_ENV === "production";
   if (cacheEnabled && cachedProjects) {
-    return cachedProjects;
+    return structuredClone(cachedProjects);
   }
 
   if (!fs.existsSync(PROJECTS_PATH)) {
@@ -50,7 +50,7 @@ export function getAllProjects(): ProjectFrontmatter[] {
   );
 
   if (cacheEnabled) cachedProjects = sortedProjects;
-  return sortedProjects;
+  return structuredClone(sortedProjects);
 }
 
 export function getProjectById(id: string): ProjectFrontmatter {
