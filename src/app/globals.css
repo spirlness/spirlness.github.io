@@ -10,7 +10,6 @@
 @theme {
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
-  --font-inter: var(--font-inter);
   --font-serif: var(--font-serif);
   --font-display: var(--font-display);
 }

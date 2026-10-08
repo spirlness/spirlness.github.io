@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { inter, serif, display } from "@/lib/fonts";
+import { serif, display } from "@/lib/fonts";
 import Navbar from "@/components/layout/Navbar";
 import { siteProfile } from "@/content/site";
-import 'katex/dist/katex.min.css';
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -27,7 +26,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${serif.variable} ${display.variable} antialiased`}
+      className={`${serif.variable} ${display.variable} antialiased`}
     >
       <body className="min-h-screen font-serif bg-[#fdfdfd] text-gray-900">
         <a href="#main-content" className="skip-link">

@@ -65,7 +65,7 @@ test.describe("academic site pages", () => {
     await expectNoHorizontalOverflow(page);
 
     const toc = page.getByRole("navigation", { name: "Table of contents" });
-    const noteButton = page.getByRole("button", { name: "Note" });
+    const noteButton = page.locator("summary").filter({ hasText: "Note" });
     const isWide = await page.evaluate(() => window.innerWidth >= 1400);
 
     if (isWide) {
@@ -75,11 +75,11 @@ test.describe("academic site pages", () => {
     } else {
       await expect(toc).toBeHidden();
       await expect(noteButton).toBeVisible();
-      await expect(noteButton).toHaveAttribute("aria-expanded", "false");
       const inlineNote = noteButton.locator("xpath=..");
+      await expect(inlineNote).toHaveJSProperty("open", false);
       await expect(inlineNote.getByText(/Algorithmic Resilience is defined here/)).toBeHidden();
       await noteButton.click();
-      await expect(noteButton).toHaveAttribute("aria-expanded", "true");
+      await expect(inlineNote).toHaveJSProperty("open", true);
       await expect(inlineNote.getByText(/Algorithmic Resilience is defined here/)).toBeVisible();
     }
   });

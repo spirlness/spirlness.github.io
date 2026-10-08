@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { getProjectDetailById, getAllProjects } from "@/lib/projects";
+import "katex/dist/katex.min.css";
+import { getProjectById, getProjectDetailById, getAllProjects } from "@/lib/projects";
 import { notFound } from "next/navigation";
 import { siteProfile } from "@/content/site";
 import { buildPageMetadata } from "@/lib/metadata";
@@ -28,7 +29,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
   const { id } = await params;
   try {
-    const { project } = await getProjectDetailById(id);
+    const project = getProjectById(id);
     return buildPageMetadata({
       title: project.title,
       description: project.description,
