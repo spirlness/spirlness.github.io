@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getAllPosts, getAllTags, postHref } from "@/lib/posts";
+import { getAllPostFrontmatter, getAllTags, postHref } from "@/lib/posts";
 import { buildPageMetadata } from "@/lib/metadata";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -13,7 +13,7 @@ export const metadata: Metadata = buildPageMetadata({
 });
 
 export default async function BlogPage() {
-  const posts = await getAllPosts();
+  const posts = getAllPostFrontmatter();
   const tags = getAllTags();
 
   return (

@@ -34,3 +34,27 @@ test("math CSS is deferred until article navigation and equations remain styled"
   await expect.poll(hasMathFonts).toBe(true);
   await expect(page.locator(".katex").first()).toHaveCSS("font-family", /KaTeX_Main/);
 });
+
+
+test("citation dialog dependencies load on demand and preserve keyboard focus", async ({ page }) => {
+  const scripts = new Map<string, Promise<string>>();
+  page.on("response", response => {
+    if (new URL(response.url()).pathname.endsWith(".js")) scripts.set(response.url(), response.text());
+  });
+  const hasDialogCode = async () => (await Promise.all(scripts.values())).some(code => code.includes("Copy the BibTeX citation for this publication."));
+  await page.goto("/publications/");
+  await page.waitForLoadState("networkidle");
+  expect(await hasDialogCode()).toBe(false);
+  const trigger = page.getByRole("button", { name: "BibTeX", exact: true }).first();
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  const dialog = page.getByRole("dialog", { name: "BibTeX" });
+  await expect(dialog).toBeVisible();
+  await expect.poll(hasDialogCode).toBe(true);
+  await expect(dialog.getByRole("button", { name: "Close BibTeX dialog", exact: true })).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(dialog.getByRole("button", { name: "Copy BibTeX citation to clipboard", exact: true })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
+});

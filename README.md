@@ -38,17 +38,15 @@ Run quality checks before committing:
 
 ```bash
 npm run lint
-npm run content:check
-npm test
 npm run test:coverage
-npm run build
+npm run test:e2e
 ```
 
-`npm run content:check` validates every content schema, local content link, image and other `public/` asset (in MDX bodies as well as project thumbnails), citation, and MDX document. `npm test` runs the Vitest suite once (`npm run test:watch` to iterate).
+The coverage suite includes the complete content-integrity check: schemas, local links, assets, citations and MDX compilation. `npm run content:check` runs that check alone; `npm test` runs unit tests without coverage (`npm run test:watch` to iterate). The browser command builds and serves the production export automatically.
 
 `npm run test:coverage` reports all production TS/TSX files under `src/`, excluding tests and type declarations. Core logic under `src/lib/` must reach 80% statements, lines and functions, plus 75% branches. UI interactions are checked by Playwright; its browser execution is not included in the Vitest percentages. CI and deployment run the coverage check and retain its report for 14 days.
 
-The post, project and publication collection readers return owned deep snapshots on every read. Callers may reorder arrays or edit records, tags and links without changing cached data. Production retains parsed content internally; development continues to read edits from disk.
+The post, project and publication collection readers return owned deep snapshots on every read. Callers may reorder arrays or edit records, tags and links without changing cached data. Production retains parsed content internally; development continues to read edits from disk. MDX compilation is also deduplicated within each production worker for matching source, slug and compiler options, including simultaneous reads. Changed sources replace the previous entry and failed compilations are discarded. References and headings are returned as independent snapshots; React elements are treated as immutable. Development bypasses the compilation cache. Separate test/build processes do not share these caches.
 
 `npm run build` creates the static export in `out/`.
 
@@ -223,7 +221,7 @@ Several post features are automatic:
 
 - Start sections at `##`; body-level Markdown and JSX h1 headings fail the build because the page owns the title. The table of contents floats in the left margin at 1400px and wider and expands above the article on narrower screens, with scrollspy highlighting.
 - Reading time estimates 200 words or 400 Chinese characters per minute, excluding fenced code, JSX attributes and link destinations.
-- Fenced code blocks show copy controls on touch devices and on desktop hover/focus. Copy success and failure are announced; failed writes offer manual selection or retry. BibTeX copying shares the same reset and cleanup behavior.
+- Fenced code blocks show copy controls on touch devices and on desktop hover/focus. Copy success and failure are announced; failed writes offer manual selection or retry. BibTeX dialogs and their Radix dependency load when a reader opens a citation; closing restores focus and clears copy feedback.
 - Previous/next links (by date) and related posts (shared tags) are appended automatically as the blog grows.
 
 ## Notes for Static Hosting

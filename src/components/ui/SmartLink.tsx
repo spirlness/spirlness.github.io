@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { useId, type AnchorHTMLAttributes, type ReactNode } from "react";
 import {

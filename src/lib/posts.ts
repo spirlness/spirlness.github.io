@@ -112,10 +112,6 @@ export function getAllPostFrontmatter(): PostFrontmatter[] {
   return structuredClone(sortedPosts);
 }
 
-export async function getAllPosts() {
-  return getAllPostFrontmatter();
-}
-
 export interface TagCount {
   tag: string;
   count: number;

@@ -69,7 +69,7 @@ function citationPlugin(references: Publication[], slug: string) {
   );
 
   return (tree: MdastRoot) => {
-    // Map existing references to an index lookup for O(1) key lookups instead of O(N) array scans
+    // Assign each citation key one number in first-use order.
     const refIndexMap = new Map<string, number>();
     references.forEach((pub, idx) => refIndexMap.set(pub.id, idx));
 
@@ -94,7 +94,6 @@ function citationPlugin(references: Publication[], slug: string) {
           .map((key) => key.replace(/^@/, "").trim());
 
         for (const key of keys) {
-          // O(1) hash lookup instead of Array.prototype.findIndex (O(N) search per key)
           let referenceIndex = refIndexMap.get(key);
           if (referenceIndex === undefined) {
             const publication = publications.get(key);
@@ -173,7 +172,7 @@ function collectHeadingsPlugin(headings: TocHeading[]) {
   };
 }
 
-export async function compileContent({
+async function compileUncachedContent({
   source,
   slug,
   citations = false,
@@ -220,4 +219,28 @@ export async function compileContent({
   });
 
   return { content, references, headings };
+}
+
+
+type CompiledContent = Awaited<ReturnType<typeof compileUncachedContent>>;
+const compiledContent = new Map<string, { source: string; result: Promise<CompiledContent> }>();
+
+/** Deduplicate production compilation, including concurrent reads, within a worker. */
+export async function compileContent(options: CompileContentOptions): Promise<CompiledContent> {
+  if (process.env.NODE_ENV !== "production") return compileUncachedContent(options);
+
+  const key = JSON.stringify([process.cwd(), options.slug, options.citations ?? false, options.tableOfContents ?? false]);
+  let entry = compiledContent.get(key);
+  if (!entry || entry.source !== options.source) {
+    const result = compileUncachedContent(options);
+    entry = { source: options.source, result };
+    compiledContent.set(key, entry);
+    // A failed compilation must not poison later attempts or erase a newer source.
+    void result.catch(() => {
+      if (compiledContent.get(key)?.result === result) compiledContent.delete(key);
+    });
+  }
+  const result = await entry.result;
+  // React elements are immutable; mutable metadata belongs to each caller.
+  return { ...result, references: structuredClone(result.references), headings: structuredClone(result.headings) };
 }
