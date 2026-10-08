@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "katex/dist/katex.min.css";
 import {
   getPostBySlug,
-  getAllPosts,
+  getAllPostFrontmatter,
   getPostFrontmatter,
   getAdjacentPosts,
   getRelatedPosts,
@@ -30,7 +30,7 @@ export const dynamicParams = false;
  * 实现 generateStaticParams 以支持静态导出 (output: export)
  */
 export async function generateStaticParams() {
-  const posts = await getAllPosts();
+  const posts = getAllPostFrontmatter();
   return posts.map((post) => ({
     slug: post.slug,
   }));

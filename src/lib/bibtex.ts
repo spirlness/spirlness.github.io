@@ -93,17 +93,18 @@ let publicationsCache: Publication[] | null = null;
 
 /**
  * Return all publications parsed from content/references.bib.
+ * Returns an owned snapshot; production caches never escape to callers.
  * Production builds cache parsing across MDX compilations. Development reads
  * the source each time so editing references.bib does not leave stale data.
  */
 export function getAllPublications(): Publication[] {
   const cacheEnabled = process.env.NODE_ENV === 'production';
-  if (cacheEnabled && publicationsCache) return publicationsCache;
+  if (cacheEnabled && publicationsCache) return structuredClone(publicationsCache);
   const bibPath = path.join(process.cwd(), 'content', 'references.bib');
   const bibContent = fs.readFileSync(bibPath, 'utf-8');
   const publications = parsePublications(bibContent);
   if (cacheEnabled) publicationsCache = publications;
-  return publications;
+  return structuredClone(publications);
 }
 
 export function groupPublicationsByYear(publications: Publication[]): Record<string, Publication[]> {

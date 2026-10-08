@@ -69,11 +69,17 @@ jobs:
       - name: Lint
         run: ${{ steps.detect-package-manager.outputs.manager }} run lint
 
-      - name: Validate content
-        run: ${{ steps.detect-package-manager.outputs.manager }} run content:check
+      - name: Test with coverage
+        run: ${{ steps.detect-package-manager.outputs.manager }} run test:coverage
 
-      - name: Test
-        run: ${{ steps.detect-package-manager.outputs.manager }} run test
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-${{ github.run_id }}
+          path: coverage/
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium

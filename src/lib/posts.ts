@@ -16,7 +16,7 @@ export { readingTime } from "./reading-time";
 
 const POSTS_PATH = path.join(process.cwd(), "content/posts");
 
-// Content is fixed for a production export; development must pick up MDX edits.
+// Production caches stay private; callers own deep snapshots, including tags.
 let cachedPosts: PostFrontmatter[] | null = null;
 
 /**
@@ -87,7 +87,7 @@ export function getPostFrontmatter(slug: string): PostFrontmatter {
 export function getAllPostFrontmatter(): PostFrontmatter[] {
   const cacheEnabled = process.env.NODE_ENV === "production";
   if (cacheEnabled && cachedPosts) {
-    return [...cachedPosts];
+    return structuredClone(cachedPosts);
   }
 
   if (!fs.existsSync(POSTS_PATH)) {
@@ -109,11 +109,7 @@ export function getAllPostFrontmatter(): PostFrontmatter[] {
     cachedPosts = sortedPosts;
   }
 
-  return [...sortedPosts];
-}
-
-export async function getAllPosts() {
-  return getAllPostFrontmatter();
+  return structuredClone(sortedPosts);
 }
 
 export interface TagCount {

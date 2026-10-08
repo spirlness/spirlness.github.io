@@ -1,11 +1,13 @@
-import { Publication } from "@/lib/bibtex";
+import type { Publication } from "@/lib/bibtex";
 import { FileText, ExternalLink, Code } from "lucide-react";
-import { isSafeHttpUrl } from "@/lib/links";
+import { getPublicationLinks } from "@/lib/publication-links";
 import { ActionLink } from "@/components/ui/ActionLink";
 
 interface ReferencesProps {
   references: Publication[];
 }
+
+const icons = { pdf: <FileText className="w-3.5 h-3.5" />, project: <ExternalLink className="w-3.5 h-3.5" />, code: <Code className="w-3.5 h-3.5" />, arxiv: undefined };
 
 export function References({ references }: ReferencesProps) {
   if (references.length === 0) {
@@ -19,12 +21,6 @@ export function References({ references }: ReferencesProps) {
       </h2>
       <ol className="space-y-6">
         {references.map((pub, index) => {
-          const arxivHref = pub.arxiv
-            ? pub.arxiv.startsWith("http")
-              ? pub.arxiv
-              : `https://arxiv.org/abs/${pub.arxiv}`
-            : undefined;
-
           return (
             <li
               key={pub.id}
@@ -45,26 +41,11 @@ export function References({ references }: ReferencesProps) {
                   <p className="text-sm text-gray-600 mt-1">Publication details awaiting verification.</p>
                 )}
                 <div className="flex flex-wrap gap-4 mt-2">
-                  {isSafeHttpUrl(pub.pdf) && (
-                    <ActionLink href={pub.pdf} icon={<FileText className="w-3.5 h-3.5" />}>
-                      PDF
+                  {getPublicationLinks(pub, ["pdf", "project", "code", "arxiv"]).map(link => (
+                    <ActionLink key={link.kind} href={link.href} icon={icons[link.kind]}>
+                      {link.label}
                     </ActionLink>
-                  )}
-                  {isSafeHttpUrl(pub.url) && (
-                    <ActionLink href={pub.url} icon={<ExternalLink className="w-3.5 h-3.5" />}>
-                      Project
-                    </ActionLink>
-                  )}
-                  {isSafeHttpUrl(pub.code) && (
-                    <ActionLink href={pub.code} icon={<Code className="w-3.5 h-3.5" />}>
-                      Code
-                    </ActionLink>
-                  )}
-                  {isSafeHttpUrl(arxivHref) && (
-                    <ActionLink href={arxivHref}>
-                      arXiv
-                    </ActionLink>
-                  )}
+                  ))}
                 </div>
               </div>
             </li>

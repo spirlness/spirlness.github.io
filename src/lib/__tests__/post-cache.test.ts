@@ -60,3 +60,14 @@ Added content.`;
   fs.writeFileSync(path.join(path.dirname(file), "added.mdx"), addedContent);
   expect(getAllPostFrontmatter().map((item) => item.title).sort()).toEqual(["Added", "Updated"]);
 });
+
+it("isolates array, record and nested-tag edits on both cold and warm reads", async () => {
+  const { getAllPostFrontmatter } = await fixture("production");
+  for (let i = 0; i < 2; i++) {
+    const posts = getAllPostFrontmatter();
+    posts[0].title = "Caller edit";
+    posts[0].tags.push("caller-tag");
+    posts.splice(0, 1);
+    expect(getAllPostFrontmatter()).toMatchObject([{ title: "Original", tags: ["test"] }]);
+  }
+});

@@ -10,7 +10,7 @@ lang: zh
 
 本站在反复回答同一个问题:**什么是最简单、又能稳定支撑一个学术主页的方案?** 最终答案是全静态构建——运行于 `output: "export"` 模式的 [Next.js](https://nextjs.org) 16,通过 GitHub Actions 部署到 GitHub Pages。没有服务器,没有运行时数据库,没有 CMS。你能访问到的每一个页面,都是在构建时渲染完成、以 `index.html` 形式上传的。
 
-这个约束听起来限制重重,但换来三样东西:站点不存在"宕机"这种故障模式;每个页面天然就是快的;整个部署可以从干净检出用 `npm ci && npm run build` 完整复现。
+静态导出减少了运行时服务与数据库的维护成本。站点的可用性仍依赖托管平台,加载速度也取决于页面资源大小。导出产物可以从干净检出用 `npm ci && npm run build` 复现。
 
 ## 内容即文件
 
@@ -34,23 +34,25 @@ lang: zh
 文章是 MDX,经 `next-mdx-remote` 编译:remark-math 与 rehype-katex 渲染 `$...$` 行内及独立公式,rehype-pretty-code 用 Shiki 为代码块着色,还有一个自定义插件将 `[@bibtexKey]` 引用改写为带编号的上标标记,链向文末的参考文献列表。
 
 ```text
-考虑一个由 [@zhang2023efficient] 刻画的系统……
+考虑一个由 [@li2024deep] 刻画的系统……
                     |
                     v
-考虑一个由 [2] 刻画的系统……
+考虑一个由 [1] 刻画的系统……
 ```
 
 引用键在构建时对真实的 `references.bib` 解析,因此 `/publications` 的文献列表与文内引用同出一源。未知的键会触发构建错误,而非渲染出一个占位符——死引用到不了生产环境。
 
-交互组件(轨道控制、仿真演示)注册在 MDX 组件映射里,按需在客户端懒加载,three.js 的体积不会进入从未用到它的页面。
+交互组件(轨道控制、仿真演示)注册在 MDX 组件映射里。读者点击开始后才加载 three.js 场景,移出视口、切到后台或选择暂停时停止绘制。BibTeX 弹窗依赖同样在点击时加载。
+
+元数据只读取文章或项目字段,不编译正文。生产环境中的同一进程会复用相同源文与选项的编译结果,并为每次读取返回独立的引用与目录数据;开发模式重新编译以显示编辑结果。
 
 ## 版式设计
 
-排版沿用 Distill 期刊的范式:中栏上限 800px,标题用展示字体,`h2` 带章节分隔线,宽视口下栏外空白处放旁注。栏外布局是纯 CSS Grid——`1fr min(800px, 100%) 1fr`——旁注相对中栏绝对定位。视口宽度低于 1400px 时栏外空间放不下旁注和目录,二者分别折叠为行内形式与直接隐藏,而不是任其溢出。
+排版沿用 Distill 期刊的范式:中栏上限 800px,标题用展示字体,`h2` 带章节分隔线,宽视口下栏外空白处放旁注。栏外布局是纯 CSS Grid——`minmax(1rem, 1fr) minmax(0, 800px) minmax(1rem, 1fr)`——旁注相对中栏绝对定位。视口宽度低于 1400px 时栏外空间放不下旁注和目录,旁注变为行内的原生折叠块,目录则移到正文上方并可展开。两者都保留键盘操作。
 
 ## 验证
 
-每次向 `master` 推送,部署流水线都会跑完整的关卡:lint、内容层单元测试、生产构建,再对导出产物做一轮核查——所有必需页面、每篇文章和每个项目的 `index.html`、sitemap、`robots.txt`、RSS 订阅、Open Graph 分享卡。任何一项缺失,部署都会在 GitHub Pages 收到任何东西之前中止。
+每次提交 PR,CI 都会运行 lint、带覆盖率门槛的单元与内容校验,以及桌面和移动端的浏览器回归。向 `master` 推送时,部署流水线还会对导出产物做一轮核查——所有必需页面、每篇文章和每个项目的 `index.html`、sitemap、`robots.txt`、RSS 订阅、Open Graph 分享卡。任何一项缺失,部署都会在 GitHub Pages 收到任何东西之前中止。
 
 ## 发布一篇文章
 
@@ -58,7 +60,7 @@ lang: zh
 
 ```bash
 npm run new-post -- my-post-slug --title "我的文章"
-npm run lint && npm test && npm run build   # 在本地预演 CI 关卡
+npm run lint && npm run test:coverage && npm run test:e2e
 ```
 
-前者在 `content/posts/` 下生成一份通过校验的 MDX 骨架;后者与 CI 执行的完全一致。推送到 `master`,站点便会自行完成部署。
+前者在 `content/posts/` 下生成 MDX 骨架;后者运行本地质量检查,其中浏览器测试会先构建并启动静态导出。首次运行前需安装 Chromium(`npx playwright install chromium`)。合并到 `master` 后,通过部署检查的产物会发布到 GitHub Pages。

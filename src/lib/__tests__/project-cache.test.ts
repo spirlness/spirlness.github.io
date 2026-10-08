@@ -40,3 +40,15 @@ it("picks up project edits and additions during development", async () => {
   fs.writeFileSync(path.join(path.dirname(file), "added.json"), JSON.stringify({ ...project, id: "added", title: "Added" }));
   expect(getAllProjects().map((item) => item.title).sort()).toEqual(["Added", "Updated"]);
 });
+
+it("isolates array, record, tag and link edits on both cold and warm reads", async () => {
+  const { getAllProjects, project } = await fixture("production");
+  for (let i = 0; i < 2; i++) {
+    const projects = getAllProjects();
+    projects[0].title = "Caller edit";
+    projects[0].tags?.push("caller-tag");
+    projects[0].links!.code = "https://example.com/caller";
+    projects.pop();
+    expect(getAllProjects()).toEqual([project]);
+  }
+});
