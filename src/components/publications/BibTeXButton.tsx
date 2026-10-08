@@ -74,18 +74,22 @@ export function BibTeXButton({ bibtex }: BibTeXButtonProps) {
                 : "Copy BibTeX citation to clipboard"
             }
             title={copied ? "Copied!" : "Copy BibTeX to clipboard"}
-            className="inline-flex items-center gap-2 text-sm font-medium text-white bg-accent px-4 py-2 rounded-lg hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            className={`inline-flex items-center gap-2 text-sm font-medium text-white px-4 py-2 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ${
+              copied
+                ? "bg-emerald-600 hover:bg-emerald-700"
+                : "bg-accent hover:opacity-90"
+            }`}
           >
             {copied ? (
               <>
                 <Check size={14} />
-                <span>Copied</span>
+                <span>Copied!</span>
               </>
             ) : (
               "Copy to clipboard"
             )}
           </button>
-          <span className="sr-only" aria-live="polite">
+          <span className="sr-only" aria-live="polite" aria-atomic="true">
             {copied ? "BibTeX citation copied to clipboard" : ""}
           </span>
         </Dialog.Content>
