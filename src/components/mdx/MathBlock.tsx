@@ -27,8 +27,11 @@ export const MathBlock: React.FC<MathBlockProps> = ({ equation, id, label }) => 
   return (
     <div className="my-8 relative group" id={id}>
       <div 
+        tabIndex={0}
+        role="region"
+        aria-label={label ? `Mathematical equation (${label})` : "Mathematical equation"}
         dangerouslySetInnerHTML={{ __html: html }} 
-        className="overflow-x-auto overflow-y-hidden py-2"
+        className="overflow-x-auto overflow-y-hidden py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md"
       />
       {label && (
         <div className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-gray-600 bg-white/80 px-1">
