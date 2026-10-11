@@ -22,16 +22,22 @@ export function advanceSimulation(state: SimulationState, particles: Particle[],
   state.accumulator += Math.min(delta, MAX_DELTA);
   while (state.accumulator + 1e-9 >= STEP) {
     state.time += STEP;
-    for (const [i, { position, velocity }] of particles.entries()) {
-      velocity.x += -position.x * 0.0005 + Math.sin(state.time + i) * 0.0001;
-      velocity.y += -position.y * 0.0005 + Math.cos(state.time * 0.5 + i) * 0.0001;
-      velocity.z += -position.z * 0.0005;
-      position.x += velocity.x;
-      position.y += velocity.y;
-      position.z += velocity.z;
-      velocity.x *= 0.98;
-      velocity.y *= 0.98;
-      velocity.z *= 0.98;
+    // Bolt: Use indexed loop and local references instead of entries() iterator + destructuring
+    // to eliminate iterator/tuple allocation and property lookup overhead in animation loop (60 FPS).
+    const len = particles.length;
+    for (let i = 0; i < len; i++) {
+      const p = particles[i];
+      const pos = p.position;
+      const vel = p.velocity;
+      vel.x += -pos.x * 0.0005 + Math.sin(state.time + i) * 0.0001;
+      vel.y += -pos.y * 0.0005 + Math.cos(state.time * 0.5 + i) * 0.0001;
+      vel.z += -pos.z * 0.0005;
+      pos.x += vel.x;
+      pos.y += vel.y;
+      pos.z += vel.z;
+      vel.x *= 0.98;
+      vel.y *= 0.98;
+      vel.z *= 0.98;
     }
     state.accumulator = Math.max(0, state.accumulator - STEP);
   }
