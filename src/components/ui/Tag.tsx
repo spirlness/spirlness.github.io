@@ -20,7 +20,7 @@ export function Tag({
   return href ? (
     <SmartLink
       href={href}
-      className={`${className} hover:text-accent transition-colors`}
+      className={`${className} hover:text-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1`}
     >
       {children}
     </SmartLink>
