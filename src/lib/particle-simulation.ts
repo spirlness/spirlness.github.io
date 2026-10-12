@@ -22,7 +22,11 @@ export function advanceSimulation(state: SimulationState, particles: Particle[],
   state.accumulator += Math.min(delta, MAX_DELTA);
   while (state.accumulator + 1e-9 >= STEP) {
     state.time += STEP;
-    for (const [i, { position, velocity }] of particles.entries()) {
+    // Optimization: Use an indexed loop instead of particles.entries() to eliminate
+    // iterator and tuple object allocations per particle in 60/120 FPS simulation steps.
+    const particleCount = particles.length;
+    for (let i = 0; i < particleCount; i++) {
+      const { position, velocity } = particles[i];
       velocity.x += -position.x * 0.0005 + Math.sin(state.time + i) * 0.0001;
       velocity.y += -position.y * 0.0005 + Math.cos(state.time * 0.5 + i) * 0.0001;
       velocity.z += -position.z * 0.0005;

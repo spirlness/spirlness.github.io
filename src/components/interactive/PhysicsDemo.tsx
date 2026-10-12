@@ -20,9 +20,13 @@ export default function PhysicsDemo() {
     if (!meshRef.current || (prefersReducedMotion && rendered.current)) return;
     if (!prefersReducedMotion) advanceSimulation(simulation.current, particles, delta);
 
-    for (const [i, { position }] of particles.entries()) {
-      dummy.position.set(position.x, position.y, position.z);
-      const scale = Math.max(0.05, 0.2 - Math.hypot(position.x, position.y, position.z) * 0.02);
+    // Optimization: Avoid particles.entries() tuple allocations and Math.hypot overhead in 60/120 FPS frame loop.
+    const particleCount = particles.length;
+    for (let i = 0; i < particleCount; i++) {
+      const pos = particles[i].position;
+      dummy.position.set(pos.x, pos.y, pos.z);
+      const dist = Math.sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
+      const scale = Math.max(0.05, 0.2 - dist * 0.02);
       dummy.scale.setScalar(scale);
       dummy.updateMatrix();
       meshRef.current.setMatrixAt(i, dummy.matrix);
