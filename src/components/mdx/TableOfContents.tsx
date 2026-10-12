@@ -76,17 +76,8 @@ export function TableOfContents({ headings }: { headings: TocHeading[] }) {
 
   return (
     <div className="not-prose mb-6 min-[1400px]:mb-0 min-[1400px]:sticky min-[1400px]:top-24 min-[1400px]:ml-auto min-[1400px]:w-[240px]">
-      <button
-        type="button"
-        lang="en"
-        aria-expanded={expanded}
-        aria-controls={navigationId}
-        aria-label={expanded ? "Collapse table of contents" : "Expand table of contents"}
-        onClick={() => setExpanded(value => !value)}
-        className="min-[1400px]:hidden inline-flex items-center justify-between gap-4 w-full rounded-md border border-gray-200 px-4 py-3 font-display text-sm text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-      >
-        <span>Contents</span>
-        <span aria-hidden="true">{expanded ? "−" : "+"}</span>
+      <button type="button" lang="en" aria-expanded={expanded} aria-controls={navigationId} onClick={() => setExpanded(value => !value)} className="min-[1400px]:hidden inline-flex items-center justify-between gap-4 w-full rounded-md border border-gray-200 px-4 py-3 font-display text-sm text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+        Contents <span aria-hidden="true">{expanded ? "−" : "+"}</span>
       </button>
       <nav
         id={navigationId}
@@ -103,7 +94,6 @@ export function TableOfContents({ headings }: { headings: TocHeading[] }) {
               <li key={heading.id}>
                 <a
                   href={`#${heading.id}`}
-                  onClick={() => setExpanded(false)}
                   aria-current={active ? "location" : undefined}
                   className={`block text-sm leading-snug py-1 border-l-2 -ml-px pl-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-r-sm ${
                     heading.level === 3 ? "pl-6" : ""
