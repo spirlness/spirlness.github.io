@@ -3,6 +3,7 @@
 import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { updateParticleMatrices } from "@/lib/particle-rendering";
 import { advanceSimulation, createParticles } from "@/lib/particle-simulation";
 import { usePrefersReducedMotion } from "./usePrefersReducedMotion";
 
@@ -20,18 +21,7 @@ export default function PhysicsDemo() {
     if (!meshRef.current || (prefersReducedMotion && rendered.current)) return;
     if (!prefersReducedMotion) advanceSimulation(simulation.current, particles, delta);
 
-    // Performance optimization: Indexed loop avoids particles.entries() allocations; Math.sqrt avoids Math.hypot overhead in hot animation frame loop.
-    const len = particles.length;
-    for (let i = 0; i < len; i++) {
-      const position = particles[i].position;
-      dummy.position.set(position.x, position.y, position.z);
-      const dist = Math.sqrt(position.x * position.x + position.y * position.y + position.z * position.z);
-      const scale = Math.max(0.05, 0.2 - dist * 0.02);
-      dummy.scale.setScalar(scale);
-      dummy.updateMatrix();
-      meshRef.current.setMatrixAt(i, dummy.matrix);
-    }
-    meshRef.current.instanceMatrix.needsUpdate = true;
+    updateParticleMatrices(meshRef.current, dummy, particles);
     meshRef.current.rotation.y = simulation.current.time * 0.12;
     meshRef.current.rotation.z = simulation.current.time * 0.06;
     rendered.current = true;
