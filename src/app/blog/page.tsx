@@ -34,7 +34,7 @@ export default async function BlogPage() {
               <SmartLink
                 key={tag}
                 href={`/blog/tag/${tag}/`}
-                className="text-sm font-mono px-3 py-1 rounded-full bg-gray-100 text-gray-600 hover:text-accent hover:bg-orange-50 transition-colors"
+                className="text-sm font-mono px-3 py-1 rounded-full bg-gray-100 text-gray-600 hover:text-accent hover:bg-orange-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1"
               >
                 #{tag}
                 <span className="ml-1 text-gray-600">{count}</span>
