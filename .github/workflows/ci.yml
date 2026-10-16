@@ -47,6 +47,9 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
+      - name: Compare particle matrices and WebGL pixels
+        run: npm run benchmark:particles -- --browser
+
       - name: Build and browser regression tests
         run: npm run test:e2e
 
