@@ -1,10 +1,17 @@
-import type { InstancedMesh, Object3D } from "three";
+import type { InstancedMesh } from "three";
 import type { Particle } from "./particle-simulation";
 
-/** Update the existing instances; particles are finite coordinates from createParticles. */
-export function updateParticleMatrices(mesh: InstancedMesh, dummy: Object3D, particles: Particle[]): void {
+/** Write local translation + uniform scale, with no per-particle rotation or pivot.
+ * Particles must have finite demo coordinates and exactly match the active instance count.
+ * Reject invalid counts before writing; unused capacity is allowed.
+ */
+export function updateParticleMatrices(mesh: InstancedMesh, particles: Particle[]): void {
   const count = particles.length;
-  const array = mesh.instanceMatrix.array as Float32Array;
+  const attribute = mesh.instanceMatrix;
+  const array = attribute.array;
+  if (count !== mesh.count || count > attribute.count || array.length < count * 16) {
+    throw new RangeError("Particle count must match mesh.count and fit the instance matrix capacity");
+  }
   let offset = 0;
 
   for (let i = 0; i < count; i++) {
@@ -18,7 +25,7 @@ export function updateParticleMatrices(mesh: InstancedMesh, dummy: Object3D, par
     const scale = Math.max(0.05, 0.2 - distance * 0.02);
 
     // Write column-major 4x4 transform matrix directly into the Float32Array buffer,
-    // avoiding Object3D position/scale setter and matrix calculation overhead (~4x frame boost).
+    // avoiding the general Object3D transform composition for this restricted transform.
     // Column 0: X scale
     array[offset] = scale;
     array[offset + 1] = 0;
