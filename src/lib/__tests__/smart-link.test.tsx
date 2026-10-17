@@ -9,13 +9,15 @@ function noticeId(html: string): string {
 }
 
 describe("SmartLink external-link descriptions", () => {
-  it("describes a new tab while retaining the original link text", () => {
+  it("describes a new tab while retaining the original link text and rendering an external link icon", () => {
     const html = renderToStaticMarkup(<SmartLink href="https://example.com">Code</SmartLink>);
     expect(html).toContain(`aria-describedby="${noticeId(html)}"`);
     expect(html).toContain('target="_blank"');
     expect(html).toContain('rel="noopener noreferrer"');
+    expect(html).toContain('aria-hidden="true"');
+    expect(html).toContain("lucide-external-link");
     expect(html).not.toContain("aria-label=");
-    expect(html).toContain(">Code<span");
+    expect(html).toContain(">Code<svg");
   });
 
   it("preserves an explicit aria-label", () => {
@@ -56,6 +58,7 @@ describe("SmartLink external-link descriptions", () => {
     expect(html).not.toContain("Opens in a new tab");
     expect(html).not.toContain("aria-describedby=");
     expect(html).not.toContain('target="_blank"');
+    expect(html).not.toContain("lucide-external-link");
   });
 
   it("renders unsafe URLs as text", () => {

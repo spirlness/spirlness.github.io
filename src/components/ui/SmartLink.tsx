@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { useId, type AnchorHTMLAttributes, type ReactNode } from "react";
+import { ExternalLink } from "lucide-react";
 import {
   isExternalHref,
   isSafeHref,
@@ -31,6 +32,11 @@ export function SmartLink({ href, children, ...props }: SmartLinkProps) {
         rel="noopener noreferrer"
       >
         {children}
+        <ExternalLink
+          size={12}
+          aria-hidden="true"
+          className="inline-block ml-1 shrink-0 align-baseline text-current opacity-70"
+        />
         {/* Referenced hidden text describes the action without changing the link name. */}
         <span id={newTabNoticeId} hidden>Opens in a new tab.</span>
       </a>
