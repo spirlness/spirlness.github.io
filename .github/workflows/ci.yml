@@ -44,8 +44,11 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Compare particle matrices and WebGL pixels
+        run: npm run benchmark:particles -- --browser
 
       - name: Build and browser regression tests
         run: npm run test:e2e

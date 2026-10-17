@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Calendar, ExternalLink } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { siteProfile } from "@/content/site";
 import { getAllUpdates, UpdateIcon } from "@/lib/updates";
 import {
@@ -102,9 +102,6 @@ export default function Home() {
                       className="inline-flex items-center gap-1.5 text-lg text-gray-700 leading-snug hover:text-accent transition-colors group/link"
                     >
                       {update.content}
-                      {isExternalHref(update.link) && (
-                        <ExternalLink className="w-3.5 h-3.5 text-gray-300 group-hover/link:text-accent/70 transition-colors" />
-                      )}
                     </SmartLink>
                   ) : (
                     <p className="text-lg text-gray-700 leading-snug">
