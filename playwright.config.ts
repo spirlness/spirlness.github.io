@@ -19,6 +19,12 @@ export default defineConfig({
   },
   projects: [
     {
+      name: "webkit-mobile-particles",
+      testMatch: ["**/review-regressions.spec.ts", "**/a11y.spec.ts"],
+      grep: /the scene is downloaded only when started|physics demo freezes a static frame/,
+      use: { ...devices["iPhone 13"], permissions: [] },
+    },
+    {
       name: "chromium-desktop",
       use: {
         ...devices["Desktop Chrome"],

@@ -7,7 +7,7 @@ const root = new URL("../", import.meta.url);
 const files = {
   simulation: "src/lib/particle-simulation.ts",
   rendering: "src/lib/particle-rendering.ts",
-  reference: "tests/fixtures/particle-reference.ts",
+  reference: "tests/fixtures/particle-matrix-parent.ts",
 };
 const modules = Object.fromEntries(await Promise.all(Object.entries(files).map(async ([name, path]) => {
   const source = await readFile(new URL(path, root), "utf8");
@@ -17,7 +17,8 @@ const modules = Object.fromEntries(await Promise.all(Object.entries(files).map(a
 async function measure(THREE, simulation, rendering, reference, verifyOnly = false, renderer = null) {
   const { createParticles, advanceSimulation } = simulation;
   const { updateParticleMatrices } = rendering;
-  const { advanceReference, updateReference } = reference;
+  const { updateParentMatrices: updateReference } = reference;
+  const advanceReference = advanceSimulation; // Isolate #81: physics is identical in both variants.
   const geometry = new THREE.SphereGeometry(1, 12, 12);
   const material = new THREE.MeshBasicMaterial({ color: "#6366f1" });
   const make = () => {
@@ -44,7 +45,7 @@ async function measure(THREE, simulation, rendering, reference, verifyOnly = fal
     }
     if (!checkpoints.includes(frame)) continue;
     if (JSON.stringify(current.particles) !== JSON.stringify(old.particles)) throw new Error("Particle trajectories differ");
-    updateParticleMatrices(current.mesh, current.dummy, current.particles);
+    updateParticleMatrices(current.mesh, current.particles);
     updateReference(old.mesh, old.dummy, old.particles);
     for (let i = 0; i < current.mesh.instanceMatrix.array.length; i++) {
       maxMatrixDifference = Math.max(maxMatrixDifference, Math.abs(current.mesh.instanceMatrix.array[i] - old.mesh.instanceMatrix.array[i]));
@@ -66,10 +67,10 @@ async function measure(THREE, simulation, rendering, reference, verifyOnly = fal
   if (!verifyOnly) {
     const cases = {
       physics: [(s) => advanceReference(s.state, s.particles, 1 / 60), (s) => advanceSimulation(s.state, s.particles, 1 / 60)],
-      matrices: [(s) => updateReference(s.mesh, s.dummy, s.particles), (s) => updateParticleMatrices(s.mesh, s.dummy, s.particles)],
+      matrices: [(s) => updateReference(s.mesh, s.dummy, s.particles), (s) => updateParticleMatrices(s.mesh, s.particles)],
       frame: [
         s => { advanceReference(s.state, s.particles, 1 / 60); updateReference(s.mesh, s.dummy, s.particles); if (renderer) draw(s); },
-        s => { advanceSimulation(s.state, s.particles, 1 / 60); updateParticleMatrices(s.mesh, s.dummy, s.particles); if (renderer) draw(s); },
+        s => { advanceSimulation(s.state, s.particles, 1 / 60); updateParticleMatrices(s.mesh, s.particles); if (renderer) draw(s); },
       ],
     };
     for (const [name, variants] of Object.entries(cases)) {

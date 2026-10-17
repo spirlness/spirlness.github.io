@@ -12,7 +12,6 @@ const COUNT = 120;
 export default function PhysicsDemo() {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const particles = useMemo(() => createParticles(COUNT), []);
-  const dummy = useMemo(() => new THREE.Object3D(), []);
   const simulation = useRef({ time: 0, accumulator: 0 });
   const rendered = useRef(false);
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -21,7 +20,7 @@ export default function PhysicsDemo() {
     if (!meshRef.current || (prefersReducedMotion && rendered.current)) return;
     if (!prefersReducedMotion) advanceSimulation(simulation.current, particles, delta);
 
-    updateParticleMatrices(meshRef.current, dummy, particles);
+    updateParticleMatrices(meshRef.current, particles);
     meshRef.current.rotation.y = simulation.current.time * 0.12;
     meshRef.current.rotation.z = simulation.current.time * 0.06;
     rendered.current = true;
