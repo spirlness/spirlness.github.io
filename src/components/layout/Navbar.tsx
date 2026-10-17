@@ -13,7 +13,10 @@ export default function Navbar({ navTitle, navLinks }: NavbarProps) {
   const pathname = usePathname();
 
   return (
-    <nav className="distill-grid py-5 sm:py-8 border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+    <nav
+      aria-label="Main navigation"
+      className="distill-grid py-5 sm:py-8 border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50"
+    >
       <div />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <SmartLink
