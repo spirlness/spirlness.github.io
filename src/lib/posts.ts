@@ -155,12 +155,20 @@ export function getAdjacentPosts(slug: string): {
 /** Posts sharing at least one tag, ranked by shared-tag count then recency. */
 export function getRelatedPosts(slug: string, limit = 2): PostFrontmatter[] {
   const current = getPostFrontmatter(slug);
+  // Pre-convert current post tags to a Set for O(1) membership lookups
+  // instead of O(K) linear array scanning via Array.prototype.includes.
+  const currentTags = new Set(current.tags);
+
   return getAllPostFrontmatter()
     .filter((post) => post.slug !== slug)
-    .map((post) => ({
-      post,
-      shared: post.tags.filter((tag) => current.tags.includes(tag)).length,
-    }))
+    .map((post) => {
+      // Count matching tags directly to avoid allocating temporary arrays via post.tags.filter().
+      let shared = 0;
+      for (const tag of post.tags) {
+        if (currentTags.has(tag)) shared++;
+      }
+      return { post, shared };
+    })
     .filter(({ shared }) => shared > 0)
     .sort(
       (a, b) =>
