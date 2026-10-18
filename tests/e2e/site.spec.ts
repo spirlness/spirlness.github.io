@@ -17,6 +17,18 @@ async function expectPath(page: Page, pathname: string) {
 }
 
 test.describe("academic site pages", () => {
+  test("home external links have one decorative indicator", async ({ page }) => {
+    await page.goto("/");
+    const links = page.locator('main a[target="_blank"]');
+    expect(await links.count()).toBeGreaterThan(0);
+    for (const link of await links.all()) {
+      await expect(link.locator("svg.lucide-external-link")).toHaveCount(1);
+      await expect(link.locator("svg.lucide-external-link")).toHaveAttribute("aria-hidden", "true");
+      await expect(link).toHaveAccessibleDescription("Opens in a new tab.");
+    }
+    await expectNoHorizontalOverflow(page);
+  });
+
   test("renders the home page and navigates primary sections", async ({ page }) => {
     const response = await page.goto("/");
     expect(response?.status()).toBe(200);

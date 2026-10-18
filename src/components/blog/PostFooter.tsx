@@ -34,9 +34,13 @@ export function PostFooter({ newer, older, related }: PostFooterProps) {
         {(newer || older) && (
           <div className="flex justify-between gap-6 border-t border-gray-100 pt-6 text-sm">
             {older ? (
-              <SmartLink href={older.href} className="group max-w-[45%]">
+              <SmartLink
+                href={older.href}
+                aria-label={`Older post: ${older.title}`}
+                className="group max-w-[45%] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md p-1 -m-1"
+              >
                 <span className="block text-xs font-display font-bold tracking-widest text-gray-600 uppercase mb-1">
-                  Older
+                  ← Older
                 </span>
                 <span className="font-medium text-gray-700 group-hover:text-accent group-focus-visible:text-accent transition-colors">
                   {older.title}
@@ -46,9 +50,13 @@ export function PostFooter({ newer, older, related }: PostFooterProps) {
               <span />
             )}
             {newer ? (
-              <SmartLink href={newer.href} className="group text-right max-w-[45%]">
+              <SmartLink
+                href={newer.href}
+                aria-label={`Newer post: ${newer.title}`}
+                className="group text-right max-w-[45%] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md p-1 -m-1"
+              >
                 <span className="block text-xs font-display font-bold tracking-widest text-gray-600 uppercase mb-1">
-                  Newer
+                  Newer →
                 </span>
                 <span className="font-medium text-gray-700 group-hover:text-accent group-focus-visible:text-accent transition-colors">
                   {newer.title}
@@ -70,7 +78,7 @@ export function PostFooter({ newer, older, related }: PostFooterProps) {
                 <li key={post.href}>
                   <SmartLink
                     href={post.href}
-                    className="group inline-flex flex-col gap-0.5"
+                    className="group inline-flex flex-col gap-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md p-1 -m-1"
                   >
                     <span className="font-medium text-gray-700 group-hover:text-accent group-focus-visible:text-accent transition-colors">
                       {post.title}
