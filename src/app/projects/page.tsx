@@ -14,11 +14,11 @@ export const metadata: Metadata = buildPageMetadata({
   path: "/projects/",
 });
 
-function ProjectCard({ project }: { project: ProjectFrontmatter }) {
+export function ProjectCard({ project }: { project: ProjectFrontmatter }) {
   return (
     <SmartLink
       href={projectHref(project.id)}
-      className="group block border-b border-gray-100 pb-10 last:border-0 hover:border-orange-100 transition-colors"
+      className="group block border-b border-gray-100 pb-10 last:border-0 hover:border-orange-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 rounded-lg"
     >
       <div className="relative aspect-video bg-gray-900 overflow-hidden rounded-lg mb-5">
         {/* No `interactive` here: the whole card, media included, is one SmartLink. */}
@@ -31,10 +31,10 @@ function ProjectCard({ project }: { project: ProjectFrontmatter }) {
         />
       </div>
       <div className="flex items-center gap-3 text-sm text-gray-600 font-mono mb-3">
-        <Calendar className="w-3.5 h-3.5" />
+        <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
         <span>{project.date}</span>
       </div>
-      <h2 className="text-2xl font-display font-bold text-gray-900 mb-3 group-hover:text-accent transition-colors">
+      <h2 className="text-2xl font-display font-bold text-gray-900 mb-3 group-hover:text-accent group-focus-visible:text-accent transition-colors">
         {project.title}
       </h2>
       <p className="text-gray-600 leading-relaxed mb-4">
