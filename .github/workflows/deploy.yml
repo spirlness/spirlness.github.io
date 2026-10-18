@@ -81,8 +81,8 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
 
       - name: Run page tests
         run: ${{ steps.detect-package-manager.outputs.manager }} run test:e2e
