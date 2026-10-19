@@ -7,6 +7,10 @@ export type { UpdateFrontmatter, UpdateIcon } from "./content-schemas";
 
 const UPDATES_PATH = path.join(process.cwd(), "content/updates");
 
+// Optimization: Cache updates in production to avoid repeated directory scans,
+// file reads, JSON parsing, and schema validations across page renders during static build.
+let cachedUpdates: UpdateFrontmatter[] | null = null;
+
 /** Explicitly split "YYYY-MM" into numbers so ordering never depends on engine date parsing. */
 function parseDate(date: string): { year: number; month: number } {
   const match = /^(\d{4})-(\d{2})$/.exec(date);
@@ -19,6 +23,11 @@ function parseDate(date: string): { year: number; month: number } {
  * so authoring errors cannot silently vanish from the homepage.
  */
 export function getAllUpdates(): UpdateFrontmatter[] {
+  const cacheEnabled = process.env.NODE_ENV === "production";
+  if (cacheEnabled && cachedUpdates) {
+    return structuredClone(cachedUpdates);
+  }
+
   if (!fs.existsSync(UPDATES_PATH)) {
     return [];
   }
@@ -40,9 +49,15 @@ export function getAllUpdates(): UpdateFrontmatter[] {
     updates.push(parseUpdate(parsed, file));
   }
 
-  return updates.sort((a, b) => {
+  const sortedUpdates = updates.sort((a, b) => {
     const pa = parseDate(a.date);
     const pb = parseDate(b.date);
     return pb.year - pa.year || pb.month - pa.month;
   });
+
+  if (cacheEnabled) {
+    cachedUpdates = sortedUpdates;
+  }
+
+  return structuredClone(sortedUpdates);
 }
