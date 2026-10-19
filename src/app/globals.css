@@ -54,21 +54,6 @@ body {
   content: none;
 }
 
-.code-copy-button {
-  opacity: 1;
-}
-
-@media (hover: none) {
-  /* Reserve a toolbar row so the always-visible touch control cannot cover code. */
-  .code-block > pre { padding-top: 3.75rem; }
-}
-
-@media (hover: hover) {
-  .code-copy-button { opacity: 0; }
-  .group:hover .code-copy-button,
-  .code-copy-button:focus-visible { opacity: 1; }
-}
-
 .skip-link {
   position: absolute;
   left: 1rem;

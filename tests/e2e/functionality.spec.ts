@@ -39,6 +39,7 @@ test("code copying is discoverable on touch and announces success", async ({ pag
   const pre = page.locator("pre").first();
   const wrapper = pre.locator("..");
   const copy = wrapper.getByRole("button", { name: "Copy code", exact: true });
+  await expect(copy).toHaveCSS("opacity", "1");
   if (isMobile) {
     await expect(copy).toHaveCSS("opacity", "1");
     const bounds = await copy.boundingBox();
@@ -47,14 +48,13 @@ test("code copying is discoverable on touch and announces success", async ({ pag
     expect(await pre.locator("code").evaluate(el => el.getBoundingClientRect().top)).toBeGreaterThanOrEqual(bounds!.y + bounds!.height);
     await copy.tap();
   } else {
-    await expect(copy).toHaveCSS("opacity", "0");
     await page.keyboard.press("Tab");
     await copy.focus();
     await expect(copy).toHaveCSS("opacity", "1");
     await page.keyboard.press("Enter");
   }
   await expect(wrapper.getByRole("status")).toHaveText("Code copied to clipboard");
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(await pre.innerText());
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(await pre.locator("code").textContent());
 });
 
 test("copy failures explain recovery and remain retryable", async ({ page }) => {
