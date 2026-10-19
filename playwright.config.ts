@@ -19,6 +19,11 @@ export default defineConfig({
   },
   projects: [
     {
+      name: "webkit-mobile-code-blocks",
+      testMatch: "**/code-blocks.spec.ts",
+      use: { ...devices["iPhone 13"], permissions: [] },
+    },
+    {
       name: "webkit-mobile-particles",
       testMatch: ["**/review-regressions.spec.ts", "**/a11y.spec.ts"],
       grep: /the scene is downloaded only when started|physics demo freezes a static frame/,

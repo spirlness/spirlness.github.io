@@ -221,7 +221,7 @@ Several post features are automatic:
 
 - Start sections at `##`; body-level Markdown and JSX h1 headings fail the build because the page owns the title. The table of contents floats in the left margin at 1400px and wider and expands above the article on narrower screens, with scrollspy highlighting.
 - Reading time estimates 200 words or 400 Chinese characters per minute, excluding fenced code, JSX attributes and link destinations.
-- Fenced code blocks show copy controls on touch devices and on desktop hover/focus. Copy success and failure are announced; failed writes offer manual selection or retry. BibTeX dialogs and their Radix dependency load when a reader opens a citation; closing restores focus and clears copy feedback.
+- Fenced code blocks use build-time Shiki highlighting with a language toolbar, an always-visible copy action, and an independently scrollable code area. Copying preserves the complete source without toolbar text. Copy success and failure are announced; failed writes offer manual selection or retry. BibTeX dialogs and their Radix dependency load when a reader opens a citation; closing restores focus and clears copy feedback.
 - Previous/next links (by date) and related posts (shared tags) are appended automatically as the blog grows.
 
 ## Notes for Static Hosting

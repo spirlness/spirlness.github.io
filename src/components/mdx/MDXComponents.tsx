@@ -230,12 +230,7 @@ export const mdxComponents: MDXComponents = {
       />
     );
   },
-  pre: ({ className, ...props }) => (
-    <CodeBlock
-      className={`min-w-0 max-w-full bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-8 font-mono text-sm ${className ?? ''}`}
-      {...props}
-    />
-  ),
+  pre: (props) => <CodeBlock {...props} />,
 };
 
 export default mdxComponents;
