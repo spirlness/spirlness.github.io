@@ -66,6 +66,7 @@ export function CodeBlock({
       <pre
         {...props}
         ref={preRef}
+        role="region"
         data-language={language}
         tabIndex={tabIndex}
         aria-label={props["aria-label"] ?? `${label} code`}

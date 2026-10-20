@@ -6,6 +6,11 @@ for (const width of [320, 390, 768, 1440]) {
     await page.goto("/blog/how-this-site-is-built/");
     const pre = page.locator('pre[data-language="bash"]').first();
     await expect(pre).toBeVisible();
+    // A label on an unnamed generic <pre> is insufficient: check its actual role too.
+    await expect(pre).toHaveRole("region");
+    await expect(pre).toHaveAccessibleName("Shell code");
+    await pre.focus();
+    await expect(pre).toBeFocused();
     const code = pre.locator("code");
     await expect(code).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
     await expect(code).toHaveCSS("padding", "0px");
