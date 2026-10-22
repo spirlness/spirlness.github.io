@@ -94,7 +94,6 @@ export function TableOfContents({ headings }: { headings: TocHeading[] }) {
               <li key={heading.id}>
                 <a
                   href={`#${heading.id}`}
-                  onClick={() => setExpanded(false)}
                   aria-current={active ? "location" : undefined}
                   className={`block text-sm leading-snug py-1 border-l-2 -ml-px pl-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-r-sm ${
                     heading.level === 3 ? "pl-6" : ""
