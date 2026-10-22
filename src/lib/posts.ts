@@ -43,13 +43,10 @@ export interface Post {
   readingMinutes: number;
 }
 
-function compareDatesDescending(a: string, b: string): number {
-  const aTime = new Date(a).getTime();
-  const bTime = new Date(b).getTime();
-
-  if (Number.isNaN(aTime)) return Number.isNaN(bTime) ? 0 : 1;
-  if (Number.isNaN(bTime)) return -1;
-  return bTime - aTime;
+/** Pre-parse date string into epoch timestamp, handling NaN gracefully. */
+function parseDateTimestamp(date: string): number {
+  const time = new Date(date).getTime();
+  return Number.isNaN(time) ? Number.MIN_SAFE_INTEGER : time;
 }
 
 function readPostFile(slug: string): { realSlug: string; fileContent: string } {
@@ -103,7 +100,14 @@ export function getAllPostFrontmatter(): PostFrontmatter[] {
       return getPostFrontmatter(slug);
     });
 
-  const sortedPosts = posts.sort((a, b) => compareDatesDescending(a.date, b.date));
+  // Optimization: Schwartzian transform precomputes date timestamps once per post
+  // to avoid repeated Date object allocations inside Array.prototype.sort().
+  const decorated = posts.map((post) => ({
+    post,
+    time: parseDateTimestamp(post.date),
+  }));
+  decorated.sort((a, b) => b.time - a.time);
+  const sortedPosts = decorated.map((d) => d.post);
 
   if (cacheEnabled) {
     cachedPosts = sortedPosts;
@@ -155,18 +159,21 @@ export function getAdjacentPosts(slug: string): {
 /** Posts sharing at least one tag, ranked by shared-tag count then recency. */
 export function getRelatedPosts(slug: string, limit = 2): PostFrontmatter[] {
   const current = getPostFrontmatter(slug);
-  return getAllPostFrontmatter()
+  // Optimization: Set lookup converts O(T) array search per tag to O(1) set lookup.
+  const currentTagSet = new Set(current.tags);
+
+  // Optimization: Schwartzian transform precomputes shared tag count and date timestamp
+  // once per candidate post, eliminating repeated Date allocations inside sort comparator.
+  const decorated = getAllPostFrontmatter()
     .filter((post) => post.slug !== slug)
     .map((post) => ({
       post,
-      shared: post.tags.filter((tag) => current.tags.includes(tag)).length,
+      shared: post.tags.filter((tag) => currentTagSet.has(tag)).length,
+      time: parseDateTimestamp(post.date),
     }))
-    .filter(({ shared }) => shared > 0)
-    .sort(
-      (a, b) =>
-        b.shared - a.shared ||
-        compareDatesDescending(a.post.date, b.post.date)
-    )
-    .slice(0, limit)
-    .map(({ post }) => post);
+    .filter(({ shared }) => shared > 0);
+
+  decorated.sort((a, b) => b.shared - a.shared || b.time - a.time);
+
+  return decorated.slice(0, limit).map(({ post }) => post);
 }
