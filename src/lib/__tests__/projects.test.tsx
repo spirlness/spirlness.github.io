@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+import { renderToStaticMarkup } from "react-dom/server";
+import ProjectsPage from "@/app/projects/page";
 import {
   getAllProjects,
   projectHref,
@@ -20,5 +22,15 @@ describe("getAllProjects", () => {
       expect(project.id).toMatch(/^[A-Za-z0-9-]+$/);
       expect(project.title).toBeTruthy();
     }
+  });
+});
+
+describe("ProjectsPage", () => {
+  it("renders project cards with focus-visible ring styles for accessibility", async () => {
+    const pageElement = await ProjectsPage();
+    const html = renderToStaticMarkup(pageElement);
+    expect(html).toContain("focus-visible:ring-2");
+    expect(html).toContain("focus-visible:ring-accent");
+    expect(html).toContain("focus-visible:ring-offset-4");
   });
 });
