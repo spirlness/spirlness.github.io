@@ -166,11 +166,13 @@ export function getRelatedPosts(slug: string, limit = 2): PostFrontmatter[] {
   // once per candidate post, eliminating repeated Date allocations inside sort comparator.
   const decorated = getAllPostFrontmatter()
     .filter((post) => post.slug !== slug)
-    .map((post) => ({
-      post,
-      shared: post.tags.filter((tag) => currentTagSet.has(tag)).length,
-      time: parseDateTimestamp(post.date),
-    }))
+    .map((post) => {
+      let shared = 0;
+      for (const tag of post.tags) {
+        if (currentTagSet.has(tag)) shared++;
+      }
+      return { post, shared, time: parseDateTimestamp(post.date) };
+    })
     .filter(({ shared }) => shared > 0);
 
   decorated.sort((a, b) => b.shared - a.shared || b.time - a.time);
