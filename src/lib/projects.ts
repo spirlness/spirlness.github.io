@@ -45,9 +45,20 @@ export function getAllProjects(): ProjectFrontmatter[] {
     projects.push(parseProject(JSON.parse(raw) as unknown, filenameId, file));
   }
 
-  const sortedProjects = projects.sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+  /** Pre-parse date string into epoch timestamp, handling NaN gracefully. */
+  const parseDateTimestamp = (date: string): number => {
+    const time = new Date(date).getTime();
+    return Number.isNaN(time) ? Number.MIN_SAFE_INTEGER : time;
+  };
+
+  // Optimization: Precompute date timestamps once per project to avoid repeated
+  // Date object allocations inside Array.prototype.sort().
+  const decorated = projects.map((project) => ({
+    project,
+    time: parseDateTimestamp(project.date),
+  }));
+  decorated.sort((a, b) => b.time - a.time);
+  const sortedProjects = decorated.map((d) => d.project);
 
   if (cacheEnabled) cachedProjects = sortedProjects;
   return structuredClone(sortedProjects);
