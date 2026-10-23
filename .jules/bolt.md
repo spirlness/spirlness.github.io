@@ -6,3 +6,8 @@
 ## 2026-10-17 - Direct particle matrix writes
 **Learning:** For translation plus uniform scale with no rotation or pivot, direct writes match Three.js r184's column-major matrices. Validate active count and capacity before writing. Benchmarks must compare the immediate parent, and isolated update timings do not establish whole-page FPS or allocation behavior.
 **Action:** Keep the transform/count contract explicit, use parent-reference matrix and WebGL tests, and report reproducible timing scope without a universal speedup claim.
+
+
+## 2026-10-23 - Precompute date timestamps before collection sorting
+**Learning:** Calling `new Date(item.date).getTime()` inside `Array.prototype.sort()` calls the `Date` constructor $O(N \log N)$ times, creating redundant allocations and potential `NaN` comparison instability in sort order. Pre-mapping items to numeric timestamps once per item ($N$ times total) before sorting reduces Date allocations from $O(N \log N)$ to $O(N)$ and stabilizes sort comparisons against invalid date strings.
+**Action:** Use precomputed numeric timestamp properties or Schwartzian decoration when sorting content items by date in data loader modules.
