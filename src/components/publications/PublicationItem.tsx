@@ -56,7 +56,12 @@ interface PublicationItemProps {
   bibtex: string;
 }
 
-const icons = { project: <LinkIcon size={14} />, pdf: <FileText size={14} />, code: <Code size={14} />, arxiv: <ExternalLink size={14} /> };
+const icons = {
+  project: <LinkIcon size={14} aria-hidden="true" />,
+  pdf: <FileText size={14} aria-hidden="true" />,
+  code: <Code size={14} aria-hidden="true" />,
+  arxiv: <ExternalLink size={14} aria-hidden="true" />,
+};
 
 export function PublicationItem({ pub, bibtex }: PublicationItemProps) {
 
