@@ -16,4 +16,12 @@ describe("publication author highlighting", () => {
       expect(html).not.toContain(">Doe, Jane</strong>");
     },
   );
+
+  it("marks action icons as decorative with aria-hidden", () => {
+    const html = renderToStaticMarkup(createElement(PublicationItem, {
+      pub: { id: "example", type: "article", title: "Example", authors: "Jane Doe", year: "2024", pdf: "http://example.com/paper.pdf" },
+      bibtex: "@article{example}",
+    }));
+    expect(html).toContain('aria-hidden="true"');
+  });
 });

@@ -53,13 +53,7 @@ export function CodeBlock({
           onClick={copyCode}
           aria-disabled={status === "copying"}
           aria-busy={status === "copying"}
-          aria-label={
-            copied
-              ? "Code copied to clipboard"
-              : status === "copying"
-                ? "Copying code"
-                : "Copy code"
-          }
+          aria-label="Copy code"
           title={copied ? "Copied!" : "Copy code"}
           className="inline-flex min-h-11 min-w-24 shrink-0 items-center justify-center gap-2 rounded-md px-3 text-xs font-medium text-gray-300 transition-colors hover:bg-gray-700 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 aria-disabled:cursor-wait aria-disabled:opacity-60"
         >

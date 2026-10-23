@@ -19,7 +19,7 @@ export function BibTeXButton({ bibtex }: { bibtex: string }) {
         onClick={() => setOpen(true)}
         className="inline-flex items-center gap-1 text-sm font-medium text-orange-700 hover:text-orange-800 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1"
       >
-        <Quote size={14} />
+        <Quote size={14} aria-hidden="true" />
         <span>BibTeX</span>
       </button>
       {open && (
