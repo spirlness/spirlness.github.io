@@ -30,7 +30,7 @@ export const SideNote: React.FC<SideNoteProps> = ({ children, label = "Note" }) 
       {/* Narrow view (incl. most laptops): collapsible inline note */}
       <details className="min-[1400px]:hidden my-4 border-l-4 border-orange-200 bg-orange-50/30 p-4 rounded-r-md group/note">
         <summary
-          className="flex cursor-pointer list-none items-center justify-between w-full text-sm font-medium text-orange-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm [&::-webkit-details-marker]:hidden"
+          className="flex cursor-pointer list-none items-center justify-between w-full text-sm font-medium text-orange-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 rounded-sm [&::-webkit-details-marker]:hidden"
         >
           <span>{label}</span>
           <span aria-hidden className="text-lg leading-none">
