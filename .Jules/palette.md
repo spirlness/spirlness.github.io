@@ -1,3 +1,7 @@
+## 2025-10-20 - Live Region Announcement for Modal Feedback
+**Learning:** Copy action status messages in dialogs and modals need explicit `aria-live="polite"` and `aria-atomic="true"` on the status container so assistive technologies dynamically announce state changes (success/failure) as soon as they occur.
+**Action:** Always include `aria-live="polite"` and `aria-atomic="true"` on dynamic status containers alongside `role="status"`.
+
 ## 2025-05-19 - External Link Visual Indicator with Screen Reader Separation
 **Learning:** External links that open in new tabs should feature an inline visual indicator (`aria-hidden="true"`) paired with hidden accessible description text (`aria-describedby`) so both sighted users and screen reader users understand the link behavior without duplicate verbal cues.
 **Action:** Always mark inline external link icons as `aria-hidden="true"` when accessible description mechanisms like `aria-describedby` handle screen reader announcements.
