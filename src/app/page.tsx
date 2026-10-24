@@ -77,7 +77,7 @@ export default function Home() {
 
         <section className="mb-24">
           <h2 className="font-display text-2xl font-bold mb-12 flex items-center gap-3 tracking-widest text-gray-600 uppercase">
-            <Calendar className="w-5 h-5" />
+            <Calendar className="w-5 h-5" aria-hidden="true" />
             Latest Updates
           </h2>
           <div className="space-y-12">

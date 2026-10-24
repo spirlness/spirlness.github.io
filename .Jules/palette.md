@@ -1,3 +1,7 @@
+## 2025-05-20 - Inline Decorative Icon Screen Reader Hiding
+**Learning:** Decorative icons placed adjacent to visible text labels (such as calendar dates or action link labels) should carry explicit `aria-hidden="true"` attributes so screen readers do not announce redundant icon element nodes alongside the text.
+**Action:** Always mark decorative inline icons next to text labels with `aria-hidden="true"`.
+
 ## 2025-05-19 - External Link Visual Indicator with Screen Reader Separation
 **Learning:** External links that open in new tabs should feature an inline visual indicator (`aria-hidden="true"`) paired with hidden accessible description text (`aria-describedby`) so both sighted users and screen reader users understand the link behavior without duplicate verbal cues.
 **Action:** Always mark inline external link icons as `aria-hidden="true"` when accessible description mechanisms like `aria-describedby` handle screen reader announcements.

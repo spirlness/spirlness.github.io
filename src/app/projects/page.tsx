@@ -31,7 +31,7 @@ function ProjectCard({ project }: { project: ProjectFrontmatter }) {
         />
       </div>
       <div className="flex items-center gap-3 text-sm text-gray-600 font-mono mb-3">
-        <Calendar className="w-3.5 h-3.5" />
+        <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
         <span>{project.date}</span>
       </div>
       <h2 className="text-2xl font-display font-bold text-gray-900 mb-3 group-hover:text-accent transition-colors">
