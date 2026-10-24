@@ -1,6 +1,6 @@
-## 2025-05-20 - Mobile Disclosure Auto-Collapse on In-Page Link Click
-**Learning:** In narrow viewports where in-page table-of-contents or navigation menus render as expandable disclosures, clicking a section link should automatically collapse the disclosure (`setExpanded(false)`) so the reader gets an immediate, unobstructed view of the section content.
-**Action:** Always attach an auto-collapse handler (`onClick={() => setExpanded(false)}`) to in-page section links inside mobile disclosure drawers.
+## 2025-05-20 - Inline Decorative Icon Screen Reader Hiding
+**Learning:** Decorative icons placed adjacent to visible text labels (such as calendar dates or action link labels) should carry explicit `aria-hidden="true"` attributes so screen readers do not announce redundant icon element nodes alongside the text.
+**Action:** Always mark decorative inline icons next to text labels with `aria-hidden="true"`.
 
 ## 2025-05-19 - External Link Visual Indicator with Screen Reader Separation
 **Learning:** External links that open in new tabs should feature an inline visual indicator (`aria-hidden="true"`) paired with hidden accessible description text (`aria-describedby`) so both sighted users and screen reader users understand the link behavior without duplicate verbal cues.
