@@ -45,8 +45,9 @@ export function getAllProjects(): ProjectFrontmatter[] {
     projects.push(parseProject(JSON.parse(raw) as unknown, filenameId, file));
   }
 
+  // Optimization: Date.parse avoids repeated Date object allocations inside Array.prototype.sort() comparator.
   const sortedProjects = projects.sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    (a, b) => (Date.parse(b.date) || Number.MIN_SAFE_INTEGER) - (Date.parse(a.date) || Number.MIN_SAFE_INTEGER)
   );
 
   if (cacheEnabled) cachedProjects = sortedProjects;
