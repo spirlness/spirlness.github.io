@@ -1,3 +1,7 @@
+## 2025-05-20 - Mobile Disclosure Auto-Collapse on In-Page Link Click
+**Learning:** In narrow viewports where in-page table-of-contents or navigation menus render as expandable disclosures, clicking a section link should automatically collapse the disclosure (`setExpanded(false)`) so the reader gets an immediate, unobstructed view of the section content.
+**Action:** Always attach an auto-collapse handler (`onClick={() => setExpanded(false)}`) to in-page section links inside mobile disclosure drawers.
+
 ## 2025-05-19 - External Link Visual Indicator with Screen Reader Separation
 **Learning:** External links that open in new tabs should feature an inline visual indicator (`aria-hidden="true"`) paired with hidden accessible description text (`aria-describedby`) so both sighted users and screen reader users understand the link behavior without duplicate verbal cues.
 **Action:** Always mark inline external link icons as `aria-hidden="true"` when accessible description mechanisms like `aria-describedby` handle screen reader announcements.
