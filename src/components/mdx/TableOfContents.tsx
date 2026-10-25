@@ -94,18 +94,6 @@ export function TableOfContents({ headings }: { headings: TocHeading[] }) {
               <li key={heading.id}>
                 <a
                   href={`#${heading.id}`}
-                  onClick={(event) => {
-                    // Keep desktop navigation and new-tab/window gestures native.
-                    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-                    if (window.matchMedia("(min-width: 1400px)").matches) return;
-                    const target = document.getElementById(heading.id);
-                    if (!target) return;
-                    setExpanded(false);
-                    // Do not leave keyboard focus inside the now-hidden disclosure.
-                    if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
-                    target.focus({ preventScroll: true });
-                    // The anchor's default action preserves the hash and history.
-                  }}
                   aria-current={active ? "location" : undefined}
                   className={`block text-sm leading-snug py-1 border-l-2 -ml-px pl-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-r-sm ${
                     heading.level === 3 ? "pl-6" : ""

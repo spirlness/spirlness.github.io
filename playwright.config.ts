@@ -19,12 +19,6 @@ export default defineConfig({
   },
   projects: [
     {
-      name: "webkit-mobile-toc",
-      testMatch: "**/functionality.spec.ts",
-      grep: /article contents work by keyboard|toc selection/,
-      use: { ...devices["iPhone 13"], permissions: [] },
-    },
-    {
       name: "webkit-mobile-code-blocks",
       testMatch: "**/code-blocks.spec.ts",
       use: { ...devices["iPhone 13"], permissions: [] },
