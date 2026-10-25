@@ -41,6 +41,33 @@ for (const route of ["/blog/algorithmic-resilience/", "/blog/how-this-site-is-bu
   });
 }
 
+test("project cards show a visible ring through real Tab navigation", async ({ page }) => {
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/projects/");
+    const cards = page.getByRole("link").filter({ has: page.getByRole("heading", { level: 2 }) });
+    const count = await cards.count();
+    expect(count).toBeGreaterThan(0);
+    for (let index = 0; index < count; index++) {
+      const card = cards.nth(index);
+      const originalShadow = await card.evaluate(el => getComputedStyle(el).boxShadow);
+      for (let tabs = 0; tabs < 30; tabs++) {
+        await page.keyboard.press("Tab");
+        if (await card.evaluate(el => el === document.activeElement)) break;
+      }
+      await expect(card).toBeFocused();
+      expect(await card.evaluate(el => el.matches(":focus-visible"))).toBe(true);
+      await expect(card).not.toHaveCSS("box-shadow", "none");
+      await expect(card).not.toHaveCSS("box-shadow", originalShadow);
+      expect(await card.evaluate(el => getComputedStyle(el).getPropertyValue("--tw-ring-offset-width").trim())).toBe("4px");
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+    const destination = await cards.last().getAttribute("href");
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(new URL(destination!, page.url()).href);
+  }
+});
+
 test("project action links show a keyboard focus ring", async ({ page }) => {
   await page.goto("/projects/neural-symbolic-physics/");
   const codeLink = page.getByRole("link", { name: "Code", exact: true });
