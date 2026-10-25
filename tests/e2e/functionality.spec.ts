@@ -6,7 +6,7 @@ test("article contents work by keyboard at mobile, tablet and desktop widths", a
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/blog/how-this-site-is-built/");
     const toggle = page.getByRole("button", { name: "Contents", exact: true });
-    const toc = page.getByRole("navigation", { name: "Table of contents" });
+    const toc = page.locator('nav[aria-label="Table of contents"]');
     if (width < 1400) {
       await expect(toc).toBeHidden();
       await expect(toggle).toHaveAttribute("aria-expanded", "false");
@@ -17,12 +17,13 @@ test("article contents work by keyboard at mobile, tablet and desktop widths", a
       expect(await toggle.getAttribute("aria-controls")).toBe(await toc.getAttribute("id"));
     }
     await expect(toc).toBeVisible();
-    const link = toc.getByRole("link", { name: "内容即文件", exact: true, includeHidden: true });
+    const link = toc.locator('a[href="#内容即文件"]');
     await link.focus();
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(new RegExp(encodeURIComponent("内容即文件") + "$"));
     const headerBottom = await page.locator("body > nav").evaluate(el => el.getBoundingClientRect().bottom);
     await expect.poll(() => page.locator('[id="内容即文件"]').evaluate(el => el.getBoundingClientRect().top)).toBeGreaterThanOrEqual(headerBottom);
+    await expect(page.locator('[id="内容即文件"]')).toBeInViewport();
     await expect(link).toHaveAttribute("aria-current", "location");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
     if (width < 1400) {
