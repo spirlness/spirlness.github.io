@@ -18,7 +18,7 @@ function ProjectCard({ project }: { project: ProjectFrontmatter }) {
   return (
     <SmartLink
       href={projectHref(project.id)}
-      className="group block border-b border-gray-100 pb-10 last:border-0 hover:border-orange-100 transition-colors"
+      className="group block border-b border-gray-100 pb-10 last:border-0 hover:border-orange-100 transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4"
     >
       <div className="relative aspect-video bg-gray-900 overflow-hidden rounded-lg mb-5">
         {/* No `interactive` here: the whole card, media included, is one SmartLink. */}
