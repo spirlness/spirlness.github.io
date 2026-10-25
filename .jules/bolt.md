@@ -8,6 +8,6 @@
 **Action:** Keep the transform/count contract explicit, use parent-reference matrix and WebGL tests, and report reproducible timing scope without a universal speedup claim.
 
 
-## 2026-10-18 - Schwartzian Transform on Small Collections
-**Learning:** Applying a Schwartzian transform (`.map()` array decorated wrappers) to sort small arrays (e.g. < 100 content items) introduces additional array and object allocation overhead that outweighs the saving of skipping date parsing during sorting. `Date.parse()` directly in the sort comparator avoids `new Date()` object allocations without any intermediate wrapper allocations.
-**Action:** For small collection sorting where Date construction overhead is an issue, use `Date.parse()` in the sort comparator rather than allocating intermediate wrapper objects.
+## 2026-10-25 - Preserve valid timestamps when sorting projects
+**Learning:** Project months are validated before sorting. The Unix epoch has timestamp zero and must not be treated as missing with `||`. `Date.parse` avoids explicit Date construction, but the performance tradeoff against precomputation depends on data size and caching.
+**Action:** Keep the small project collection comparator simple, retain zero/negative timestamps, and test epoch ordering, ties, schema rejection and cached reads. Do not claim a universal small-array performance threshold without measurements.
