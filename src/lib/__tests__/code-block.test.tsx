@@ -22,4 +22,9 @@ describe("CodeBlock region naming", () => {
     expect(html).toContain('aria-label="Training example"');
     expect(html).toContain('tabindex="-1"');
   });
+
+  it("renders a copy button with initial aria-label", () => {
+    const html = renderToStaticMarkup(<CodeBlock data-language="python"><code>example</code></CodeBlock>);
+    expect(html).toContain('aria-label="Copy code"');
+  });
 });
