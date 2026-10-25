@@ -6,3 +6,8 @@
 ## 2026-10-17 - Direct particle matrix writes
 **Learning:** For translation plus uniform scale with no rotation or pivot, direct writes match Three.js r184's column-major matrices. Validate active count and capacity before writing. Benchmarks must compare the immediate parent, and isolated update timings do not establish whole-page FPS or allocation behavior.
 **Action:** Keep the transform/count contract explicit, use parent-reference matrix and WebGL tests, and report reproducible timing scope without a universal speedup claim.
+
+
+## 2026-10-25 - Preserve valid timestamps when sorting projects
+**Learning:** Project months are validated before sorting. The Unix epoch has timestamp zero and must not be treated as missing with `||`. `Date.parse` avoids explicit Date construction, but the performance tradeoff against precomputation depends on data size and caching.
+**Action:** Keep the small project collection comparator simple, retain zero/negative timestamps, and test epoch ordering, ties, schema rejection and cached reads. Do not claim a universal small-array performance threshold without measurements.

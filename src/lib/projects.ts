@@ -45,8 +45,9 @@ export function getAllProjects(): ProjectFrontmatter[] {
     projects.push(parseProject(JSON.parse(raw) as unknown, filenameId, file));
   }
 
+  // parseProject validates YYYY-MM first; preserve zero and negative timestamps.
   const sortedProjects = projects.sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    (a, b) => Date.parse(b.date) - Date.parse(a.date)
   );
 
   if (cacheEnabled) cachedProjects = sortedProjects;
