@@ -37,9 +37,6 @@ export function References({ references }: ReferencesProps) {
                 <p className="text-sm text-gray-600 italic mt-1">
                   {pub.authors} — {pub.journal || pub.booktitle} ({pub.year})
                 </p>
-                {pub.verification === "unverified" && (
-                  <p className="text-sm text-gray-600 mt-1">Publication details awaiting verification.</p>
-                )}
                 <div className="flex flex-wrap gap-4 mt-2">
                   {getPublicationLinks(pub, ["pdf", "project", "code", "arxiv"]).map(link => (
                     <ActionLink key={link.kind} href={link.href} icon={icons[link.kind]}>

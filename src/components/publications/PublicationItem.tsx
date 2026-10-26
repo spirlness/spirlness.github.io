@@ -72,9 +72,6 @@ export function PublicationItem({ pub, bibtex }: PublicationItemProps) {
         {pub.journal || pub.booktitle}
         {pub.year ? `, ${pub.year}` : ""}
       </div>
-      {pub.verification === "unverified" && (
-        <p className="text-sm text-gray-600 mb-3">Publication details awaiting verification.</p>
-      )}
       <div className="flex flex-wrap gap-3">
         {getPublicationLinks(pub).map(link => (
           <ActionLink key={link.kind} href={link.href} icon={icons[link.kind]}>
