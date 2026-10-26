@@ -136,7 +136,14 @@ test("the article remains readable without WebGL", async ({ baseURL }) => {
 
 test("unverified records do not publish misleading destinations or scholarly metadata", async ({ page }) => {
   await page.goto("/publications/");
-  await expect(page.getByText("Publication details awaiting verification.", { exact: true })).toHaveCount(3);
+  // The reading UI no longer surfaces the maintainer marker; the disclosure
+  // lives where it matters — in every copied citation.
+  await expect(page.getByText("Publication details awaiting verification.", { exact: true })).toHaveCount(0);
+  for (const button of await page.getByRole("button", { name: "BibTeX", exact: true }).all()) {
+    await button.click();
+    await expect(page.getByRole("dialog").locator("pre")).toContainText("note = {Publication details have not been verified}");
+    await page.getByRole("button", { name: "Close BibTeX dialog" }).click();
+  }
   await expect(page.locator('a[href*="2401.00001"], a[href*="2305.00002"], a[href*="physics-sim"], a[href*="s41467-023-00001-x"]')).toHaveCount(0);
   const structuredData = await page.locator('script[type="application/ld+json"]').allTextContents();
   expect(structuredData.join(" ")).not.toContain('"@type":"ScholarlyArticle"');
