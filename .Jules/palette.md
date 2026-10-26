@@ -1,3 +1,7 @@
+## 2025-05-20 - Author Initial Avatar Hiding for Screen Readers
+**Learning:** Visual avatar badges showing single-letter author initials adjacent to the author's full name cause screen readers to read isolated leading letters before the name. Hiding the avatar container with `aria-hidden="true"` avoids noisy or confusing leading initial readouts for assistive technology users.
+**Action:** Always mark decorative single-initial avatar circles or badges as `aria-hidden="true"` when placed alongside full name labels.
+
 ## 2025-05-19 - External Link Visual Indicator with Screen Reader Separation
 **Learning:** External links that open in new tabs should feature an inline visual indicator (`aria-hidden="true"`) paired with hidden accessible description text (`aria-describedby`) so both sighted users and screen reader users understand the link behavior without duplicate verbal cues.
 **Action:** Always mark inline external link icons as `aria-hidden="true"` when accessible description mechanisms like `aria-describedby` handle screen reader announcements.
