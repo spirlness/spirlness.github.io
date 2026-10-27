@@ -1,3 +1,7 @@
+## 2025-05-20 - Modal Dialog Close Target & Icon Accessibility
+**Learning:** Modal dialog close controls require explicit touch target sizing (`min-h-11 min-w-11`), hover states, and `aria-hidden="true"` on decorative icons paired with descriptive `aria-label`s so both touch and screen reader users can reliably dismiss dialogs.
+**Action:** Always provide explicit 44px tap targets and `aria-hidden="true"` on modal close button icons paired with descriptive `aria-label` attributes.
+
 ## 2025-05-19 - External Link Visual Indicator with Screen Reader Separation
 **Learning:** External links that open in new tabs should feature an inline visual indicator (`aria-hidden="true"`) paired with hidden accessible description text (`aria-describedby`) so both sighted users and screen reader users understand the link behavior without duplicate verbal cues.
 **Action:** Always mark inline external link icons as `aria-hidden="true"` when accessible description mechanisms like `aria-describedby` handle screen reader announcements.

@@ -2,7 +2,7 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 
-import { Check } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { useClipboard } from "@/hooks/useClipboard";
 
 interface BibTeXDialogProps {
@@ -34,10 +34,10 @@ export default function BibTeXDialog({ bibtex, onClose, restoreFocus }: BibTeXDi
             <Dialog.Close asChild>
               <button
                 type="button"
-                className="text-sm text-gray-600 hover:text-gray-700 rounded p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="inline-flex items-center justify-center min-h-11 min-w-11 rounded-lg p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 aria-label="Close BibTeX dialog"
               >
-                Close
+                <X size={18} aria-hidden="true" />
               </button>
             </Dialog.Close>
           </div>
@@ -60,7 +60,7 @@ export default function BibTeXDialog({ bibtex, onClose, restoreFocus }: BibTeXDi
             >
               {copied ? (
                 <>
-                  <Check size={14} />
+                  <Check size={14} aria-hidden="true" />
                   <span>Copied</span>
                 </>
               ) : (
