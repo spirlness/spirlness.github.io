@@ -158,13 +158,19 @@ export function getAdjacentPosts(slug: string): {
 
 /** Posts sharing at least one tag, ranked by shared-tag count then recency. */
 export function getRelatedPosts(slug: string, limit = 2): PostFrontmatter[] {
-  const current = getPostFrontmatter(slug);
+  // Optimization: Lookup current post from getAllPostFrontmatter() first to avoid
+  // redundant disk read (fs.readFileSync), frontmatter parse (gray-matter), and
+  // schema validation that getPostFrontmatter(slug) would otherwise perform.
+  const allPosts = getAllPostFrontmatter();
+  const current =
+    allPosts.find((post) => post.slug === slug) ?? getPostFrontmatter(slug);
+
   // Optimization: Set lookup converts O(T) array search per tag to O(1) set lookup.
   const currentTagSet = new Set(current.tags);
 
   // Optimization: Schwartzian transform precomputes shared tag count and date timestamp
   // once per candidate post, eliminating repeated Date allocations inside sort comparator.
-  const decorated = getAllPostFrontmatter()
+  const decorated = allPosts
     .filter((post) => post.slug !== slug)
     .map((post) => {
       let shared = 0;
