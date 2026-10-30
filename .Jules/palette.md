@@ -1,3 +1,7 @@
+## 2025-05-20 - Collapsible Disclosure Keyboard Navigation
+**Learning:** Collapsible disclosures (such as mobile Table of Contents or drawer menus) must respond to the `Escape` key when open by collapsing and returning focus to the toggle button, preserving keyboard users' spatial orientation.
+**Action:** Always bind an `Escape` key handler to expanded disclosure containers and restore focus to `toggleButtonRef` on collapse.
+
 ## 2025-05-19 - External Link Visual Indicator with Screen Reader Separation
 **Learning:** External links that open in new tabs should feature an inline visual indicator (`aria-hidden="true"`) paired with hidden accessible description text (`aria-describedby`) so both sighted users and screen reader users understand the link behavior without duplicate verbal cues.
 **Action:** Always mark inline external link icons as `aria-hidden="true"` when accessible description mechanisms like `aria-describedby` handle screen reader announcements.
