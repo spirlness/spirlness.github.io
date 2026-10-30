@@ -32,7 +32,7 @@ export function PostFooter({ newer, older, related }: PostFooterProps) {
         </div>
 
         {(newer || older) && (
-          <div className="flex justify-between gap-6 border-t border-gray-100 pt-6 text-sm">
+          <nav aria-label="Post navigation" className="flex justify-between gap-6 border-t border-gray-100 pt-6 text-sm">
             {older ? (
               <SmartLink
                 href={older.href}
@@ -65,7 +65,7 @@ export function PostFooter({ newer, older, related }: PostFooterProps) {
             ) : (
               <span />
             )}
-          </div>
+          </nav>
         )}
 
         {related.length > 0 && (

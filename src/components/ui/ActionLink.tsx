@@ -17,7 +17,7 @@ export function ActionLink({
       href={href}
       className={`inline-flex items-center gap-1 text-sm font-medium text-orange-700 hover:text-orange-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded ${className}`}
     >
-      {icon}
+      {icon && <span aria-hidden="true" className="inline-flex shrink-0 items-center">{icon}</span>}
       {children}
     </SmartLink>
   );
