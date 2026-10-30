@@ -1,9 +1,10 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { TableOfContents } from "@/components/mdx/TableOfContents";
+import type { TocHeading } from "@/lib/posts";
 
 describe("TableOfContents", () => {
-  const headings = [
+  const headings: TocHeading[] = [
     { id: "introduction", text: "Introduction", level: 2 },
     { id: "background", text: "Background", level: 2 },
     { id: "sub-topic", text: "Sub topic", level: 3 },
