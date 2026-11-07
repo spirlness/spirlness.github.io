@@ -67,7 +67,12 @@ export default function BibTeXDialog({ bibtex, onClose, restoreFocus }: BibTeXDi
                 "Copy to clipboard"
               )}
             </button>
-            <span role="status" className={status === "error" ? "block text-sm text-orange-800 mt-2" : "sr-only"}>
+            <span
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+              className={status === "error" ? "block text-sm text-orange-800 mt-2" : "sr-only"}
+            >
               {status === "error" ? "Copy failed. Select the citation and copy it manually, or try again." : copied ? "BibTeX citation copied to clipboard" : ""}
             </span>
           </div>
