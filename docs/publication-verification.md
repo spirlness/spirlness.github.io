@@ -3,8 +3,9 @@
 The three existing BibTeX entries could not be matched to records with the same
 **title, authors, year and venue**. This is not proof that they do not exist.
 Known incorrect destinations have been removed. Entries are marked
-`verification={unverified}`; the UI and copied citation disclose this status and
-unverified records are excluded from ScholarlyArticle structured data.
+`verification={unverified}`; copied citations disclose this status, the reading
+UI does not surface the marker, and unverified records are excluded from
+ScholarlyArticle structured data.
 
 | Key | Check and result |
 | --- | --- |

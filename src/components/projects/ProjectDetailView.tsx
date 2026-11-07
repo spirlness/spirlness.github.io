@@ -67,7 +67,7 @@ export function ProjectDetailView({
 
           <div className="flex items-center gap-4 mb-6 text-sm text-gray-600 font-mono">
             <Calendar className="w-4 h-4" />
-            <span>{project.date}</span>
+            <span className="whitespace-nowrap">{project.date}</span>
             {project.tags && project.tags.length > 0 && (
               <>
                 <span className="w-1 h-1 rounded-full bg-gray-200" />

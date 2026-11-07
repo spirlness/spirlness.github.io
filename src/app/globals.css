@@ -14,13 +14,19 @@
   --font-display: var(--font-display);
 }
 
-html {
-  /* Account for the sticky header when following any fragment link. */
+/* Account for the sticky header when following any fragment link. A bare
+   `html` selector is merged away (and lost) during the production CSS build,
+   so the same-element :root alias keeps the rule in the output. */
+html,
+:root {
   scroll-padding-top: 9rem;
 }
 
 @media (min-width: 640px) {
-  html { scroll-padding-top: 7rem; }
+  html,
+  :root {
+    scroll-padding-top: 7rem;
+  }
 }
 
 body {

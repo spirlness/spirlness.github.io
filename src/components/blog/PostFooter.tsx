@@ -22,7 +22,10 @@ export function PostFooter({ newer, older, related }: PostFooterProps) {
       <div />
       <div className="border-t border-gray-100 pt-8 sm:pt-12 space-y-10">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center font-display font-bold text-orange-700">
+          <div
+            aria-hidden="true"
+            className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center font-display font-bold text-orange-700"
+          >
             {siteProfile.authorInitial}
           </div>
           <div>
@@ -32,7 +35,7 @@ export function PostFooter({ newer, older, related }: PostFooterProps) {
         </div>
 
         {(newer || older) && (
-          <div className="flex justify-between gap-6 border-t border-gray-100 pt-6 text-sm">
+          <nav aria-label="Post navigation" className="flex justify-between gap-6 border-t border-gray-100 pt-6 text-sm">
             {older ? (
               <SmartLink
                 href={older.href}
@@ -65,7 +68,7 @@ export function PostFooter({ newer, older, related }: PostFooterProps) {
             ) : (
               <span />
             )}
-          </div>
+          </nav>
         )}
 
         {related.length > 0 && (

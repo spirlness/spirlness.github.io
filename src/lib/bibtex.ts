@@ -49,7 +49,14 @@ export function parsePublications(bibContent: string): Publication[] {
     );
   }
 
-  const publications: Publication[] = parsed.entries.map((entry: { type: string; key: string; fields: Record<string, string> }) => {
+  const yearToNumber = (year: string): number => {
+    const parsed = parseInt(year, 10);
+    return Number.isNaN(parsed) ? Number.MIN_SAFE_INTEGER : parsed;
+  };
+
+  // Optimization: Schwartzian transform precomputes numeric year values during mapping
+  // to avoid repeated parseInt calls inside Array.prototype.sort().
+  const decorated = parsed.entries.map((entry: { type: string; key: string; fields: Record<string, string> }) => {
     const fields = entry.fields;
     // The parser accepts a keyless `@article{, ...}` entry (key `""`) and one
     // whose key uses characters the `[@key]` citation syntax cannot express
@@ -61,12 +68,13 @@ export function parsePublications(bibContent: string): Publication[] {
         `BibTeX entry has an unusable citation key ${JSON.stringify(entry.key ?? '')}: @${entry.type || 'misc'}{${label}}`
       );
     }
-    return {
+    const year = cleanField(fields.year) || 'Unknown';
+    const pub: Publication = {
       id: entry.key,
       type: entry.type || 'misc',
       title: cleanField(fields.title) || '(Untitled)',
       authors: cleanField(fields.author) || 'Unknown',
-      year: cleanField(fields.year) || 'Unknown',
+      year,
       journal: cleanField(fields.journal),
       booktitle: cleanField(fields.booktitle),
       url: cleanField(fields.url),
@@ -77,16 +85,11 @@ export function parsePublications(bibContent: string): Publication[] {
         ? { verification: "unverified" as const }
         : {}),
     };
+    return { pub, yearNumber: yearToNumber(year) };
   });
 
-  const yearToNumber = (year: string): number => {
-    const parsed = parseInt(year, 10);
-    return Number.isNaN(parsed) ? Number.MIN_SAFE_INTEGER : parsed;
-  };
-
-  return publications.sort(
-    (a, b) => yearToNumber(b.year) - yearToNumber(a.year)
-  );
+  decorated.sort((a, b) => b.yearNumber - a.yearNumber);
+  return decorated.map((d) => d.pub);
 }
 
 let publicationsCache: Publication[] | null = null;

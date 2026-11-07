@@ -52,3 +52,29 @@ it("isolates array, record, tag and link edits on both cold and warm reads", asy
     expect(getAllProjects()).toEqual([project]);
   }
 });
+
+it("sorts valid months descending across the Unix epoch on cold and cached reads", async () => {
+  const { file, project, getAllProjects } = await fixture("production");
+  const directory = path.dirname(file);
+  fs.rmSync(file);
+  for (const [id, date] of [["before", "1969-12"], ["epoch", "1970-01"], ["after", "1970-02"]]) {
+    fs.writeFileSync(path.join(directory, `${id}.json`), JSON.stringify({ ...project, id, date }));
+  }
+  for (let read = 0; read < 2; read++) {
+    expect(getAllProjects().map(item => item.id)).toEqual(["after", "epoch", "before"]);
+  }
+});
+
+it("preserves input order for projects with the same month", async () => {
+  const { file, project, getAllProjects } = await fixture("development");
+  const directory = path.dirname(file);
+  fs.writeFileSync(path.join(directory, "another.json"), JSON.stringify({ ...project, id: "another" }));
+  const inputOrder = fs.readdirSync(directory).filter(name => name.endsWith(".json")).map(name => name.slice(0, -5));
+  expect(getAllProjects().map(item => item.id)).toEqual(inputOrder);
+});
+
+it("rejects invalid months instead of silently moving malformed content to the end", async () => {
+  const { file, project, getAllProjects } = await fixture("development");
+  fs.writeFileSync(file, JSON.stringify({ ...project, date: "2024-13" }));
+  expect(() => getAllProjects()).toThrow(/YYYY-MM/);
+});
