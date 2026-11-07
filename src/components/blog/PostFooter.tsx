@@ -22,7 +22,10 @@ export function PostFooter({ newer, older, related }: PostFooterProps) {
       <div />
       <div className="border-t border-gray-100 pt-8 sm:pt-12 space-y-10">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center font-display font-bold text-orange-700">
+          <div
+            aria-hidden="true"
+            className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center font-display font-bold text-orange-700"
+          >
             {siteProfile.authorInitial}
           </div>
           <div>

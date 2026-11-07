@@ -34,4 +34,10 @@ describe("PostFooter accessibility and navigation", () => {
     expect(html).toContain("focus-visible:ring-2");
     expect(html).toContain("focus-visible:ring-accent");
   });
+
+  it("marks author initial avatar container as aria-hidden to avoid duplicate screen reader readout", () => {
+    const html = renderToStaticMarkup(<PostFooter related={[]} />);
+
+    expect(html).toMatch(/<div aria-hidden="true"[^>]*>.*<\/div>/);
+  });
 });
