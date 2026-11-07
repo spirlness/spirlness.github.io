@@ -49,11 +49,16 @@ export function getAllUpdates(): UpdateFrontmatter[] {
     updates.push(parseUpdate(parsed, file));
   }
 
-  const sortedUpdates = updates.sort((a, b) => {
-    const pa = parseDate(a.date);
-    const pb = parseDate(b.date);
-    return pb.year - pa.year || pb.month - pa.month;
-  });
+  // Optimization: Schwartzian transform precomputes date components once per update
+  // to avoid repeated regex matching and number parsing inside Array.prototype.sort().
+  const decorated = updates.map((update) => ({
+    update,
+    parsed: parseDate(update.date),
+  }));
+  decorated.sort(
+    (a, b) => b.parsed.year - a.parsed.year || b.parsed.month - a.parsed.month
+  );
+  const sortedUpdates = decorated.map((d) => d.update);
 
   if (cacheEnabled) {
     cachedUpdates = sortedUpdates;
