@@ -3,7 +3,9 @@ import { getAllTags, getPostsByTag, postHref } from "@/lib/posts";
 import { notFound } from "next/navigation";
 import { siteProfile } from "@/content/site";
 import { buildPageMetadata } from "@/lib/metadata";
+import { ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { SmartLink } from "@/components/ui/SmartLink";
 import { PostCard } from "@/components/blog/PostCard";
 
 export const dynamicParams = false;
@@ -40,6 +42,14 @@ export default async function TagPage({
     <div className="distill-grid py-16">
       <div />
       <main id="main-content" tabIndex={-1}>
+        <SmartLink
+          href="/blog/"
+          className="inline-flex items-center gap-2 text-sm font-display font-medium text-gray-600 hover:text-accent transition-colors mb-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded"
+        >
+          <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+          All Posts
+        </SmartLink>
+
         <PageHeader
           eyebrow="Tag"
           title={`#${tag}`}
@@ -53,6 +63,8 @@ export default async function TagPage({
               key={post.slug}
               post={post}
               href={postHref(post.slug)}
+              showTags
+              showReadMore
             />
           ))}
         </div>
