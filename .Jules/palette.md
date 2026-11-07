@@ -2,6 +2,10 @@
 **Learning:** Copy action status messages in dialogs and modals need explicit `aria-live="polite"` and `aria-atomic="true"` on the status container so assistive technologies dynamically announce state changes (success/failure) as soon as they occur.
 **Action:** Always include `aria-live="polite"` and `aria-atomic="true"` on dynamic status containers alongside `role="status"`.
 
+## 2025-05-20 - Modal Dialog Close Target & Icon Accessibility
+**Learning:** Modal dialog close controls require explicit touch target sizing (`min-h-11 min-w-11`), hover states, and `aria-hidden="true"` on decorative icons paired with descriptive `aria-label`s so both touch and screen reader users can reliably dismiss dialogs.
+**Action:** Always provide explicit 44px tap targets and `aria-hidden="true"` on modal close button icons paired with descriptive `aria-label` attributes.
+
 ## 2025-05-20 - Author Initial Avatar Hiding for Screen Readers
 **Learning:** Visual avatar badges showing single-letter author initials adjacent to the author's full name cause screen readers to read isolated leading letters before the name. Hiding the avatar container with `aria-hidden="true"` avoids noisy or confusing leading initial readouts for assistive technology users.
 **Action:** Always mark decorative single-initial avatar circles or badges as `aria-hidden="true"` when placed alongside full name labels.
