@@ -121,10 +121,16 @@ export interface TagCount {
   count: number;
 }
 
-/** Unique tags across all posts, sorted by popularity then name. */
-export function getAllTags(): TagCount[] {
+/**
+ * Unique tags across all posts, sorted by popularity then name.
+ * Optimization: Accepts an optional `posts` array to avoid re-invoking
+ * `getAllPostFrontmatter()` and redundant `structuredClone` deep copies.
+ */
+export function getAllTags(
+  posts: PostFrontmatter[] = getAllPostFrontmatter()
+): TagCount[] {
   const counts = new Map<string, number>();
-  for (const post of getAllPostFrontmatter()) {
+  for (const post of posts) {
     for (const tag of post.tags) {
       counts.set(tag, (counts.get(tag) ?? 0) + 1);
     }
@@ -134,20 +140,31 @@ export function getAllTags(): TagCount[] {
     .map(([tag, count]) => ({ tag, count }));
 }
 
-export function getPostsByTag(tag: string): PostFrontmatter[] {
+/**
+ * Posts matching a given tag.
+ * Optimization: Accepts an optional `posts` array to avoid duplicate reads.
+ */
+export function getPostsByTag(
+  tag: string,
+  posts: PostFrontmatter[] = getAllPostFrontmatter()
+): PostFrontmatter[] {
   const clean = assertSafeContentSlug(tag, "post tag");
-  return getAllPostFrontmatter().filter((post) => post.tags.includes(clean));
+  return posts.filter((post) => post.tags.includes(clean));
 }
 
 /**
  * Chronological neighbours of a post. `newer` points at the most recent post
  * before it (posts sort newest-first), `older` at the next one after.
+ * Optimization: Accepts an optional `posts` array to avoid re-invoking
+ * `getAllPostFrontmatter()` and redundant `structuredClone` deep copies.
  */
-export function getAdjacentPosts(slug: string): {
+export function getAdjacentPosts(
+  slug: string,
+  posts: PostFrontmatter[] = getAllPostFrontmatter()
+): {
   newer?: PostFrontmatter;
   older?: PostFrontmatter;
 } {
-  const posts = getAllPostFrontmatter();
   const index = posts.findIndex((post) => post.slug === slug);
   if (index === -1) return {};
   return {
@@ -156,15 +173,23 @@ export function getAdjacentPosts(slug: string): {
   };
 }
 
-/** Posts sharing at least one tag, ranked by shared-tag count then recency. */
-export function getRelatedPosts(slug: string, limit = 2): PostFrontmatter[] {
-  const current = getPostFrontmatter(slug);
+/**
+ * Posts sharing at least one tag, ranked by shared-tag count then recency.
+ * Optimization: Accepts an optional `posts` array to avoid re-invoking
+ * `getAllPostFrontmatter()` and redundant `structuredClone` deep copies.
+ */
+export function getRelatedPosts(
+  slug: string,
+  limit = 2,
+  posts: PostFrontmatter[] = getAllPostFrontmatter()
+): PostFrontmatter[] {
+  const current = posts.find((p) => p.slug === slug) ?? getPostFrontmatter(slug);
   // Optimization: Set lookup converts O(T) array search per tag to O(1) set lookup.
   const currentTagSet = new Set(current.tags);
 
   // Optimization: Schwartzian transform precomputes shared tag count and date timestamp
   // once per candidate post, eliminating repeated Date allocations inside sort comparator.
-  const decorated = getAllPostFrontmatter()
+  const decorated = posts
     .filter((post) => post.slug !== slug)
     .map((post) => {
       let shared = 0;

@@ -71,8 +71,9 @@ export default async function PostPage({ params }: PostPageProps) {
   }
 
   const { content, frontmatter, references, headings, readingMinutes } = post;
-  const { newer, older } = getAdjacentPosts(slug);
-  const related = getRelatedPosts(slug, 2);
+  const allPosts = getAllPostFrontmatter();
+  const { newer, older } = getAdjacentPosts(slug, allPosts);
+  const related = getRelatedPosts(slug, 2, allPosts);
 
   return (
     <main id="main-content" tabIndex={-1} className="py-10 sm:py-16">

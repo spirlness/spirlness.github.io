@@ -14,7 +14,7 @@ export const metadata: Metadata = buildPageMetadata({
 
 export default async function BlogPage() {
   const posts = getAllPostFrontmatter();
-  const tags = getAllTags();
+  const tags = getAllTags(posts);
 
   return (
     <div className="distill-grid py-16">

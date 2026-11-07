@@ -9,7 +9,7 @@ export const dynamic = "force-static";
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = siteProfile.url;
   const posts = getAllPostFrontmatter();
-  const tags = getAllTags();
+  const tags = getAllTags(posts);
   const projects = getAllProjects();
 
   return [
