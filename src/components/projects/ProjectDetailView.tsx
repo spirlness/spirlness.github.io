@@ -61,13 +61,13 @@ export function ProjectDetailView({
             href="/projects/"
             className="inline-flex items-center gap-2 text-sm font-display font-medium text-gray-600 hover:text-accent transition-colors mb-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4" aria-hidden="true" />
             All Projects
           </SmartLink>
 
           <div className="flex items-center gap-4 mb-6 text-sm text-gray-600 font-mono">
-            <Calendar className="w-4 h-4" />
-            <span className="whitespace-nowrap">{project.date}</span>
+            <Calendar className="w-4 h-4" aria-hidden="true" />
+            <time dateTime={project.date} className="whitespace-nowrap">{project.date}</time>
             {project.tags && project.tags.length > 0 && (
               <>
                 <span className="w-1 h-1 rounded-full bg-gray-200" />
