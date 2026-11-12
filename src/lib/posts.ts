@@ -183,24 +183,29 @@ export function getRelatedPosts(
   limit = 2,
   posts: PostFrontmatter[] = getAllPostFrontmatter()
 ): PostFrontmatter[] {
+  if (limit <= 0) return [];
+
   const current = posts.find((p) => p.slug === slug) ?? getPostFrontmatter(slug);
-  // Optimization: Set lookup converts O(T) array search per tag to O(1) set lookup.
+  if (current.tags.length === 0) return [];
+
+  // Set lookup keeps tag matching O(1) per tag.
   const currentTagSet = new Set(current.tags);
 
-  // Optimization: Schwartzian transform precomputes shared tag count and date timestamp
-  // once per candidate post, eliminating repeated Date allocations inside sort comparator.
-  const decorated = posts
-    .filter((post) => post.slug !== slug)
-    .map((post) => {
-      let shared = 0;
-      for (const tag of post.tags) {
-        if (currentTagSet.has(tag)) shared++;
-      }
-      return { post, shared, time: parseDateTimestamp(post.date) };
-    })
-    .filter(({ shared }) => shared > 0);
+  // Single pass: score once, and only parse dates and allocate candidates for
+  // posts that actually share a tag.
+  const candidates: { post: PostFrontmatter; shared: number; time: number }[] = [];
+  for (const post of posts) {
+    if (post.slug === slug) continue;
+    let shared = 0;
+    for (const tag of post.tags) {
+      if (currentTagSet.has(tag)) shared++;
+    }
+    if (shared > 0) {
+      candidates.push({ post, shared, time: parseDateTimestamp(post.date) });
+    }
+  }
 
-  decorated.sort((a, b) => b.shared - a.shared || b.time - a.time);
+  candidates.sort((a, b) => b.shared - a.shared || b.time - a.time);
 
-  return decorated.slice(0, limit).map(({ post }) => post);
+  return candidates.slice(0, limit).map(({ post }) => post);
 }
