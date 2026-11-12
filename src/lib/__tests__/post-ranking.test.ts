@@ -60,6 +60,14 @@ it("normalizes duplicate tags and returns no matches for an empty tag list", asy
   expect(getRelatedPosts("empty")).toEqual([]);
 });
 
+it("returns no related posts for non-positive limits, even for an unknown slug", async () => {
+  const { add, getRelatedPosts } = await fixture();
+  add("current", "2026-01-01", ["alpha"]);
+  add("related", "2025-01-01", ["alpha"]);
+  expect(getRelatedPosts("current", -1)).toEqual([]);
+  expect(getRelatedPosts("missing", 0)).toEqual([]);
+});
+
 it("sorts calendar boundaries and preserves input order for equal dates and scores", async () => {
   const { add, getAllPostFrontmatter, getRelatedPosts } = await fixture();
   add("current", "2026-01-01", ["alpha"]);

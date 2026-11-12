@@ -183,21 +183,16 @@ export function getRelatedPosts(
   limit = 2,
   posts: PostFrontmatter[] = getAllPostFrontmatter()
 ): PostFrontmatter[] {
-  // Optimization: Early return if no related posts are requested.
   if (limit <= 0) return [];
 
   const current = posts.find((p) => p.slug === slug) ?? getPostFrontmatter(slug);
-  // Optimization: Early return if current post has no tags to match against.
   if (current.tags.length === 0) return [];
 
-  // Optimization: Set lookup converts O(T) array search per tag to O(1) set lookup.
+  // Set lookup keeps tag matching O(1) per tag.
   const currentTagSet = new Set(current.tags);
 
-  // Optimization: Single-pass candidate collection and decoration.
-  // Instead of chaining .filter().map().filter(), we iterate once and only
-  // compute timestamps and allocate decorated objects for posts with shared > 0.
-  // This avoids parseDateTimestamp() and wrapper object allocations for all
-  // unrelated posts in the collection (~65% faster).
+  // Single pass: score once, and only parse dates and allocate candidates for
+  // posts that actually share a tag.
   const candidates: { post: PostFrontmatter; shared: number; time: number }[] = [];
   for (const post of posts) {
     if (post.slug === slug) continue;
