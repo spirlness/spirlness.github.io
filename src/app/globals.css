@@ -12,6 +12,7 @@
   --color-accent-hover: var(--accent-hover);
   --font-serif: var(--font-serif);
   --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
 }
 
 /* Account for the sticky header when following any fragment link. A bare
