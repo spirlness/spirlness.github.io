@@ -28,6 +28,8 @@ test("math CSS is deferred until article navigation and equations remain styled"
     Array.from(sheet.cssRules).some(rule => rule.cssText.includes("KaTeX_Main"))
   ));
   expect(await hasMathFonts()).toBe(false);
+  const menuButton = page.getByRole("button", { name: "Open navigation menu" });
+  if (await menuButton.isVisible()) await menuButton.click();
   await page.getByRole("link", { name: "BLOG", exact: true }).click();
   await page.getByRole("link", { name: /Algorithmic Resilience in Neural Physical Systems/ }).click();
   await expect(page.locator(".katex").first()).toBeVisible();

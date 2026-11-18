@@ -16,6 +16,12 @@ async function expectPath(page: Page, pathname: string) {
   await expect.poll(() => new URL(page.url()).pathname).toBe(pathname);
 }
 
+/** The links live behind a disclosure below the md breakpoint. */
+async function openNavigationMenuIfCollapsed(page: Page) {
+  const menuButton = page.getByRole("button", { name: "Open navigation menu" });
+  if (await menuButton.isVisible()) await menuButton.click();
+}
+
 test.describe("academic site pages", () => {
   test("home external links have one decorative indicator", async ({ page }) => {
     await page.goto("/");
@@ -46,6 +52,7 @@ test.describe("academic site pages", () => {
     ] as const;
 
     for (const [label, pathname, heading] of sections) {
+      await openNavigationMenuIfCollapsed(page);
       await page.getByRole("navigation").first().getByRole("link", { name: label, exact: true }).click();
       await expectPath(page, pathname);
       await expect(page.getByRole("heading", { level: 1 })).toContainText(heading);
@@ -178,6 +185,36 @@ test.describe("academic site pages", () => {
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Physics, Intelligence");
   });
 
+  test("mobile navigation opens, closes with Escape, and follows links", async ({ page }, testInfo) => {
+    test.skip(!testInfo.project.name.includes("mobile"), "mobile-only disclosure behaviour");
+
+    await page.goto("/");
+    const menu = page.getByRole("button", { name: "Open navigation menu" });
+    await expect(menu).toBeVisible();
+    await expect(menu).toHaveAttribute("aria-expanded", "false");
+    await expect(page.getByRole("link", { name: "PROJECTS", exact: true })).toBeHidden();
+
+    await menu.click();
+    await expect(page.getByRole("button", { name: "Close navigation menu" })).toHaveAttribute(
+      "aria-expanded",
+      "true"
+    );
+    const projects = page.getByRole("link", { name: "PROJECTS", exact: true });
+    await expect(projects).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(menu).toHaveAttribute("aria-expanded", "false");
+    await expect(menu).toBeFocused();
+
+    await menu.click();
+    await projects.click();
+    await expectPath(page, "/projects/");
+    await expect(page.getByRole("button", { name: "Open navigation menu" })).toHaveAttribute(
+      "aria-expanded",
+      "false"
+    );
+    await expectNoHorizontalOverflow(page);
+  });
+
   test("marks the current section in the primary nav", async ({ page }) => {
     const nav = page.getByRole("navigation").first();
 
@@ -190,6 +227,7 @@ test.describe("academic site pages", () => {
 
     for (const [pathname, label] of cases) {
       await page.goto(pathname);
+      await openNavigationMenuIfCollapsed(page);
       await expect(nav.getByRole("link", { name: label, exact: true })).toHaveAttribute(
         "aria-current",
         "page"

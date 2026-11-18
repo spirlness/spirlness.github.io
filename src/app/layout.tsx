@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { serif, display } from "@/lib/fonts";
+import { serif, display, sans } from "@/lib/fonts";
 import Navbar from "@/components/layout/Navbar";
 import { siteProfile } from "@/content/site";
 import "./globals.css";
@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${serif.variable} ${display.variable} antialiased`}
+      className={`${serif.variable} ${display.variable} ${sans.variable} antialiased`}
     >
       <body className="min-h-screen font-serif bg-[#fdfdfd] text-gray-900">
         <a href="#main-content" className="skip-link">
