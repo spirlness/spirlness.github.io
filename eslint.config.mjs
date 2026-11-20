@@ -18,6 +18,8 @@ const eslintConfig = defineConfig([
     "test-results/**",
     // Claude Code tool directory (may hold nested worktree checkouts).
     ".claude/**",
+    // Generated Sveltia CMS bundle and admin shell (local authoring only).
+    "public/admin/**",
   ]),
 ]);
 

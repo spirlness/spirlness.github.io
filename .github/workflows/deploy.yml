@@ -98,6 +98,25 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+      # The Playwright build copies public/ (including the generated, gitignored
+      # Sveltia admin) into out/. The deployable artifact must never ship it.
+      - name: Strip dev-only CMS from export
+        run: ${{ steps.detect-package-manager.outputs.manager }} run cms:strip
+
+      - name: Assert CMS is absent from the export
+        shell: bash
+        run: |
+          if [[ -e out/admin ]]; then
+            echo "::error file=out/admin,title=CMS leaked into the export::out/admin must not be deployed"
+            exit 1
+          fi
+          if [[ -n "$(find out -iname '*sveltia*' -print -quit)" ]]; then
+            echo "::error title=CMS leaked into the export::Sveltia-named files remain under out/"
+            find out -iname '*sveltia*'
+            exit 1
+          fi
+          echo "CMS admin is absent from out/."
+
       - name: Verify static export
         shell: bash
         run: |
@@ -119,14 +138,39 @@ jobs:
             fi
           done
 
-          # Every blog post must export as out/blog/<slug>/index.html with a
-          # URL-safe slug; otherwise the blog index links silently 404.
+          # Every non-draft blog post must export as out/blog/<slug>/index.html
+          # with a URL-safe slug; otherwise the blog index links silently 404.
+          # Drafts are excluded from the production output (src/lib/content-drafts.ts),
+          # so scan only the YAML frontmatter between the first two --- lines,
+          # never the body, and skip the export requirement for them.
+          frontmatter_has_draft() {
+            local value
+            value="$(awk '
+              /^---[[:space:]]*$/ { count++; if (count == 2) exit; next }
+              count == 1 && $0 ~ /^draft:/ {
+                sub(/^draft:[[:space:]]*/, "")
+                sub(/[[:space:]]*#.*/, "")
+                sub(/[[:space:]]+$/, "")
+                print
+                exit
+              }
+            ' "$1")"
+            value="${value%\"}"; value="${value#\"}"
+            value="${value%\'}"; value="${value#\'}"
+            value="$(printf '%s' "$value" | tr '[:upper:]' '[:lower:]')"
+            [ "$value" = "true" ]
+          }
+
           if compgen -G "content/posts/*.mdx" > /dev/null; then
             for mdx in content/posts/*.mdx; do
               slug="$(basename "$mdx" .mdx)"
               if [[ ! "$slug" =~ ^[A-Za-z0-9-]+$ ]]; then
                 echo "::error file=$mdx,title=Unsafe blog slug::slug '$slug' is not URL-safe; use only [A-Za-z0-9-] in the filename"
                 exit 1
+              fi
+              if frontmatter_has_draft "$mdx"; then
+                echo "Skipping draft post: $mdx"
+                continue
               fi
               if [[ ! -f "out/blog/$slug/index.html" ]]; then
                 echo "::error file=$mdx,title=Missing static export file::out/blog/$slug/index.html was not generated"
@@ -142,9 +186,15 @@ jobs:
           # mismatch, but this step re-checks it against the raw JSON (the
           # exported artifact, not the source) so a regression in the schema
           # layer cannot silently ship a 404 page that still has an index.html.
+          # Draft projects (`draft: true`) are excluded from the production
+          # output, so they must not be required to export a page.
           if compgen -G "content/projects/*.json" > /dev/null; then
             for json in content/projects/*.json; do
               if ! id="$(node -p "require('./$json').id||''")"; then
+                echo "::error file=$json,title=Unreadable project JSON::$json could not be parsed"
+                exit 1
+              fi
+              if ! draft="$(node -p "require('./$json').draft===true?'true':'false'")"; then
                 echo "::error file=$json,title=Unreadable project JSON::$json could not be parsed"
                 exit 1
               fi
@@ -155,6 +205,10 @@ jobs:
               if [[ "$id" != "$(basename "$json" .json)" ]]; then
                 echo "::error file=$json,title=Project id/filename mismatch::id '$id' must equal the filename '$(basename "$json" .json)'; the detail route reads content/projects/$id.json and exports as a 404"
                 exit 1
+              fi
+              if [[ "$draft" == "true" ]]; then
+                echo "Skipping draft project: $json"
+                continue
               fi
               if [[ ! -f "out/projects/$id/index.html" ]]; then
                 echo "::error file=$json,title=Missing static export file::out/projects/$id/index.html was not generated"

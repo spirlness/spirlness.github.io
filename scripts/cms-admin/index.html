@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <!-- Sveltia reads this explicitly; without it, it falls back to ./config.yml. -->
+    <link rel="cms-config-url" href="./config.yml" />
+    <title>Content Manager</title>
+  </head>
+  <body>
+    <!--
+      Dev-only Sveltia CMS entry point.
+
+      The bundle is vendored by `npm run cms:sync` (scripts/sync-sveltia-admin.mjs);
+      do not point this at a CDN. Keep the plain script tags: the bundle warns
+      when loaded as an ES module, and preview.js registers its preview
+      templates on the global `CMS` object immediately after the bundle.
+    -->
+    <script src="./sveltia-cms.js"></script>
+    <script src="./preview.js"></script>
+  </body>
+</html>
