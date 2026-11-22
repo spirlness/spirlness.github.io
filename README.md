@@ -58,7 +58,7 @@ npx playwright install chromium webkit
 npm run test:e2e
 ```
 
-`npm run test:e2e` builds `out/` and serves it locally. Desktop Chromium runs the general suite, including exported HTTP metadata. Mobile Chromium covers touch, narrow layouts and accessibility on representative routes. WebKit covers selected table-of-contents breakpoints, code blocks and WebGL behavior. CI runs three workers; the long WebGL and physics tests are the tail, so raise that only after repeated clean runs.
+`npm run test:e2e` builds `out/` and serves it locally. Desktop Chromium runs the general suite, including exported HTTP metadata. Mobile Chromium covers touch, narrow layouts and accessibility on representative routes. WebKit covers selected table-of-contents breakpoints, code blocks and WebGL behavior. CI runs four workers; the long WebGL and physics tests are the tail, and the suite is watched for retries at that width.
 
 Tests tagged `@mobile` also run in mobile Chromium. Use `@mobile-only` for mobile-specific scenarios and `@webkit` for cross-engine coverage. Tags can be combined. Run a single project with `npm run test:e2e -- --project chromium-mobile` or inspect the selection with `npm run test:e2e -- --list`. Failures save screenshots and retry traces in `playwright-report/` and `test-results/`.
 
@@ -111,7 +111,7 @@ Repository setting required:
 Deployment behavior:
 
 - Pushes to `master` trigger `.github/workflows/deploy.yml`.
-- Two jobs run in parallel. `quality` installs dependencies and runs ESLint, the full TypeScript check and the Vitest suite with the core-logic coverage gate. `e2e` installs dependencies, builds the static export and installs Chromium and WebKit in parallel, verifies the export, then runs the Playwright page suite against it.
+- Two jobs run in parallel. `quality` installs dependencies and runs ESLint, the full TypeScript check and the Vitest suite with the core-logic coverage gate. `e2e` installs dependencies and Chromium/WebKit concurrently, builds the static export while the browser install finishes, verifies the export, then runs the Playwright page suite against it.
 - The Playwright web server only serves the already-built `out/` in CI (`PW_SKIP_BUILD=1`); locally `npm run test:e2e` still builds first.
 - `e2e` verifies that these required pages and files exist:
   - `out/index.html`
