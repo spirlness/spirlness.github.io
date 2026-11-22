@@ -19,6 +19,9 @@
 /.next/
 /out/
 
+# generated Sveltia CMS admin (npm run cms:sync; local authoring only)
+/public/admin/
+
 # production
 /build
 

@@ -65,6 +65,9 @@ export const postFrontmatterSchema = z.object({
   // Content language, used for `og:locale`. Defaults to English.
   lang: z.enum(postLanguages).optional(),
   lastUpdated: calendarDate.optional(),
+  // Authoring flag. Drafts pass the same validation as published entries, but
+  // a production build hides them (see src/lib/content-drafts.ts).
+  draft: z.boolean().optional(),
 });
 
 export type PostFrontmatter = z.infer<typeof postFrontmatterSchema> & {
@@ -98,6 +101,9 @@ export const projectSchema = z.object({
   // Display-only labels (pills, never routed): spaces and caps stay allowed,
   // unlike post tags which must be URL-safe slugs.
   tags: z.array(trimmedString).transform(uniqueTrimmedStrings).optional(),
+  // Authoring flag. Drafts pass the same validation as published entries, but
+  // a production build hides them (see src/lib/content-drafts.ts).
+  draft: z.boolean().optional(),
 });
 
 export type ProjectFrontmatter = z.infer<typeof projectSchema>;

@@ -151,8 +151,15 @@ export async function checkContentIntegrity(): Promise<{
   const publications = getAllPublications();
 
   const knownPaths = buildKnownPaths(posts, projects);
+  // Published content must resolve against the production route set: drafts
+  // are omitted from the export, so a published page linking to a draft route
+  // would ship a 404. Drafts may still reference other drafts.
+  const publishedPaths = buildKnownPaths(
+    posts.filter((post) => post.draft !== true),
+    projects.filter((project) => project.draft !== true)
+  );
 
-  const links: { href: string; origin: string }[] = [
+  const publishedLinks: { href: string; origin: string }[] = [
     ...siteProfile.navLinks.map((link) => ({
       href: link.href,
       origin: "src/content/site.ts navLinks",
@@ -162,12 +169,6 @@ export async function checkContentIntegrity(): Promise<{
         ? [{ href: update.link, origin: `update "${update.date}"` }]
         : []
     ),
-    ...projects.flatMap((project) =>
-      Object.values(project.links ?? {}).map((href) => ({
-        href,
-        origin: `project "${project.id}" links`,
-      }))
-    ),
   ];
 
   for (const post of posts) {
@@ -175,12 +176,14 @@ export async function checkContentIntegrity(): Promise<{
     const body = matter(
       fs.readFileSync(path.join(postDirectory, `${post.slug}.mdx`), "utf8")
     ).content;
-    assertTargetsResolvable(extractLocalTargets(body, origin), origin, knownPaths);
+    const paths = post.draft === true ? knownPaths : publishedPaths;
+    assertTargetsResolvable(extractLocalTargets(body, origin), origin, paths);
     await getPostBySlug(post.slug);
   }
 
   for (const project of projects) {
     const origin = `project "${project.id}"`;
+    const paths = project.draft === true ? knownPaths : publishedPaths;
     if (project.thumbnail.startsWith("/")) {
       assertAssetResolves(project.thumbnail, `${origin} thumbnail`);
     }
@@ -191,8 +194,13 @@ export async function checkContentIntegrity(): Promise<{
       assertTargetsResolvable(
         extractLocalTargets(body, origin),
         origin,
-        knownPaths
+        paths
       );
+    }
+
+    for (const href of Object.values(project.links ?? {})) {
+      if (!href) continue;
+      assertLinkResolves(href, `${origin} links`, paths);
     }
 
     await getProjectDetailById(project.id);
@@ -213,8 +221,8 @@ export async function checkContentIntegrity(): Promise<{
     publicationIds.add(publication.id);
   }
 
-  for (const { href, origin } of links) {
-    assertLinkResolves(href, origin, knownPaths);
+  for (const { href, origin } of publishedLinks) {
+    assertLinkResolves(href, origin, publishedPaths);
   }
 
   return {

@@ -6,6 +6,11 @@ import {
   parsePostFrontmatter,
   type PostFrontmatter,
 } from "./content-schemas";
+import {
+  isDraftHidden,
+  resolveIncludeDrafts,
+  type ContentVisibilityOptions,
+} from "./content-drafts";
 import { compileContent, type TocHeading } from "./mdx";
 import type { Publication } from "./bibtex";
 import { readingTime } from "./reading-time";
@@ -56,10 +61,35 @@ function readPostFile(slug: string): { realSlug: string; fileContent: string } {
   return { realSlug, fileContent };
 }
 
-export async function getPostBySlug(slug: string): Promise<Post> {
+/** Read and validate one post's frontmatter without applying draft visibility. */
+function readPostFrontmatter(slug: string): PostFrontmatter {
+  const { fileContent, realSlug } = readPostFile(slug);
+  return parsePostFrontmatter(matter(fileContent).data, realSlug);
+}
+
+/**
+ * A hidden draft must be indistinguishable from a missing post: callers
+ * already map any read error to `notFound()`, so the rejection happens at the
+ * same boundary as a slug that has no file.
+ */
+function assertPostVisible(
+  frontmatter: PostFrontmatter,
+  includeDrafts: boolean
+): void {
+  if (isDraftHidden(frontmatter, includeDrafts)) {
+    throw new Error(`Post not found: ${frontmatter.slug}`);
+  }
+}
+
+export async function getPostBySlug(
+  slug: string,
+  options: ContentVisibilityOptions = {}
+): Promise<Post> {
+  const includeDrafts = resolveIncludeDrafts(options);
   const { fileContent, realSlug } = readPostFile(slug);
   const { content: mdxBody, data } = matter(fileContent);
   const frontmatter = parsePostFrontmatter(data, realSlug);
+  assertPostVisible(frontmatter, includeDrafts);
   const { content, references, headings } = await compileContent({
     source: mdxBody,
     slug: realSlug,
@@ -76,15 +106,27 @@ export async function getPostBySlug(slug: string): Promise<Post> {
   };
 }
 
-export function getPostFrontmatter(slug: string): PostFrontmatter {
-  const { fileContent, realSlug } = readPostFile(slug);
-  return parsePostFrontmatter(matter(fileContent).data, realSlug);
+export function getPostFrontmatter(
+  slug: string,
+  options: ContentVisibilityOptions = {}
+): PostFrontmatter {
+  const includeDrafts = resolveIncludeDrafts(options);
+  const frontmatter = readPostFrontmatter(slug);
+  assertPostVisible(frontmatter, includeDrafts);
+  return frontmatter;
 }
 
-export function getAllPostFrontmatter(): PostFrontmatter[] {
+export function getAllPostFrontmatter(
+  options: ContentVisibilityOptions = {}
+): PostFrontmatter[] {
+  const includeDrafts = resolveIncludeDrafts(options);
   const cacheEnabled = process.env.NODE_ENV === "production";
   if (cacheEnabled && cachedPosts) {
-    return structuredClone(cachedPosts);
+    // The cache holds every parsed post; visibility is applied on each return
+    // so an explicit `includeDrafts` override can never poison later reads.
+    return structuredClone(cachedPosts).filter(
+      (post) => !isDraftHidden(post, includeDrafts)
+    );
   }
 
   if (!fs.existsSync(POSTS_PATH)) {
@@ -97,7 +139,7 @@ export function getAllPostFrontmatter(): PostFrontmatter[] {
     .map((file) => {
       const slug = file.replace(/\.mdx$/, "");
       assertSafeContentSlug(slug, "post slug");
-      return getPostFrontmatter(slug);
+      return readPostFrontmatter(slug);
     });
 
   // Optimization: Schwartzian transform precomputes date timestamps once per post
@@ -113,7 +155,9 @@ export function getAllPostFrontmatter(): PostFrontmatter[] {
     cachedPosts = sortedPosts;
   }
 
-  return structuredClone(sortedPosts);
+  return structuredClone(sortedPosts).filter(
+    (post) => !isDraftHidden(post, includeDrafts)
+  );
 }
 
 export interface TagCount {

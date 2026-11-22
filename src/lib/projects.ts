@@ -2,6 +2,11 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 import { assertSafeContentSlug } from "./content-id";
+import {
+  isDraftHidden,
+  resolveIncludeDrafts,
+  type ContentVisibilityOptions,
+} from "./content-drafts";
 import { readContentFile } from "./content-files";
 import { parseProject, type ProjectFrontmatter } from "./content-schemas";
 import { compileContent } from "./mdx";
@@ -22,10 +27,17 @@ export function projectHref(id: string): string {
   return `/projects/${clean}/`;
 }
 
-export function getAllProjects(): ProjectFrontmatter[] {
+export function getAllProjects(
+  options: ContentVisibilityOptions = {}
+): ProjectFrontmatter[] {
+  const includeDrafts = resolveIncludeDrafts(options);
   const cacheEnabled = process.env.NODE_ENV === "production";
   if (cacheEnabled && cachedProjects) {
-    return structuredClone(cachedProjects);
+    // The cache holds every parsed project; visibility is applied on each
+    // return so an explicit `includeDrafts` override can never poison later reads.
+    return structuredClone(cachedProjects).filter(
+      (project) => !isDraftHidden(project, includeDrafts)
+    );
   }
 
   if (!fs.existsSync(PROJECTS_PATH)) {
@@ -51,25 +63,39 @@ export function getAllProjects(): ProjectFrontmatter[] {
   );
 
   if (cacheEnabled) cachedProjects = sortedProjects;
-  return structuredClone(sortedProjects);
+  return structuredClone(sortedProjects).filter(
+    (project) => !isDraftHidden(project, includeDrafts)
+  );
 }
 
-export function getProjectById(id: string): ProjectFrontmatter {
+export function getProjectById(
+  id: string,
+  options: ContentVisibilityOptions = {}
+): ProjectFrontmatter {
+  const includeDrafts = resolveIncludeDrafts(options);
   const cleanId = assertSafeContentSlug(id, "project id");
   const jsonPath = path.join(PROJECTS_PATH, `${cleanId}.json`);
   if (!fs.existsSync(jsonPath)) {
     throw new Error(`Project not found: ${id}`);
   }
   const raw = readContentFile(PROJECTS_PATH, `${cleanId}.json`);
-  return parseProject(JSON.parse(raw) as unknown, cleanId, `${cleanId}.json`);
+  const project = parseProject(JSON.parse(raw) as unknown, cleanId, `${cleanId}.json`);
+  // A hidden draft takes the same not-found path as a project without a file.
+  if (isDraftHidden(project, includeDrafts)) {
+    throw new Error(`Project not found: ${id}`);
+  }
+  return project;
 }
 
-export async function getProjectDetailById(id: string): Promise<{
+export async function getProjectDetailById(
+  id: string,
+  options: ContentVisibilityOptions = {}
+): Promise<{
   project: ProjectFrontmatter;
   content: React.ReactNode | null;
 }> {
   const cleanId = assertSafeContentSlug(id, "project id");
-  const project = getProjectById(cleanId);
+  const project = getProjectById(cleanId, options);
   const mdxPath = path.join(PROJECTS_PATH, `${cleanId}.mdx`);
 
   if (!fs.existsSync(mdxPath)) {

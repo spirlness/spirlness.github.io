@@ -69,6 +69,36 @@ npm run start
 
 This serves `out/` with `serve` (see the `start` script in `package.json`). Use it to verify the exported site, including blog article routes, before pushing.
 
+## Local CMS
+
+`npm run cms` starts a local authoring stack: it regenerates `public/admin/config.yml` from the zod schemas, vendors the Sveltia CMS bundle into `public/admin/`, starts the sharp media watcher and the fast content validator, and runs `next dev`. Open `http://localhost:3000/admin/` (override the port with `npm run cms -- --port 3100`).
+
+First run:
+
+1. `npm ci`
+2. `npm run cms`
+3. In Chrome or Edge, open `/admin/` and click **Work with Local Repository**.
+4. Pick the repository root (the folder containing `package.json`, `content/` and `public/`) and allow edits.
+
+The CMS writes straight to the working tree on Save — nothing is committed automatically, there is no editorial workflow, and undo is git's job, so review changes with `git status` / `git diff` before committing. The editor's Preview pane embeds the real dev-server page for the current entry and reloads it after each save. `public/admin/` is generated and gitignored; the admin is Chromium-only because local mode uses the File System Access API.
+
+Drafts:
+
+- Posts set `draft: true` in the frontmatter; projects set `"draft": true` in their JSON. Both default to visible, non-draft entries.
+- Drafts are ordinary, fully validated content while authoring (`npm run dev`, tests, tooling), but a production build behaves as if they did not exist: lists, tags, the RSS feed, sitemap, adjacent/related links, homepage slices, `generateStaticParams` and the deployment's export verification all skip them. Never point a published page at a draft link.
+
+Media:
+
+- Uploads through the CMS land in `public/posts/<slug>/` for posts and `public/projects/<id>/` for projects; reference them with site-absolute paths such as `/posts/<slug>/figure.png`.
+- Sharp writes `-640.webp`, `-1280.webp` and `-1920.webp` variants (quality 80, no upscaling) next to each jpg/jpeg/png/webp source; SVG and HDR files are skipped. The variants are committed artifacts.
+- `npm run cms` watches both media folders; `npm run media:variants` runs the same idempotent pass once (and `prebuild` runs it automatically before `npm run build`).
+
+Validation and production hygiene:
+
+- `npm run validate:fast` (or `--watch`) checks schemas, citation keys, body h1 headings and site-absolute media links for fast feedback. `npm run content:check` remains the full gate and runs in the coverage suite.
+- `npm run cms:config` regenerates the CMS config; `npm run cms:config -- --check` fails if the generated file is stale. The generator fails loudly if its field mapping drifts from `src/lib/content-schemas.ts`.
+- `npm run build` copies `public/admin/` into `out/`; the `postbuild` hook strips it automatically (`npm run cms:strip` does the same by hand). Deployment CI runs `cms:strip` after the browser suite and then asserts that no `out/admin` directory or Sveltia-named files remain in the export.
+
 ## GitHub Pages Deployment
 
 Repository setting required:
@@ -91,7 +121,8 @@ Deployment behavior:
   - `out/robots.txt`
   - `out/feed.xml`
   - `out/opengraph-image.png`
-- It verifies that every blog post and every project exported its own page, and that each slug and project `id` is URL-safe.
+- It verifies that every non-draft blog post and every non-draft project exported its own page, that each slug and project `id` is URL-safe, and that draft entries (which the production build excludes) are skipped.
+- It strips the local CMS from `out/` and fails if any admin or Sveltia-named file remains.
 - It uploads `out/` as a GitHub Pages artifact and deploys it.
 
 A lint failure or a failing test stops the deploy before anything is published.
