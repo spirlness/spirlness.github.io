@@ -58,7 +58,7 @@ npx playwright install chromium webkit
 npm run test:e2e
 ```
 
-`npm run test:e2e` builds `out/` and serves it locally. Desktop Chromium runs the general suite, including exported HTTP metadata. Mobile Chromium covers touch, narrow layouts and accessibility on representative routes. WebKit covers selected table-of-contents breakpoints, code blocks and WebGL behavior. CI runs four workers; the long WebGL and physics tests are the tail, and the suite is watched for retries at that width.
+`npm run test:e2e` builds `out/` and serves it locally. Desktop Chromium runs the general suite, including exported HTTP metadata. Mobile Chromium covers touch, narrow layouts and accessibility on representative routes. WebKit covers selected table-of-contents breakpoints, code blocks and WebGL behavior. CI runs three workers: four oversubscribes the 4-vCPU runner once the web server and software-rendered WebGL tests are counted, and measured slower.
 
 Tests tagged `@mobile` also run in mobile Chromium. Use `@mobile-only` for mobile-specific scenarios and `@webkit` for cross-engine coverage. Tags can be combined. Run a single project with `npm run test:e2e -- --project chromium-mobile` or inspect the selection with `npm run test:e2e -- --list`. Failures save screenshots and retry traces in `playwright-report/` and `test-results/`.
 
