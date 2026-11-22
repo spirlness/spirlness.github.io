@@ -1,13 +1,18 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const isCI = Boolean(process.env.CI);
+// CI builds and verifies the export in its own step, overlapping the
+// Playwright browser install; there the web server only serves out/.
+const skipBuild = Boolean(process.env.PW_SKIP_BUILD);
+const serveCommand =
+  "npm run start -- --listen tcp://127.0.0.1:3000 --no-clipboard --no-port-switching";
 
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
-  workers: isCI ? 2 : undefined,
+  workers: isCI ? 3 : undefined,
   reporter: [["list"], ["html", { outputFolder: "playwright-report", open: "never" }]],
   use: {
     baseURL: "http://127.0.0.1:3000",
@@ -19,24 +24,13 @@ export default defineConfig({
   },
   projects: [
     {
-      name: "webkit-mobile-toc",
-      testMatch: "**/functionality.spec.ts",
-      grep: /article contents work by keyboard|toc selection/,
-      use: { ...devices["iPhone 13"], permissions: [] },
-    },
-    {
-      name: "webkit-mobile-code-blocks",
-      testMatch: "**/code-blocks.spec.ts",
-      use: { ...devices["iPhone 13"], permissions: [] },
-    },
-    {
-      name: "webkit-mobile-particles",
-      testMatch: ["**/review-regressions.spec.ts", "**/a11y.spec.ts"],
-      grep: /the scene is downloaded only when started|physics demo freezes a static frame/,
+      name: "webkit-mobile",
+      grep: /@webkit\b/,
       use: { ...devices["iPhone 13"], permissions: [] },
     },
     {
       name: "chromium-desktop",
+      grepInvert: /@mobile-only\b/,
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 1440, height: 900 },
@@ -44,12 +38,12 @@ export default defineConfig({
     },
     {
       name: "chromium-mobile",
+      grep: /@mobile(?:-only)?\b/,
       use: { ...devices["Pixel 5"] },
     },
   ],
   webServer: {
-    command:
-      "npm run build && npm run start -- --listen tcp://127.0.0.1:3000 --no-clipboard --no-port-switching",
+    command: skipBuild ? serveCommand : `npm run build && ${serveCommand}`,
     url: "http://127.0.0.1:3000/",
     reuseExistingServer: false,
     timeout: 120000,

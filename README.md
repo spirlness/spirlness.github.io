@@ -43,7 +43,7 @@ npm run test:coverage
 npm run test:e2e
 ```
 
-The coverage suite includes the complete content-integrity check: schemas, local links, assets, citations and MDX compilation. `npm run content:check` runs that check alone; `npm test` runs unit tests without coverage (`npm run test:watch` to iterate). The browser command builds and serves the production export automatically.
+The coverage suite includes the complete content-integrity check: schemas, local links, assets, citations and MDX compilation. `npm run content:check` runs that check alone; `npm test` runs unit tests without coverage (`npm run test:watch` to iterate). The browser command builds and serves the production export automatically. CI builds the export in an explicit step that overlaps the Playwright browser install, then runs the suite with `PW_SKIP_BUILD=1` so the web server only serves `out/`.
 
 `npm run test:coverage` reports all production TS/TSX files under `src/`, excluding tests and type declarations. Core logic under `src/lib/` must reach 80% statements, lines and functions, plus 75% branches. UI interactions are checked by Playwright; its browser execution is not included in the Vitest percentages. CI and deployment run the coverage check and retain its report for 14 days.
 
@@ -51,14 +51,16 @@ The post, project and publication collection readers return owned deep snapshots
 
 `npm run build` creates the static export in `out/` and uses `tsconfig.build.json` to check the application and generated Next.js types. `npm run typecheck` generates route types and checks the full TypeScript project, including tests and tooling. Both CI workflows run it.
 
-Page-level browser tests run against the production static export. Install the Chromium browser once after `npm ci`, then run:
+Page-level browser tests run against the production static export. Install Chromium and WebKit once after `npm ci`, then run:
 
 ```bash
-npx playwright install chromium
+npx playwright install chromium webkit
 npm run test:e2e
 ```
 
-`npm run test:e2e` builds `out/`, serves it locally, and checks the core site journeys in desktop and mobile Chromium. Failures save screenshots and retry traces in `playwright-report/` and `test-results/`.
+`npm run test:e2e` builds `out/` and serves it locally. Desktop Chromium runs the general suite, including exported HTTP metadata. Mobile Chromium covers touch, narrow layouts and accessibility on representative routes. WebKit covers selected table-of-contents breakpoints, code blocks and WebGL behavior. CI runs three workers; the long WebGL and physics tests are the tail, so raise that only after repeated clean runs.
+
+Tests tagged `@mobile` also run in mobile Chromium. Use `@mobile-only` for mobile-specific scenarios and `@webkit` for cross-engine coverage. Tags can be combined. Run a single project with `npm run test:e2e -- --project chromium-mobile` or inspect the selection with `npm run test:e2e -- --list`. Failures save screenshots and retry traces in `playwright-report/` and `test-results/`.
 
 Video checks use a small synthetic fixture from `tests/fixtures/`, rendered with the production media component and served through Playwright routes. They check card navigation and detail playback without adding sample projects or assets to the deployment. Unit tests also verify the actual project pages pass the correct media-control options.
 
@@ -109,11 +111,9 @@ Repository setting required:
 Deployment behavior:
 
 - Pushes to `master` trigger `.github/workflows/deploy.yml`.
-- The workflow installs dependencies with `npm ci`.
-- It runs ESLint and checks the full TypeScript project.
-- It runs the Vitest suite and core-logic coverage gate with `npm run test:coverage`.
-- It installs Chromium and runs the Playwright page suite, which builds and serves the static export.
-- It verifies that these required pages and files exist:
+- Two jobs run in parallel. `quality` installs dependencies and runs ESLint, the full TypeScript check and the Vitest suite with the core-logic coverage gate. `e2e` installs dependencies, builds the static export and installs Chromium and WebKit in parallel, verifies the export, then runs the Playwright page suite against it.
+- The Playwright web server only serves the already-built `out/` in CI (`PW_SKIP_BUILD=1`); locally `npm run test:e2e` still builds first.
+- `e2e` verifies that these required pages and files exist:
   - `out/index.html`
   - `out/blog/index.html`
   - `out/projects/index.html`
@@ -123,7 +123,8 @@ Deployment behavior:
   - `out/feed.xml`
   - `out/opengraph-image.png`
 - The same read-only check runs locally with `npm run export:check` after building. It also verifies published posts, projects and tag routes, and checks that draft pages, draft-only uploads, empty-route placeholders, the CMS admin and Sveltia-named assets are absent.
-- It uploads `out/` as a GitHub Pages artifact and deploys it.
+- It uploads `out/` as a GitHub Pages artifact, and the `deploy` job publishes it.
+- A newer push cancels superseded build jobs, but never an in-progress Pages deployment.
 
 A lint failure or a failing test stops the deploy before anything is published.
 

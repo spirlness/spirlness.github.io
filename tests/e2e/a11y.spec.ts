@@ -1,15 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { installVideoFixture } from "../fixtures/video-pages";
 
-const ROUTES = [
-  "/",
-  "/blog/",
-  "/projects/",
-  "/publications/",
-  "/blog/algorithmic-resilience/",
-  "/projects/neural-symbolic-physics/",
-];
-
 test("blog cards reveal read-more and highlight the title on keyboard focus", async ({ page }) => {
   await page.goto("/blog/");
   const card = page.locator("main article").first();
@@ -41,31 +32,30 @@ for (const route of ["/blog/algorithmic-resilience/", "/blog/how-this-site-is-bu
   });
 }
 
-test("project cards show a visible ring through real Tab navigation", async ({ page }) => {
-  for (const width of [390, 1440]) {
-    await page.setViewportSize({ width, height: 900 });
-    await page.goto("/projects/");
-    const cards = page.getByRole("link").filter({ has: page.getByRole("heading", { level: 2 }) });
-    const count = await cards.count();
-    expect(count).toBeGreaterThan(0);
-    for (let index = 0; index < count; index++) {
-      const card = cards.nth(index);
-      const originalShadow = await card.evaluate(el => getComputedStyle(el).boxShadow);
-      for (let tabs = 0; tabs < 30; tabs++) {
-        await page.keyboard.press("Tab");
-        if (await card.evaluate(el => el === document.activeElement)) break;
-      }
-      await expect(card).toBeFocused();
-      expect(await card.evaluate(el => el.matches(":focus-visible"))).toBe(true);
-      await expect(card).not.toHaveCSS("box-shadow", "none");
-      await expect(card).not.toHaveCSS("box-shadow", originalShadow);
-      expect(await card.evaluate(el => getComputedStyle(el).getPropertyValue("--tw-ring-offset-width").trim())).toBe("4px");
+test("project cards show a visible ring through real Tab navigation", { tag: "@mobile" }, async ({ page, isMobile }) => {
+  const width = isMobile ? 390 : 1440;
+  await page.setViewportSize({ width, height: 900 });
+  await page.goto("/projects/");
+  const cards = page.getByRole("link").filter({ has: page.getByRole("heading", { level: 2 }) });
+  const count = await cards.count();
+  expect(count).toBeGreaterThan(0);
+  for (let index = 0; index < count; index++) {
+    const card = cards.nth(index);
+    const originalShadow = await card.evaluate(el => getComputedStyle(el).boxShadow);
+    for (let tabs = 0; tabs < 30; tabs++) {
+      await page.keyboard.press("Tab");
+      if (await card.evaluate(el => el === document.activeElement)) break;
     }
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
-    const destination = await cards.last().getAttribute("href");
-    await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(new URL(destination!, page.url()).href);
+    await expect(card).toBeFocused();
+    expect(await card.evaluate(el => el.matches(":focus-visible"))).toBe(true);
+    await expect(card).not.toHaveCSS("box-shadow", "none");
+    await expect(card).not.toHaveCSS("box-shadow", originalShadow);
+    expect(await card.evaluate(el => getComputedStyle(el).getPropertyValue("--tw-ring-offset-width").trim())).toBe("4px");
   }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+  const destination = await cards.last().getAttribute("href");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(new URL(destination!, page.url()).href);
 });
 
 test("project action links show a keyboard focus ring", async ({ page }) => {
@@ -81,7 +71,8 @@ test("project action links show a keyboard focus ring", async ({ page }) => {
 
 test.describe("skip link (S3)", () => {
   for (const width of [360, 1400]) {
-    test(`Tab lands on skip link and activates to #main-content @ ${width}px`, async ({
+    const tag = width === 360 ? "@mobile-only" : [];
+    test(`Tab lands on skip link and activates to #main-content @ ${width}px`, { tag }, async ({
       page,
     }) => {
       await page.setViewportSize({ width, height: 800 });
@@ -94,21 +85,14 @@ test.describe("skip link (S3)", () => {
       await expect(page.locator("#main-content")).toBeFocused();
     });
   }
-
-  test("every route exposes a #main-content landmark", async ({ page }) => {
-    for (const route of ROUTES) {
-      await page.goto(route);
-      await expect(page.locator("#main-content")).toBeAttached();
-    }
-  });
 });
 
 test.describe("project media (S3)", () => {
   // The whole list card is one link, so its video must stay non-interactive
   // (controls nested in an anchor hijack activation); playback controls belong
   // to the detail page, which is not anchor-wrapped.
-  test("card video is non-interactive and the detail video has controls", async ({
-    page,
+  test("card video is non-interactive and the detail video has controls", { tag: "@mobile" }, async ({
+    page, isMobile,
   }) => {
     await installVideoFixture(page);
     await page.goto("/__fixtures__/video-card/");
@@ -121,7 +105,8 @@ test.describe("project media (S3)", () => {
       .locator("xpath=ancestor::a[1]")
       .getAttribute("href");
     expect(href).toBeTruthy();
-    await cardVideo.click();
+    if (isMobile) await cardVideo.tap();
+    else await cardVideo.click();
     await expect(page).toHaveURL(new URL(href!, page.url()).href);
     const detailVideo = page.locator("video").first();
     await expect(detailVideo).toHaveAttribute("controls", "");
@@ -145,19 +130,15 @@ test.describe("reduced motion (S3)", () => {
     expect(["0.01ms", "1e-05s"]).toContain(duration);
   });
 
-  test("physics demo freezes a static frame", async ({ page, baseURL, isMobile }) => {
+  test("physics demo freezes a static frame", { tag: "@webkit" }, async ({ page, baseURL, isMobile }) => {
     // Scene readiness allows 30 seconds; screenshots and static comparison follow it.
     test.setTimeout(60000);
     const externalRequests: string[] = [];
     const pageErrors: string[] = [];
-    await page.route("**/*", async (route) => {
-      const url = new URL(route.request().url());
-      if (url.origin !== new URL(baseURL!).origin) {
-        externalRequests.push(url.href);
-        await route.abort();
-      } else {
-        await route.continue();
-      }
+    const origin = new URL(baseURL!).origin;
+    await page.route((url) => url.origin !== origin, async (route) => {
+      externalRequests.push(route.request().url());
+      await route.abort();
     });
     page.on("pageerror", (error) => pageErrors.push(error.message));
     await page.emulateMedia({ reducedMotion: "reduce" });
@@ -180,7 +161,7 @@ test.describe("reduced motion (S3)", () => {
       return !!c && !!(c.getContext("webgl2") || c.getContext("webgl"));
     });
     if (!hasGL) {
-      test.skip(true, "WebGL unavailable in this Chromium");
+      test.skip(true, "WebGL unavailable in this browser");
     }
     await page.waitForTimeout(4000);
     const shot1 = await canvas.screenshot();

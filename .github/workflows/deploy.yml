@@ -10,40 +10,78 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
+# Build jobs use per-job groups so a newer push cancels superseded work.
+# The deploy job keeps its own serial "pages" group: cancelling a Pages
+# deployment mid-publish is unsafe, so only the build side is interruptible.
 jobs:
-  build:
+  quality:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    concurrency:
+      group: deploy-quality-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - name: Detect package manager
-        id: detect-package-manager
-        run: |
-          if [ -f "${{ github.workspace }}/yarn.lock" ]; then
-            echo "manager=yarn" >> $GITHUB_OUTPUT
-            echo "command=install" >> $GITHUB_OUTPUT
-            echo "runner=yarn" >> $GITHUB_OUTPUT
-            exit 0
-          elif [ -f "${{ github.workspace }}/package.json" ]; then
-            echo "manager=npm" >> $GITHUB_OUTPUT
-            echo "command=ci" >> $GITHUB_OUTPUT
-            echo "runner=npx --no-install" >> $GITHUB_OUTPUT
-            exit 0
-          else
-            echo "Unable to determine package manager"
-            exit 1
-          fi
 
       - name: Setup Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: "22"
-          cache: ${{ steps.detect-package-manager.outputs.manager }}
+
+      # npm's cache is content-addressed and npm ci still verifies the
+      # lockfile, so a restore-keys fallback cannot install wrong versions.
+      - name: Restore npm cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check application and tests
+        run: npm run typecheck
+
+      - name: Test with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-${{ github.run_id }}
+          path: coverage/
+          if-no-files-found: ignore
+          retention-days: 14
+          overwrite: true
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+      actions: write
+    concurrency:
+      group: deploy-e2e-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "22"
 
       - name: Resolve Node runtime
         id: node-runtime
@@ -52,6 +90,14 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6
+
+      - name: Restore npm cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
 
       - name: Restore/save Next.js cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
@@ -64,31 +110,38 @@ jobs:
           key: ${{ runner.os }}-nextjs-v3-${{ steps.node-runtime.outputs.version }}-${{ hashFiles('**/package-lock.json', 'package.json', 'src/**', 'content/**', 'public/**', 'next.config.*', 'postcss.config.*', 'tsconfig*.json') }}
 
       - name: Install dependencies
-        run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
+        run: npm ci --prefer-offline --no-audit --no-fund
 
-      - name: Lint
-        run: ${{ steps.detect-package-manager.outputs.manager }} run lint
+      # The browser download and the static build do not depend on each other,
+      # so run them together; the build is the only one that produces out/.
+      - name: Build and install Playwright browsers
+        shell: bash
+        run: |
+          set -uo pipefail
+          npm run build > "$RUNNER_TEMP/build.log" 2>&1 &
+          build_pid=$!
+          npx playwright install --with-deps chromium webkit > "$RUNNER_TEMP/playwright-install.log" 2>&1 &
+          pw_pid=$!
+          status=0
+          wait "$build_pid" || status=$?
+          wait "$pw_pid" || status=$?
+          echo "::group::Next.js build"
+          cat "$RUNNER_TEMP/build.log"
+          echo "::endgroup::"
+          echo "::group::Playwright browser install"
+          cat "$RUNNER_TEMP/playwright-install.log"
+          echo "::endgroup::"
+          exit "$status"
 
-      - name: Type check application and tests
-        run: ${{ steps.detect-package-manager.outputs.manager }} run typecheck
-
-      - name: Test with coverage
-        run: ${{ steps.detect-package-manager.outputs.manager }} run test:coverage
-
-      - name: Upload coverage report
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: coverage-${{ github.run_id }}
-          path: coverage/
-          if-no-files-found: ignore
-          retention-days: 14
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium webkit
+      - name: Verify static export
+        run: npm run export:check
 
       - name: Run page tests
-        run: ${{ steps.detect-package-manager.outputs.manager }} run test:e2e
+        env:
+          # The export above is already built and verified; the web server
+          # only serves out/. Local npm run test:e2e still builds first.
+          PW_SKIP_BUILD: "1"
+        run: npm run test:e2e
 
       - name: Upload Playwright failure artifacts
         if: failure()
@@ -100,9 +153,18 @@ jobs:
             test-results/
           if-no-files-found: ignore
           retention-days: 14
+          overwrite: true
 
-      - name: Verify static export
-        run: ${{ steps.detect-package-manager.outputs.manager }} run export:check
+      # upload-pages-artifact does not overwrite an artifact left by an
+      # earlier attempt, so a re-run of this job would fail without this.
+      - name: Delete stale Pages artifact on re-run
+        if: github.run_attempt > 1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for id in $(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" --paginate --jq '.artifacts[] | select(.name == "github-pages") | .id'); do
+            gh api --method DELETE "repos/${{ github.repository }}/actions/artifacts/$id"
+          done
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
@@ -114,10 +176,14 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: build
+    needs: [quality, e2e]
+    timeout-minutes: 10
     permissions:
       pages: write
       id-token: write
+    concurrency:
+      group: "pages"
+      cancel-in-progress: false
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

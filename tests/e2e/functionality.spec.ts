@@ -2,7 +2,8 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 for (const width of [320, 390, 768, 1399, 1400, 1440]) {
-  test(`article contents work by keyboard at ${width}px`, async ({ page }) => {
+  const tag = [390, 768, 1399, 1400].includes(width) ? "@webkit" : [];
+  test(`article contents work by keyboard at ${width}px`, { tag }, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/blog/how-this-site-is-built/");
     const toggle = page.getByRole("button", { name: "Contents", exact: true });
@@ -43,7 +44,7 @@ for (const width of [320, 390, 768, 1399, 1400, 1440]) {
   });
 }
 
-test("toc selection collapses on touch or click, including the current hash", async ({ page, isMobile }) => {
+test("toc selection collapses on touch or click, including the current hash", { tag: ["@mobile", "@webkit"] }, async ({ page, isMobile }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/blog/how-this-site-is-built/");
   const toggle = page.getByRole("button", { name: "Contents", exact: true });
@@ -77,14 +78,15 @@ test("modified toc links keep the original disclosure open", async ({ page, cont
   await expect(page).toHaveURL(/\/blog\/how-this-site-is-built\/$/);
 });
 
-test("code copying is discoverable on touch and announces success", async ({ page, isMobile }) => {
+test("copies the complete code by keyboard or touch and resets feedback", { tag: "@mobile" }, async ({ page, isMobile }) => {
   await page.goto("/blog/how-this-site-is-built/");
+  await page.clock.install();
   const pre = page.locator("pre").first();
   const wrapper = pre.locator("..");
   const copy = wrapper.getByRole("button", { name: "Copy code", exact: true });
+  await expect(copy).toBeVisible();
   await expect(copy).toHaveCSS("opacity", "1");
   if (isMobile) {
-    await expect(copy).toHaveCSS("opacity", "1");
     const bounds = await copy.boundingBox();
     expect(bounds!.width).toBeGreaterThanOrEqual(44);
     expect(bounds!.height).toBeGreaterThanOrEqual(44);
@@ -93,12 +95,16 @@ test("code copying is discoverable on touch and announces success", async ({ pag
   } else {
     await page.keyboard.press("Tab");
     await copy.focus();
-    await expect(copy).toHaveCSS("opacity", "1");
     await page.keyboard.press("Enter");
   }
-  await expect(wrapper.getByRole("status")).toHaveText("Code copied to clipboard");
+  const status = wrapper.getByRole("status");
+  await expect(copy).toHaveText("Copied");
+  await expect(status).toHaveText("Code copied to clipboard");
   const copied = await page.evaluate(() => navigator.clipboard.readText());
   expect(copied.replaceAll("\r\n", "\n")).toBe(await pre.locator("code").textContent());
+  await page.clock.fastForward(2000);
+  await expect(copy).toHaveText("Copy");
+  await expect(status).toBeEmpty();
 });
 
 test("copy failures explain recovery and remain retryable", async ({ page }) => {

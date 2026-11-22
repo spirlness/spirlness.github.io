@@ -14,8 +14,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check:
+  quality:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -24,10 +25,19 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: "22"
-          cache: npm
+
+      # npm's cache is content-addressed and npm ci still verifies the
+      # lockfile, so a restore-keys fallback cannot install wrong versions.
+      - name: Restore npm cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefer-offline --no-audit --no-fund
 
       - name: Lint
         run: npm run lint
@@ -46,14 +56,59 @@ jobs:
           path: coverage/
           if-no-files-found: ignore
           retention-days: 14
+          overwrite: true
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium webkit
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "22"
+
+      - name: Restore npm cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      # The browser download and the static build do not depend on each other,
+      # so run them together; the build is the only one that produces out/.
+      - name: Build and install Playwright browsers
+        shell: bash
+        run: |
+          set -uo pipefail
+          npm run build > "$RUNNER_TEMP/build.log" 2>&1 &
+          build_pid=$!
+          npx playwright install --with-deps chromium webkit > "$RUNNER_TEMP/playwright-install.log" 2>&1 &
+          pw_pid=$!
+          status=0
+          wait "$build_pid" || status=$?
+          wait "$pw_pid" || status=$?
+          echo "::group::Next.js build"
+          cat "$RUNNER_TEMP/build.log"
+          echo "::endgroup::"
+          echo "::group::Playwright browser install"
+          cat "$RUNNER_TEMP/playwright-install.log"
+          echo "::endgroup::"
+          exit "$status"
 
       - name: Compare particle matrices and WebGL pixels
         run: npm run benchmark:particles -- --browser
 
-      - name: Build and browser regression tests
+      - name: Run page tests
+        env:
+          # The export above is already built; the web server only serves out/.
+          PW_SKIP_BUILD: "1"
         run: npm run test:e2e
 
       - name: Upload browser failure artifacts
@@ -66,3 +121,4 @@ jobs:
             test-results/
           if-no-files-found: ignore
           retention-days: 14
+          overwrite: true

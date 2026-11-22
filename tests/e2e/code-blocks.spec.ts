@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test";
 
 for (const width of [320, 390, 768, 1440]) {
-  test(`long fenced code stays scrollable inside the article at ${width}px`, async ({ page }) => {
+  const tag = width === 320 || width === 1440 ? "@webkit" : [];
+  test(`long fenced code stays scrollable inside the article at ${width}px`, { tag }, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
     await page.goto("/blog/how-this-site-is-built/");
     const pre = page.locator('pre[data-language="bash"]').first();
@@ -52,7 +53,7 @@ for (const width of [320, 390, 768, 1440]) {
   });
 }
 
-test("copy failure supports keyboard retry", async ({ page }) => {
+test("copy failure supports keyboard retry", { tag: "@webkit" }, async ({ page }) => {
   await page.addInitScript(() => {
     let calls = 0;
     Object.defineProperty(navigator.clipboard, "writeText", {
@@ -78,7 +79,7 @@ test("copy failure supports keyboard retry", async ({ page }) => {
   await expect(block.getByRole("status")).toHaveText("Code copied to clipboard");
 });
 
-test("pending copying retains focus and ignores repeated activation", async ({ page }) => {
+test("pending copying retains focus and ignores repeated activation", { tag: "@webkit" }, async ({ page }) => {
   await page.addInitScript(() => {
     const state = window as typeof window & { copyCalls: number; finishCopy: () => void };
     state.copyCalls = 0;

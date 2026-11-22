@@ -71,21 +71,3 @@ test.describe("SmartLink contract (S3 regression)", () => {
     }
   });
 });
-
-test.describe("CodeBlock copy (S3)", () => {
-  test("visible toolbar copies the complete code without its language label", async ({ page }) => {
-    await page.goto("/blog/how-this-site-is-built/");
-    const pre = page.locator("pre").first();
-    if ((await pre.count()) === 0) {
-      test.skip(true, "no code blocks on fixture post");
-    }
-    const block = pre.locator("..");
-    const btn = block.getByRole("button", { name: "Copy code", exact: true });
-    await expect(btn).toBeVisible();
-    await btn.click();
-    const clip = await page.evaluate(() => navigator.clipboard.readText());
-    expect(clip.replaceAll("\r\n", "\n")).toBe(await pre.locator("code").textContent());
-    await expect(btn).toHaveText("Copied");
-    await expect(btn).toHaveText("Copy", { timeout: 4000 });
-  });
-});

@@ -1,13 +1,25 @@
 import AxeBuilder from "@axe-core/playwright";
 import { chromium, expect, test } from "@playwright/test";
 
-const routes = ["/", "/blog/", "/projects/", "/publications/", "/blog/how-this-site-is-built/", "/blog/algorithmic-resilience/", "/projects/neural-symbolic-physics/", "/projects/algorithmic-resilience-benchmark/", "/blog/tag/web/"];
 const article = "/blog/algorithmic-resilience/";
 
-for (const route of routes) {
-  test(`accessible structure and contrast on ${route}`, async ({ page }) => {
+// Audit these routes on desktop and each page template on mobile.
+for (const [route, mobile] of [
+  ["/", true],
+  ["/blog/", true],
+  ["/projects/", true],
+  ["/publications/", true],
+  ["/blog/how-this-site-is-built/", false],
+  [article, true],
+  ["/projects/neural-symbolic-physics/", true],
+  ["/projects/algorithmic-resilience-benchmark/", false],
+  ["/blog/tag/web/", true],
+] as const) {
+  test(`accessible structure and contrast on ${route}`, { tag: mobile ? "@mobile" : [] }, async ({ page }) => {
     await page.goto(route);
-    await expect(page.getByRole("main")).toHaveCount(1);
+    const main = page.getByRole("main");
+    await expect(main).toHaveCount(1);
+    await expect(main).toHaveAttribute("id", "main-content");
     const audit = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "best-practice"]).analyze();
     expect(audit.violations).toEqual([]);
   });
@@ -33,7 +45,7 @@ test("fragment navigation leaves headings below the sticky header", async ({ pag
   }
 });
 
-test("long citations keep close and copy controls within a small viewport", async ({ page }) => {
+test("long citations keep close and copy controls within a small viewport", { tag: "@mobile-only" }, async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 568 });
   await page.goto("/publications/");
   await page.getByRole("button", { name: "BibTeX", exact: true }).first().click();
@@ -47,7 +59,7 @@ test("long citations keep close and copy controls within a small viewport", asyn
   expect(await dialog.locator("pre").evaluate(el => el.scrollHeight > el.clientHeight)).toBe(true);
 });
 
-test("the scene is downloaded only when started and stops drawing when paused, hidden or offscreen", async ({ page, isMobile }) => {
+test("the scene is downloaded only when started and stops drawing when paused, hidden or offscreen", { tag: "@webkit" }, async ({ page, isMobile }) => {
   test.setTimeout(90000);
   await page.addInitScript(() => {
     const state = window as typeof window & { simulationDraws: number };
@@ -62,11 +74,13 @@ test("the scene is downloaded only when started and stops drawing when paused, h
   });
   const environmentRequests: string[] = [];
   page.on("request", r => { if (r.url().endsWith(".hdr")) environmentRequests.push(r.url()); });
-  await page.goto(article);
-  await expect(page.getByRole("button", { name: "Start simulation" })).toBeAttached();
+  await page.goto(article, { waitUntil: "domcontentloaded" });
+  const start = page.getByRole("button", { name: "Start simulation" });
+  await expect(start).toBeVisible();
   expect(environmentRequests).toEqual([]);
   await expect(page.locator("canvas")).toHaveCount(0);
-  await page.getByRole("button", { name: "Start simulation" }).click();
+  if (isMobile) await start.tap({ timeout: 30000 });
+  else await start.click();
   const pause = page.getByRole("button", { name: "Pause simulation", exact: true });
   await expect(pause).toBeVisible({ timeout: 30000 });
   expect(environmentRequests).toHaveLength(1);

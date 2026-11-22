@@ -35,7 +35,7 @@ test.describe("academic site pages", () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test("renders the home page and navigates primary sections", async ({ page }) => {
+  test("renders the home page and navigates primary sections", { tag: "@mobile" }, async ({ page }) => {
     const response = await page.goto("/");
     expect(response?.status()).toBe(200);
     await expect(page).toHaveTitle(/Li Fuying/);
@@ -60,7 +60,7 @@ test.describe("academic site pages", () => {
     }
   });
 
-  test("browses blog tags and the article experience", async ({ page }) => {
+  test("browses blog tags and the article experience", { tag: "@mobile" }, async ({ page }) => {
     await page.goto("/blog/");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Blog");
     const tags = page.getByRole("navigation", { name: "Tags" });
@@ -103,7 +103,7 @@ test.describe("academic site pages", () => {
     }
   });
 
-  test("opens a project detail page and follows internal links", async ({ page }) => {
+  test("opens a project detail page and follows internal links", { tag: "@mobile" }, async ({ page }) => {
     await page.goto("/projects/");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Projects");
     await page.getByRole("link", { name: /Neural-Symbolic Physics/ }).click();
@@ -185,9 +185,7 @@ test.describe("academic site pages", () => {
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Physics, Intelligence");
   });
 
-  test("mobile navigation opens, closes with Escape, and follows links", async ({ page }, testInfo) => {
-    test.skip(!testInfo.project.name.includes("mobile"), "mobile-only disclosure behaviour");
-
+  test("mobile navigation opens, closes with Escape, and follows links", { tag: "@mobile-only" }, async ({ page }) => {
     await page.goto("/");
     const menu = page.getByRole("button", { name: "Open navigation menu" });
     await expect(menu).toBeVisible();
@@ -215,7 +213,7 @@ test.describe("academic site pages", () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test("marks the current section in the primary nav", async ({ page }) => {
+  test("marks the current section in the primary nav", { tag: "@mobile" }, async ({ page }) => {
     const nav = page.getByRole("navigation").first();
 
     // A top-level route and a nested one under it both light their section.
@@ -237,7 +235,7 @@ test.describe("academic site pages", () => {
     }
   });
 
-  test("tracks the active section in the table of contents while scrolling", async ({
+  test("tracks the active section in the table of contents while scrolling", { tag: "@mobile" }, async ({
     page,
   }) => {
     await page.goto("/blog/algorithmic-resilience/");
