@@ -56,11 +56,10 @@ const YAML_HEADER = [
   "",
 ].join("\n");
 
-const DATE_HINT =
-  "Stored verbatim as YAML text; the site schema validates the pattern.";
+const DATE_HINT = "按 YAML 文本原样保存；站点 schema 会校验格式。";
 
 const slugPattern = CONTENT_SLUG_REGEX.source;
-const bodyHint = `MDX source. Cite with [@key]; citation keys match ${CITATION_KEY_REGEX.source}.`;
+const bodyHint = `MDX 源码。引用写作 [@key]；引用键需匹配 ${CITATION_KEY_REGEX.source}。`;
 
 function findField(collection, name) {
   return (collection?.fields ?? []).find((field) => field.name === name);
@@ -68,31 +67,31 @@ function findField(collection, name) {
 
 function createPostFields() {
   return [
-    { name: "title", label: "Title", widget: "string" },
+    { name: "title", label: "标题", widget: "string" },
     {
       name: "date",
-      label: "Date (YYYY-MM-DD)",
+      label: "日期（YYYY-MM-DD）",
       widget: "string",
-      pattern: [POST_DATE_PATTERN, "Use YYYY-MM-DD, for example 2026-04-26."],
+      pattern: [POST_DATE_PATTERN, "使用 YYYY-MM-DD，例如 2026-04-26。"],
       hint: DATE_HINT,
     },
-    { name: "excerpt", label: "Excerpt", widget: "text" },
+    { name: "excerpt", label: "摘要", widget: "text" },
     {
       name: "tags",
-      label: "Tags",
+      label: "标签",
       widget: "list",
       required: false,
-      hint: "Each tag becomes a /blog/tag/<tag>/ page and may contain only A-Z, a-z, 0-9 and hyphens.",
+      hint: "每个标签会生成 /blog/tag/<tag>/ 页面，只能包含 A-Z、a-z、0-9 和连字符。",
       field: {
         name: "tag",
-        label: "Tag",
+        label: "单个标签",
         widget: "string",
-        pattern: [slugPattern, "Tags may contain only A-Z, a-z, 0-9 and hyphens."],
+        pattern: [slugPattern, "标签只能包含 A-Z、a-z、0-9 和连字符。"],
       },
     },
     {
       name: "lang",
-      label: "Language",
+      label: "语言",
       widget: "select",
       required: false,
       options: postLanguages.map((lang) => ({
@@ -102,23 +101,23 @@ function createPostFields() {
     },
     {
       name: "lastUpdated",
-      label: "Last updated (YYYY-MM-DD)",
+      label: "最后更新（YYYY-MM-DD）",
       widget: "string",
       required: false,
-      pattern: [POST_DATE_PATTERN, "Use YYYY-MM-DD, for example 2026-08-01."],
+      pattern: [POST_DATE_PATTERN, "使用 YYYY-MM-DD，例如 2026-08-01。"],
       hint: DATE_HINT,
     },
     {
       name: "draft",
-      label: "Draft",
+      label: "草稿",
       widget: "boolean",
       required: false,
       default: false,
-      hint: "Drafts stay visible on the local dev server and are excluded from the production export.",
+      hint: "草稿在本地 dev server 可见；生产构建与线上站点会完全排除。",
     },
     {
       name: "body",
-      label: "Body",
+      label: "正文",
       widget: "richtext",
       modes: ["raw"],
       hint: bodyHint,
@@ -130,24 +129,24 @@ function createUpdateFields() {
   return [
     {
       name: "date",
-      label: "Date (YYYY-MM)",
+      label: "日期（YYYY-MM）",
       widget: "string",
-      pattern: [MONTH_PATTERN, "Use YYYY-MM, for example 2026-09."],
+      pattern: [MONTH_PATTERN, "使用 YYYY-MM，例如 2026-09。"],
       hint: DATE_HINT,
     },
-    { name: "content", label: "Content", widget: "text" },
+    { name: "content", label: "内容", widget: "text" },
     {
       name: "icon",
-      label: "Icon",
+      label: "图标",
       widget: "select",
       options: [...updateIcons],
     },
     {
       name: "link",
-      label: "Link",
+      label: "链接",
       widget: "string",
       required: false,
-      hint: "Optional site-relative path (e.g. /blog/post-slug/) or absolute HTTP(S) URL.",
+      hint: "可选：站内绝对路径（如 /blog/post-slug/）或完整的 HTTP(S) URL。",
     },
   ];
 }
@@ -156,75 +155,75 @@ function createProjectFields() {
   return [
     {
       name: "id",
-      label: "ID",
+      label: "ID（文件名）",
       widget: "string",
-      pattern: [slugPattern, "Use only A-Z, a-z, 0-9 and hyphens"],
-      hint: "Must equal the JSON filename: content/projects/<id>.json.",
+      pattern: [slugPattern, "只能使用 A-Z、a-z、0-9 和连字符"],
+      hint: "必须与 JSON 文件名一致：content/projects/<id>.json。",
     },
-    { name: "title", label: "Title", widget: "string" },
-    { name: "description", label: "Description", widget: "text" },
+    { name: "title", label: "标题", widget: "string" },
+    { name: "description", label: "简介", widget: "text" },
     {
       name: "date",
-      label: "Date (YYYY-MM)",
+      label: "日期（YYYY-MM）",
       widget: "string",
-      pattern: [MONTH_PATTERN, "Use YYYY-MM, for example 2024-03."],
+      pattern: [MONTH_PATTERN, "使用 YYYY-MM，例如 2024-03。"],
       hint: DATE_HINT,
     },
     {
       name: "lastModified",
-      label: "Last modified (YYYY-MM-DD)",
+      label: "最后修改（YYYY-MM-DD）",
       widget: "string",
       required: false,
-      pattern: [POST_DATE_PATTERN, "Use YYYY-MM-DD, for example 2025-01-31."],
+      pattern: [POST_DATE_PATTERN, "使用 YYYY-MM-DD，例如 2025-01-31。"],
       hint: DATE_HINT,
     },
     {
       name: "thumbnail",
-      label: "Thumbnail",
+      label: "缩略图",
       widget: "string",
-      hint: "Site-root-relative path, e.g. /projects/project-1.svg. Uploads land in public/projects/<id>/.",
+      hint: "站点根相对路径，如 /projects/project-1.svg；上传的文件落在 public/projects/<id>/。",
     },
     {
       name: "mediaType",
-      label: "Media type",
+      label: "媒体类型",
       widget: "select",
       required: false,
       options: [
-        { label: "Image", value: "image" },
-        { label: "Video", value: "video" },
+        { label: "图片", value: "image" },
+        { label: "视频", value: "video" },
       ],
     },
     {
       name: "links",
-      label: "Links",
+      label: "链接",
       widget: "object",
       required: false,
       fields: [
-        { name: "project", label: "Project page", widget: "string", required: false },
-        { name: "code", label: "Code", widget: "string", required: false },
-        { name: "paper", label: "Paper", widget: "string", required: false },
-        { name: "demo", label: "Demo", widget: "string", required: false },
+        { name: "project", label: "项目主页", widget: "string", required: false },
+        { name: "code", label: "代码", widget: "string", required: false },
+        { name: "paper", label: "论文", widget: "string", required: false },
+        { name: "demo", label: "演示", widget: "string", required: false },
       ],
     },
     {
       name: "tags",
-      label: "Tags",
+      label: "标签",
       widget: "list",
       required: false,
-      hint: "Display-only labels; spaces and capitals are allowed here.",
+      hint: "仅用于展示；允许空格和大写。",
       field: {
         name: "tag",
-        label: "Tag",
+        label: "单个标签",
         widget: "string",
       },
     },
     {
       name: "draft",
-      label: "Draft",
+      label: "草稿",
       widget: "boolean",
       required: false,
       default: false,
-      hint: "Drafts stay visible on the local dev server and are excluded from the production export.",
+      hint: "草稿在本地 dev server 可见；生产构建与线上站点会完全排除。",
     },
   ];
 }
@@ -256,8 +255,8 @@ function createConfig() {
     collections: [
       {
         name: "posts",
-        label: "Blog Posts",
-        label_singular: "Blog Post",
+        label: "博客文章",
+        label_singular: "博客文章",
         folder: "content/posts",
         media_folder: "/public/posts/{{slug}}",
         public_folder: "/posts/{{slug}}",
@@ -273,8 +272,8 @@ function createConfig() {
       },
       {
         name: "updates",
-        label: "Timeline Updates",
-        label_singular: "Update",
+        label: "时间线更新",
+        label_singular: "更新",
         folder: "content/updates",
         extension: "json",
         format: "json",
@@ -286,8 +285,8 @@ function createConfig() {
       },
       {
         name: "projects",
-        label: "Projects",
-        label_singular: "Project",
+        label: "项目",
+        label_singular: "项目",
         folder: "content/projects",
         media_folder: "/public/projects/{{slug}}",
         public_folder: "/projects/{{slug}}",

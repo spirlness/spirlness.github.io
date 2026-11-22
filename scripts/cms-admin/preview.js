@@ -127,8 +127,8 @@
     const target = previewPath(collection, entry);
 
     const hint = target
-      ? "Live site preview (saved content). Save, then reload if HMR has not refreshed it."
-      : "Save this entry once to get a live preview URL.";
+      ? "实时站点预览（已保存内容）。保存后若未自动刷新，点「重新加载」。"
+      : "先保存一次此条目，即可生成实时预览。";
 
     const controls = [
       h(
@@ -146,7 +146,7 @@
             style: CONTROL_STYLE,
             onClick: () => reloadFrames(previewDocument, target),
           },
-          "Reload"
+          "重新加载"
         ),
         h(
           "a",
@@ -156,7 +156,7 @@
             rel: "noopener noreferrer",
             style: CONTROL_STYLE,
           },
-          "Open in new tab"
+          "在新标签页打开"
         )
       );
     }
@@ -186,7 +186,7 @@
               className: "cms-live-preview__frame",
               "data-cms-preview-url": target,
               src: target,
-              title: "Live site preview",
+              title: "实时站点预览",
               style: {
                 flex: "1 1 auto",
                 width: "100%",
