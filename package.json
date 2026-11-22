@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "serve out",
     "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit --project tsconfig.json",
     "content:check": "vitest run src/lib/__tests__/content-integrity.test.ts",
     "new-post": "node scripts/new-post.mjs",
     "test": "vitest run",
@@ -21,7 +22,7 @@
     "media:variants": "node scripts/media-variants.mjs",
     "validate:fast": "tsx scripts/validate-content-fast.mjs",
     "prebuild": "node scripts/media-variants.mjs",
-    "postbuild": "npm run cms:strip && tsx scripts/content-export.mjs --clean",
+    "postbuild": "tsx scripts/content-export.mjs --clean",
     "export:check": "tsx scripts/content-export.mjs"
   },
   "dependencies": {

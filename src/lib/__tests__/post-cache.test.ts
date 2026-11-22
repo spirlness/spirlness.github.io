@@ -27,8 +27,7 @@ tags: ['test']
 Post content.`;
   fs.writeFileSync(file, postContent);
   vi.spyOn(process, "cwd").mockReturnValue(root);
-  const { getAllPostFrontmatter } = await import("../posts");
-  return { file, getAllPostFrontmatter };
+  return { file, ...(await import("../posts")) };
 }
 
 it("avoids repeated directory reads during production exports", async () => {
@@ -37,6 +36,18 @@ it("avoids repeated directory reads during production exports", async () => {
   expect(getAllPostFrontmatter()[0].title).toBe("Original");
   expect(getAllPostFrontmatter()[0].title).toBe("Original");
   expect(reads).toHaveBeenCalledTimes(1);
+});
+
+it("shares the parsed post across metadata, index and body reads in production", async () => {
+  const { file, getPostFrontmatter, getAllPostFrontmatter, getPostBySlug } = await fixture("production");
+  const reads = vi.spyOn(fs, "readFileSync");
+  const metadata = getPostFrontmatter("example");
+  metadata.tags.push("metadata edit");
+  expect(getAllPostFrontmatter()[0].tags).toEqual(["test"]);
+  const detail = await getPostBySlug("example");
+  detail.frontmatter.tags.push("detail edit");
+  expect(getPostFrontmatter("example").tags).toEqual(["test"]);
+  expect(reads.mock.calls.filter(([filename]) => filename === file)).toHaveLength(1);
 });
 
 it("picks up post edits and additions during development", async () => {

@@ -1,18 +1,27 @@
 import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
-import { parse } from "parse5";
 import { siteProfile } from "../src/content/site.ts";
 import { parsePostFrontmatter, parseProject } from "../src/lib/content-schemas.ts";
 import { readContentFile } from "../src/lib/content-files.ts";
 import { EMPTY_STATIC_PARAM } from "../src/lib/content-id.ts";
 import { parseSrcSet } from "../src/lib/media-srcset.ts";
+import { checkCmsExport } from "./strip-cms-from-export.mjs";
 
 const outDir = path.resolve("out");
 const clean = process.argv.includes("--clean");
+const metadataFiles = ["sitemap.xml", "robots.txt", "feed.xml", "opengraph-image.png"];
 const pages = new Set(["/", "/blog/", "/projects/", "/publications/"]);
 const draftFolders = [];
+let draftCount = 0;
 const siteOrigin = new URL(siteProfile.url).origin;
+
+checkCmsExport(outDir, { clean });
+for (const file of metadataFiles) {
+  if (!fs.statSync(path.join(outDir, file), { throwIfNoEntry: false })?.isFile()) {
+    throw new Error(`Missing exported metadata file: /${file}`);
+  }
+}
 
 for (const [collection, extension] of [["posts", ".mdx"], ["projects", ".json"]]) {
   const dir = path.join("content", collection);
@@ -27,7 +36,9 @@ for (const [collection, extension] of [["posts", ".mdx"], ["projects", ".json"]]
       if (fs.existsSync(path.join(outDir, route, "index.html"))) {
         throw new Error(`Draft page found in export: ${route}`);
       }
-      draftFolders.push(path.join(outDir, collection, id));
+      draftCount++;
+      const folder = path.join(outDir, collection, id);
+      if (fs.existsSync(folder)) draftFolders.push(folder);
     } else {
       pages.add(route);
       if (post) {
@@ -61,13 +72,14 @@ function collectReferences(node, base) {
   for (const child of node.childNodes ?? []) collectReferences(child, base);
 }
 
+const parseHtml = draftFolders.length ? (await import("parse5")).parse : null;
 for (const route of pages) {
   const file = path.join(outDir, route, "index.html");
   if (!fs.statSync(file, { throwIfNoEntry: false })?.isFile()) {
     throw new Error(`Missing exported page: ${route}`);
   }
-  if (draftFolders.length) {
-    collectReferences(parse(fs.readFileSync(file, "utf8")), new URL(route, siteOrigin));
+  if (parseHtml) {
+    collectReferences(parseHtml(fs.readFileSync(file, "utf8")), new URL(route, siteOrigin));
   }
 }
 
@@ -91,7 +103,7 @@ function checkFolder(dir, keep, description) {
 }
 
 for (const dir of draftFolders) {
-  if (fs.existsSync(dir)) checkFolder(dir, (url) => shared.has(url), "Draft attachment");
+  checkFolder(dir, (url) => shared.has(url), "Draft attachment");
 }
 // Next writes HTML and RSC files even when the placeholder calls notFound().
 for (const prefix of ["blog", "blog/tag", "projects"]) {
@@ -100,4 +112,4 @@ for (const prefix of ["blog", "blog/tag", "projects"]) {
     checkFolder(dir, (url) => fs.existsSync(path.join("public", url)), "Empty route placeholder");
   }
 }
-console.log(`[export] Verified ${pages.size} public pages and ${draftFolders.length} draft entries.`);
+console.log(`[export] Verified ${pages.size} public pages, metadata files, CMS absence and ${draftCount} draft entries.`);

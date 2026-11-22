@@ -25,11 +25,6 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
-import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
-import remarkMdx from "remark-mdx";
-import remarkParse from "remark-parse";
-import { unified } from "unified";
 import { visit } from "unist-util-visit";
 import { parse as parseBibtex } from "@retorquere/bibtex-parser";
 import {
@@ -42,6 +37,7 @@ import {
   extractLocalTargets,
   isAssetPath,
   localAbsolute,
+  parseContentBody,
   pathnameOf,
 } from "../src/lib/content-targets.ts";
 import { normalizeInternalHref } from "../src/lib/links.ts";
@@ -67,12 +63,6 @@ const citationPattern = new RegExp(
   `\\[@([${CITATION_KEY_CHARS}]+(?:;\\s*@[${CITATION_KEY_CHARS}]+)*)\\]`,
   "g"
 );
-
-const bodyParser = unified()
-  .use(remarkParse)
-  .use(remarkGfm)
-  .use(remarkMath)
-  .use(remarkMdx);
 
 function log(level, message) {
   console.log(`[cms:validate] ${level} ${message}`);
@@ -130,10 +120,10 @@ function inspectBody(body) {
   const citations = [];
   let tree;
   try {
-    tree = bodyParser.parse(body);
+    tree = parseContentBody(body);
   } catch (error) {
     problems.push(`MDX parse error: ${formatIssues(error)}`);
-    return { problems, citations };
+    return { problems, citations, tree: null };
   }
 
   visit(tree, (node) => {
@@ -154,14 +144,15 @@ function inspectBody(body) {
     }
   });
 
-  return { problems, citations };
+  return { problems, citations, tree };
 }
 
-function checkTargets(body, label, knownPaths) {
+function checkTargets(tree, label, knownPaths) {
+  if (!tree) return []; // inspectBody already reported the parse error.
   const problems = [];
   let targets;
   try {
-    targets = extractLocalTargets(body, label);
+    targets = extractLocalTargets(tree, label);
   } catch (error) {
     return [formatIssues(error)];
   }
@@ -364,7 +355,7 @@ function validate({ changedOnly = false, verbose = true } = {}) {
       }
     }
     const postPaths = post.data.draft === true ? knownPaths : publishedPaths;
-    for (const problem of checkTargets(post.body, post.label, postPaths)) {
+    for (const problem of checkTargets(inspected.tree, post.label, postPaths)) {
       errors.push(`${post.label}: ${problem}`);
     }
   }
@@ -378,7 +369,7 @@ function validate({ changedOnly = false, verbose = true } = {}) {
       const body = matter(fs.readFileSync(mdxPath, "utf8")).content;
       const inspected = inspectBody(body);
       for (const problem of inspected.problems) errors.push(`${label}: ${problem}`);
-      for (const problem of checkTargets(body, label, projectPaths)) {
+      for (const problem of checkTargets(inspected.tree, label, projectPaths)) {
         errors.push(`${label}: ${problem}`);
       }
     }

@@ -9,7 +9,6 @@ import {
 } from "./content-drafts";
 import { readContentFile } from "./content-files";
 import { parseProject, type ProjectFrontmatter } from "./content-schemas";
-import { compileContent } from "./mdx";
 
 export type { ProjectFrontmatter } from "./content-schemas";
 
@@ -17,6 +16,19 @@ const PROJECTS_PATH = path.join(process.cwd(), "content/projects");
 
 // Production caches stay private; callers own deep snapshots, including tags/links.
 let cachedProjects: ProjectFrontmatter[] | null = null;
+const cachedProjectFiles = new Map<string, ProjectFrontmatter>();
+
+function readProjectFile(file: string): ProjectFrontmatter {
+  const cache = process.env.NODE_ENV === "production" ? cachedProjectFiles : undefined;
+  const cached = cache?.get(file);
+  if (cached) return cached;
+
+  const filenameId = assertSafeContentSlug(file.slice(0, -5), "project id");
+  const raw = readContentFile(PROJECTS_PATH, file);
+  const project = parseProject(JSON.parse(raw) as unknown, filenameId, file);
+  cache?.set(file, project);
+  return project;
+}
 
 /**
  * Build a normalized, trailing-slash href for a project. Matches the rule in
@@ -35,9 +47,7 @@ export function getAllProjects(
   if (cacheEnabled && cachedProjects) {
     // The cache holds every parsed project; visibility is applied on each
     // return so an explicit `includeDrafts` override can never poison later reads.
-    return structuredClone(cachedProjects).filter(
-      (project) => !isDraftHidden(project, includeDrafts)
-    );
+    return structuredClone(cachedProjects.filter((project) => !isDraftHidden(project, includeDrafts)));
   }
 
   if (!fs.existsSync(PROJECTS_PATH)) {
@@ -49,23 +59,14 @@ export function getAllProjects(
 
   for (const file of files) {
     if (!file.endsWith(".json")) continue;
-    const filenameId = assertSafeContentSlug(
-      file.replace(/\.json$/, ""),
-      "project id"
-    );
-    const raw = readContentFile(PROJECTS_PATH, file);
-    projects.push(parseProject(JSON.parse(raw) as unknown, filenameId, file));
+    projects.push(readProjectFile(file));
   }
 
   // parseProject validates YYYY-MM first; preserve zero and negative timestamps.
-  const sortedProjects = projects.sort(
-    (a, b) => Date.parse(b.date) - Date.parse(a.date)
-  );
+  const sortedProjects = projects.sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
 
   if (cacheEnabled) cachedProjects = sortedProjects;
-  return structuredClone(sortedProjects).filter(
-    (project) => !isDraftHidden(project, includeDrafts)
-  );
+  return structuredClone(sortedProjects.filter((project) => !isDraftHidden(project, includeDrafts)));
 }
 
 export function getProjectById(
@@ -74,17 +75,18 @@ export function getProjectById(
 ): ProjectFrontmatter {
   const includeDrafts = resolveIncludeDrafts(options);
   const cleanId = assertSafeContentSlug(id, "project id");
-  const jsonPath = path.join(PROJECTS_PATH, `${cleanId}.json`);
-  if (!fs.existsSync(jsonPath)) {
+  let project: ProjectFrontmatter;
+  try {
+    project = readProjectFile(`${cleanId}.json`);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
     throw new Error(`Project not found: ${id}`);
   }
-  const raw = readContentFile(PROJECTS_PATH, `${cleanId}.json`);
-  const project = parseProject(JSON.parse(raw) as unknown, cleanId, `${cleanId}.json`);
   // A hidden draft takes the same not-found path as a project without a file.
   if (isDraftHidden(project, includeDrafts)) {
     throw new Error(`Project not found: ${id}`);
   }
-  return project;
+  return structuredClone(project);
 }
 
 export async function getProjectDetailById(
@@ -106,6 +108,7 @@ export async function getProjectDetailById(
   // do — otherwise markdown treats the opening `---` as a thematic break <hr>.
   const fileContent = readContentFile(PROJECTS_PATH, `${cleanId}.mdx`);
   const { content: mdxBody } = matter(fileContent);
+  const { compileContent } = await import("./mdx");
   const { content } = await compileContent({
     source: mdxBody,
     slug: cleanId,

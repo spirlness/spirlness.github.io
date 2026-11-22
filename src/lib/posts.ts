@@ -11,7 +11,7 @@ import {
   resolveIncludeDrafts,
   type ContentVisibilityOptions,
 } from "./content-drafts";
-import { compileContent, type TocHeading } from "./mdx";
+import type { TocHeading } from "./mdx";
 import type { Publication } from "./bibtex";
 import { readingTime } from "./reading-time";
 
@@ -23,6 +23,7 @@ const POSTS_PATH = path.join(process.cwd(), "content/posts");
 
 // Production caches stay private; callers own deep snapshots, including tags.
 let cachedPosts: PostFrontmatter[] | null = null;
+const cachedPostSources = new Map<string, { frontmatter: PostFrontmatter; body: string }>();
 
 /**
  * Build a normalized, trailing-slash href for a blog post. GitHub Pages serves
@@ -54,17 +55,17 @@ function parseDateTimestamp(date: string): number {
   return Number.isNaN(time) ? Number.MIN_SAFE_INTEGER : time;
 }
 
-function readPostFile(slug: string): { realSlug: string; fileContent: string } {
+function readPostSource(slug: string) {
   const realSlug = assertSafeContentSlug(slug.replace(/\.mdx$/, ""), "post slug");
-  const filePath = path.join(POSTS_PATH, `${realSlug}.mdx`);
-  const fileContent = fs.readFileSync(filePath, "utf8");
-  return { realSlug, fileContent };
-}
+  const cache = process.env.NODE_ENV === "production" ? cachedPostSources : undefined;
+  const cached = cache?.get(realSlug);
+  if (cached) return cached;
 
-/** Read and validate one post's frontmatter without applying draft visibility. */
-function readPostFrontmatter(slug: string): PostFrontmatter {
-  const { fileContent, realSlug } = readPostFile(slug);
-  return parsePostFrontmatter(matter(fileContent).data, realSlug);
+  const filePath = path.join(POSTS_PATH, `${realSlug}.mdx`);
+  const { data, content: body } = matter(fs.readFileSync(filePath, "utf8"));
+  const source = { frontmatter: parsePostFrontmatter(data, realSlug), body };
+  cache?.set(realSlug, source);
+  return source;
 }
 
 /**
@@ -86,23 +87,22 @@ export async function getPostBySlug(
   options: ContentVisibilityOptions = {}
 ): Promise<Post> {
   const includeDrafts = resolveIncludeDrafts(options);
-  const { fileContent, realSlug } = readPostFile(slug);
-  const { content: mdxBody, data } = matter(fileContent);
-  const frontmatter = parsePostFrontmatter(data, realSlug);
+  const { frontmatter, body } = readPostSource(slug);
   assertPostVisible(frontmatter, includeDrafts);
+  const { compileContent } = await import("./mdx");
   const { content, references, headings } = await compileContent({
-    source: mdxBody,
-    slug: realSlug,
+    source: body,
+    slug: frontmatter.slug,
     citations: true,
     tableOfContents: true,
   });
 
   return {
     content,
-    frontmatter,
+    frontmatter: structuredClone(frontmatter),
     references,
     headings,
-    readingMinutes: readingTime(mdxBody),
+    readingMinutes: readingTime(body),
   };
 }
 
@@ -111,9 +111,9 @@ export function getPostFrontmatter(
   options: ContentVisibilityOptions = {}
 ): PostFrontmatter {
   const includeDrafts = resolveIncludeDrafts(options);
-  const frontmatter = readPostFrontmatter(slug);
+  const { frontmatter } = readPostSource(slug);
   assertPostVisible(frontmatter, includeDrafts);
-  return frontmatter;
+  return structuredClone(frontmatter);
 }
 
 export function getAllPostFrontmatter(
@@ -124,9 +124,7 @@ export function getAllPostFrontmatter(
   if (cacheEnabled && cachedPosts) {
     // The cache holds every parsed post; visibility is applied on each return
     // so an explicit `includeDrafts` override can never poison later reads.
-    return structuredClone(cachedPosts).filter(
-      (post) => !isDraftHidden(post, includeDrafts)
-    );
+    return structuredClone(cachedPosts.filter((post) => !isDraftHidden(post, includeDrafts)));
   }
 
   if (!fs.existsSync(POSTS_PATH)) {
@@ -136,11 +134,7 @@ export function getAllPostFrontmatter(
   const files = fs.readdirSync(POSTS_PATH);
   const posts = files
     .filter((file) => file.endsWith(".mdx"))
-    .map((file) => {
-      const slug = file.replace(/\.mdx$/, "");
-      assertSafeContentSlug(slug, "post slug");
-      return readPostFrontmatter(slug);
-    });
+    .map((file) => readPostSource(file.slice(0, -4)).frontmatter);
 
   // Optimization: Schwartzian transform precomputes date timestamps once per post
   // to avoid repeated Date object allocations inside Array.prototype.sort().
@@ -155,9 +149,7 @@ export function getAllPostFrontmatter(
     cachedPosts = sortedPosts;
   }
 
-  return structuredClone(sortedPosts).filter(
-    (post) => !isDraftHidden(post, includeDrafts)
-  );
+  return structuredClone(sortedPosts.filter((post) => !isDraftHidden(post, includeDrafts)));
 }
 
 export interface TagCount {

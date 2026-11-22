@@ -62,15 +62,19 @@ export function isAssetPath(pathname: string): boolean {
   return /\/[^/]+\.[^/]+$/.test(pathname);
 }
 
-/** Collect every local target an MDX body declares. */
+export function parseContentBody(source: string): Root {
+  return contentParser.parse(source) as Root;
+}
+
+/** Collect local targets from an MDX source or an already parsed body. */
 export function extractLocalTargets(
-  source: string,
+  source: string | Root,
   origin = "mdx"
 ): LocalTargets {
   const links: string[] = [];
   const assets: string[] = [];
   const relative: string[] = [];
-  const tree = contentParser.parse(source) as Root;
+  const tree = typeof source === "string" ? parseContentBody(source) : source;
 
   const add = (bucket: string[], url: string) => {
     url = url.trim();

@@ -21,8 +21,7 @@ async function fixture(mode: "production" | "development") {
   const project = { id: "example", title: "Original", description: "Example", date: "2024-01", thumbnail: "/projects/example.svg", tags: [], links: {} };
   fs.writeFileSync(file, JSON.stringify(project));
   vi.spyOn(process, "cwd").mockReturnValue(root);
-  const { getAllProjects } = await import("../projects");
-  return { file, project, getAllProjects };
+  return { file, project, ...(await import("../projects")) };
 }
 
 it("avoids repeated directory reads during production exports", async () => {
@@ -31,6 +30,17 @@ it("avoids repeated directory reads during production exports", async () => {
   expect(getAllProjects()[0].title).toBe("Original");
   expect(getAllProjects()[0].title).toBe("Original");
   expect(reads).toHaveBeenCalledTimes(1);
+});
+
+it("reads the project JSON once for index, metadata and detail in production", async () => {
+  const { file, project, getAllProjects, getProjectById, getProjectDetailById } = await fixture("production");
+  const reads = vi.spyOn(fs, "readFileSync");
+  expect(getAllProjects()).toEqual([project]);
+  const metadata = getProjectById("example");
+  metadata.tags?.push("metadata edit");
+  const detail = await getProjectDetailById("example");
+  expect(detail.project).toEqual(project);
+  expect(reads.mock.calls.filter(([filename]) => filename === file)).toHaveLength(1);
 });
 
 it("picks up project edits and additions during development", async () => {

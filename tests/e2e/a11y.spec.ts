@@ -161,14 +161,17 @@ test.describe("reduced motion (S3)", () => {
     });
     page.on("pageerror", (error) => pageErrors.push(error.message));
     await page.emulateMedia({ reducedMotion: "reduce" });
-    const environmentLoaded = page.waitForResponse((response) =>
-      new URL(response.url()).pathname === "/environments/potsdamer_platz_1k.hdr"
-    );
     await page.goto("/blog/algorithmic-resilience/");
     const start = page.getByRole("button", { name: "Start simulation", exact: true });
-    if (isMobile) await start.tap();
-    else await start.click();
-    expect((await environmentLoaded).status()).toBe(200);
+    // Time the asset request from activation, independent of navigation.
+    const [environment] = await Promise.all([
+      page.waitForResponse(
+        (response) => new URL(response.url()).pathname === "/environments/potsdamer_platz_1k.hdr",
+        { timeout: 30000 }
+      ),
+      isMobile ? start.tap({ timeout: 30000 }) : start.click({ timeout: 30000 }),
+    ]);
+    expect(environment.status()).toBe(200);
     await expect(page.getByRole("button", { name: "Pause simulation", exact: true })).toBeVisible({ timeout: 30000 });
     const canvas = page.locator("canvas").first();
     await expect(canvas).toBeVisible();

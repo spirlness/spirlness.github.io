@@ -38,6 +38,7 @@ Run quality checks before committing:
 
 ```bash
 npm run lint
+npm run typecheck
 npm run test:coverage
 npm run test:e2e
 ```
@@ -48,7 +49,7 @@ The coverage suite includes the complete content-integrity check: schemas, local
 
 The post, project and publication collection readers return owned deep snapshots on every read. Callers may reorder arrays or edit records, tags and links without changing cached data. Production retains parsed content internally; development continues to read edits from disk. MDX compilation is also deduplicated within each production worker for matching source, slug and compiler options, including simultaneous reads. Changed sources replace the previous entry and failed compilations are discarded. References and headings are returned as independent snapshots; React elements are treated as immutable. Development bypasses the compilation cache. Separate test/build processes do not share these caches.
 
-`npm run build` creates the static export in `out/`.
+`npm run build` creates the static export in `out/` and uses `tsconfig.build.json` to check the application and generated Next.js types. `npm run typecheck` generates route types and checks the full TypeScript project, including tests and tooling. Both CI workflows run it.
 
 Page-level browser tests run against the production static export. Install the Chromium browser once after `npm ci`, then run:
 
@@ -97,7 +98,7 @@ Validation and production hygiene:
 
 - `npm run validate:fast` (or `--watch`) checks schemas, citation keys, body h1 headings and site-absolute media links for fast feedback. `npm run content:check` remains the full gate and runs in the coverage suite.
 - `npm run cms:config` regenerates the CMS config; `npm run cms:config -- --check` fails if the generated file is stale. The generator fails loudly if its field mapping drifts from `src/lib/content-schemas.ts`.
-- `npm run build` copies `public/admin/` into `out/`; the `postbuild` hook strips it automatically (`npm run cms:strip` does the same by hand). Deployment CI runs `cms:strip` after the browser suite and then asserts that no `out/admin` directory or Sveltia-named files remain in the export.
+- The `postbuild` hook removes the generated CMS, draft-only uploads and empty-route placeholders from `out/`, then verifies the export. `npm run cms:strip` is available to remove the CMS by hand.
 
 ## GitHub Pages Deployment
 
@@ -109,7 +110,7 @@ Deployment behavior:
 
 - Pushes to `master` trigger `.github/workflows/deploy.yml`.
 - The workflow installs dependencies with `npm ci`.
-- It runs ESLint.
+- It runs ESLint and checks the full TypeScript project.
 - It runs the Vitest suite and core-logic coverage gate with `npm run test:coverage`.
 - It installs Chromium and runs the Playwright page suite, which builds and serves the static export.
 - It verifies that these required pages and files exist:
@@ -121,8 +122,7 @@ Deployment behavior:
   - `out/robots.txt`
   - `out/feed.xml`
   - `out/opengraph-image.png`
-- The same check runs locally with `npm run export:check` after building. It verifies that every non-draft blog post and every non-draft project exported its own page, that each slug and project `id` is URL-safe, and that draft entries (which the production build excludes) are skipped.
-- It strips the local CMS from `out/` and fails if any admin or Sveltia-named file remains.
+- The same read-only check runs locally with `npm run export:check` after building. It also verifies published posts, projects and tag routes, and checks that draft pages, draft-only uploads, empty-route placeholders, the CMS admin and Sveltia-named assets are absent.
 - It uploads `out/` as a GitHub Pages artifact and deploys it.
 
 A lint failure or a failing test stops the deploy before anything is published.

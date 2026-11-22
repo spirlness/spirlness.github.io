@@ -3,11 +3,11 @@ import type { Root as MdastRoot, Parent, Text, PhrasingContent } from "mdast";
 import { toText } from "hast-util-to-text";
 import { compileMDX } from "next-mdx-remote/rsc";
 import rehypeKatex from "rehype-katex";
-import rehypePrettyCode from "rehype-pretty-code";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
-import { visit } from "unist-util-visit";
+import { unified, type Transformer } from "unified";
+import { EXIT, visit } from "unist-util-visit";
 import { mdxComponents } from "@/components/mdx/MDXComponents";
 import { getAllPublications, type Publication } from "./bibtex";
 import { CITATION_KEY_CHARS } from "./content-id";
@@ -64,9 +64,7 @@ function bodyHeadingGuardPlugin(slug: string) {
 }
 
 function citationPlugin(references: Publication[], slug: string) {
-  const publications = new Map(
-    getAllPublications().map((publication) => [publication.id, publication])
-  );
+  let publications: Map<string, Publication> | undefined;
 
   return (tree: MdastRoot) => {
     // Assign each citation key one number in first-use order.
@@ -80,6 +78,9 @@ function citationPlugin(references: Publication[], slug: string) {
       }
 
       citationPattern.lastIndex = 0;
+      publications ??= new Map(
+        getAllPublications().map((publication) => [publication.id, publication])
+      );
       const children: PhrasingContent[] = [];
       let cursor = 0;
 
@@ -135,6 +136,25 @@ function citationPlugin(references: Publication[], slug: string) {
       parent.children.splice(index, 1, ...children);
       return index + children.length;
     });
+  };
+}
+
+/** Start Shiki only for bodies with code, including inline code. */
+function highlightCode(): Transformer<HastRoot> {
+  return async (tree, file) => {
+    let hasCode = false;
+    visit(tree, "element", (element) => {
+      if (element.tagName === "code") {
+        hasCode = true;
+        return EXIT;
+      }
+    });
+    if (!hasCode) return;
+
+    const { default: rehypePrettyCode } = await import("rehype-pretty-code");
+    return unified()
+      .use(rehypePrettyCode, { theme: "github-dark-high-contrast", keepBackground: false })
+      .run(tree, file);
   };
 }
 
@@ -209,7 +229,7 @@ async function compileUncachedContent({
           // anything else degrades to inert error text (backstop for the
           // remark guard above, which throws first).
           [rehypeKatex, { trust: isTrustedMathUrl }],
-          [rehypePrettyCode, { theme: "github-dark-high-contrast", keepBackground: false }],
+          highlightCode,
           ...(tableOfContents
             ? [rehypeSlug, [collectHeadingsPlugin, headings] as never]
             : []),

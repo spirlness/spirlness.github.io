@@ -61,13 +61,16 @@ jobs:
           # once shipped fresh HTML with stale CSS (PR #26/#27). The key
           # covers every build input plus the Node runtime; the -v3 segment
           # abandons entries saved under the older keys.
-          key: ${{ runner.os }}-nextjs-v3-${{ steps.node-runtime.outputs.version }}-${{ hashFiles('**/package-lock.json', 'package.json', 'src/**', 'content/**', 'public/**', 'next.config.*', 'postcss.config.*', 'tsconfig.json') }}
+          key: ${{ runner.os }}-nextjs-v3-${{ steps.node-runtime.outputs.version }}-${{ hashFiles('**/package-lock.json', 'package.json', 'src/**', 'content/**', 'public/**', 'next.config.*', 'postcss.config.*', 'tsconfig*.json') }}
 
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
 
       - name: Lint
         run: ${{ steps.detect-package-manager.outputs.manager }} run lint
+
+      - name: Type check application and tests
+        run: ${{ steps.detect-package-manager.outputs.manager }} run typecheck
 
       - name: Test with coverage
         run: ${{ steps.detect-package-manager.outputs.manager }} run test:coverage
@@ -98,47 +101,8 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      # The Playwright build copies public/ (including the generated, gitignored
-      # Sveltia admin) into out/. The deployable artifact must never ship it.
-      - name: Strip dev-only CMS from export
-        run: ${{ steps.detect-package-manager.outputs.manager }} run cms:strip
-
-      - name: Assert CMS is absent from the export
-        shell: bash
-        run: |
-          if [[ -e out/admin ]]; then
-            echo "::error file=out/admin,title=CMS leaked into the export::out/admin must not be deployed"
-            exit 1
-          fi
-          if [[ -n "$(find out -iname '*sveltia*' -print -quit)" ]]; then
-            echo "::error title=CMS leaked into the export::Sveltia-named files remain under out/"
-            find out -iname '*sveltia*'
-            exit 1
-          fi
-          echo "CMS admin is absent from out/."
-
       - name: Verify static export
-        shell: bash
-        run: |
-          required_files=(
-            "out/index.html"
-            "out/blog/index.html"
-            "out/projects/index.html"
-            "out/publications/index.html"
-            "out/sitemap.xml"
-            "out/robots.txt"
-            "out/feed.xml"
-            "out/opengraph-image.png"
-          )
-
-          for file in "${required_files[@]}"; do
-            if [[ ! -f "$file" ]]; then
-              echo "::error file=$file,title=Missing static export file::$file was not generated"
-              exit 1
-            fi
-          done
-
-          npm run export:check
+        run: ${{ steps.detect-package-manager.outputs.manager }} run export:check
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
