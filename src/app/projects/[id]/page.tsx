@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "katex/dist/katex.min.css";
 import { getProjectById, getProjectDetailById, getAllProjects } from "@/lib/projects";
 import { notFound } from "next/navigation";
+import { EMPTY_STATIC_PARAM } from "@/lib/content-id";
 import { siteProfile } from "@/content/site";
 import { buildPageMetadata } from "@/lib/metadata";
 import { ProjectDetailView } from "@/components/projects/ProjectDetailView";
@@ -21,6 +22,7 @@ export const dynamicParams = false;
  */
 export async function generateStaticParams() {
   const projects = getAllProjects();
+  if (!projects.length) return [{ id: EMPTY_STATIC_PARAM }];
   return projects.map((project) => ({
     id: project.id,
   }));
@@ -46,6 +48,7 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
 
 export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   const { id } = await params;
+  if (id === EMPTY_STATIC_PARAM) notFound();
 
   let result: Awaited<ReturnType<typeof getProjectDetailById>> | undefined;
   try {

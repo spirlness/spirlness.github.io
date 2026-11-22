@@ -102,6 +102,10 @@ describe("assertAssetResolves", () => {
     ).not.toThrow();
   });
 
+  it("rejects a directory used as an image", () => {
+    expect(() => assertAssetResolves("/projects/", "test image")).toThrow(/Missing asset/);
+  });
+
   it("still rejects an image the export does not emit", () => {
     expect(() =>
       assertAssetResolves("/nope/missing.png", "test thumbnail")

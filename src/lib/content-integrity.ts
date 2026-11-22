@@ -57,7 +57,7 @@ function resolvePublicFile(url: string): string | undefined {
 
 function assertAssetExists(url: string, origin: string): void {
   const resolved = resolvePublicFile(url);
-  if (!resolved || !fs.existsSync(resolved)) {
+  if (!resolved || !fs.statSync(resolved, { throwIfNoEntry: false })?.isFile()) {
     throw new Error(`Missing asset under public/: ${url} (${origin})`);
   }
 }

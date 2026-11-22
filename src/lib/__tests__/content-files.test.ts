@@ -40,7 +40,15 @@ describe("readContentFile", () => {
     fs.mkdirSync(directory);
     const outside = path.join(root, "outside.json");
     fs.writeFileSync(outside, "{}", "utf8");
-    fs.symlinkSync(outside, path.join(directory, "entry.json"), "file");
+    const link = path.join(directory, "entry.json");
+    try {
+      fs.symlinkSync(outside, link, "file");
+    } catch (error) {
+      if (process.platform !== "win32" || (error as NodeJS.ErrnoException).code !== "EPERM") throw error;
+      // Windows junctions exercise the reparse-point check without symlink privileges.
+      fs.mkdirSync(path.join(root, "outside-dir"));
+      fs.symlinkSync(path.join(root, "outside-dir"), link, "junction");
+    }
 
     expect(() => readContentFile(directory, "entry.json")).toThrow(/regular file/);
   });

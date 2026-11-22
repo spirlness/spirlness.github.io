@@ -13,7 +13,7 @@
  *   5. start `next dev`
  *
  * Ctrl-C stops all children (on Windows the whole process tree is killed with
- * `taskkill /T /F`). The CMS itself is at /admin/ on the dev-server port.
+ * `taskkill /T /F`). The CMS itself is at /admin/index.html on the dev-server port.
  */
 import { spawn, spawnSync } from "node:child_process";
 import path from "node:path";
@@ -191,7 +191,7 @@ function main() {
   startChild("next", [nextCli, "dev", "--port", port]);
 
   console.log("");
-  console.log(`[cms] CMS:       http://localhost:${port}/admin/`);
+  console.log(`[cms] CMS:       http://localhost:${port}/admin/index.html`);
   console.log(`[cms] site:      http://localhost:${port}/`);
   console.log("[cms] Ctrl-C stops the dev server, media watcher and validator.");
   console.log("");

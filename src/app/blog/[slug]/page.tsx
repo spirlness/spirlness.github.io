@@ -10,6 +10,7 @@ import {
 } from "@/lib/posts";
 import { siteProfile } from "@/content/site";
 import { notFound } from "next/navigation";
+import { EMPTY_STATIC_PARAM } from "@/lib/content-id";
 import { JsonLd } from "@/components/meta/JsonLd";
 import { buildPageMetadata } from "@/lib/metadata";
 import { PostHeader } from "@/components/blog/PostHeader";
@@ -31,6 +32,7 @@ export const dynamicParams = false;
  */
 export async function generateStaticParams() {
   const posts = getAllPostFrontmatter();
+  if (!posts.length) return [{ slug: EMPTY_STATIC_PARAM }];
   return posts.map((post) => ({
     slug: post.slug,
   }));
@@ -57,6 +59,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
 
 export default async function PostPage({ params }: PostPageProps) {
   const { slug } = await params;
+  if (slug === EMPTY_STATIC_PARAM) notFound();
 
   let post: Awaited<ReturnType<typeof getPostBySlug>> | undefined;
   try {

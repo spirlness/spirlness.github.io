@@ -21,7 +21,8 @@
     "media:variants": "node scripts/media-variants.mjs",
     "validate:fast": "tsx scripts/validate-content-fast.mjs",
     "prebuild": "node scripts/media-variants.mjs",
-    "postbuild": "node scripts/strip-cms-from-export.mjs"
+    "postbuild": "npm run cms:strip && tsx scripts/content-export.mjs --clean",
+    "export:check": "tsx scripts/content-export.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.23",
@@ -61,6 +62,7 @@
     "@vitest/coverage-v8": "^4.1.11",
     "eslint": "^9",
     "eslint-config-next": "16.3.2",
+    "parse5": "^7.3.0",
     "serve": "^14.2.6",
     "sharp": "^0.35.5",
     "tailwindcss": "^4",

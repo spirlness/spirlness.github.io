@@ -29,8 +29,8 @@ import sharp from "sharp";
 const WIDTHS = [640, 1280, 1920];
 const QUALITY = 80;
 const SOURCE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp"]);
-/** Generated variants end with `-<digits>.webp`; never treat them as sources. */
-const VARIANT_NAME = /-\d+\.webp$/i;
+/** Generated variants end with a configured width; never treat them as sources. */
+const VARIANT_NAME = /-(640|1280|1920)\.webp$/i;
 const DEFAULT_DIRS = ["public/posts", "public/projects"];
 const WATCH_DEBOUNCE_MS = 200;
 const WATCH_POLL_MS = 2000;
@@ -142,7 +142,16 @@ async function scan(dirs, { force, log, quietWhenIdle = false }) {
       log(`skip (not a directory): ${dir}`);
       continue;
     }
-    for (const sourcePath of await listSources(dir)) {
+    const paths = await listSources(dir);
+    const owners = new Map();
+    for (const source of paths) {
+      const { dir: parent, name } = path.parse(source);
+      const stem = path.join(parent, name).toLowerCase();
+      const owner = owners.get(stem);
+      if (owner) throw new Error(`Variant filename collision: ${owner} and ${source}. Rename one source.`);
+      owners.set(stem, source);
+    }
+    for (const sourcePath of paths) {
       sources += 1;
       try {
         const results = await processSource(sourcePath, { force });

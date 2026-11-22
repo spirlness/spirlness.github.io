@@ -1,5 +1,9 @@
 export const CONTENT_SLUG_REGEX = /^[A-Za-z0-9-]+$/;
 
+// Next static export requires one parameter, even for an empty collection.
+// Underscores keep this build-only value outside the content ID alphabet.
+export const EMPTY_STATIC_PARAM = "__empty__";
+
 /**
  * Character set a BibTeX citation key may use. The `[@key]` citation syntax in
  * `src/lib/mdx.ts` is built from this same class, so a key that fails this test

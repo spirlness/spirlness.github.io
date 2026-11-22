@@ -17,6 +17,8 @@
       when loaded as an ES module, and preview.js registers its preview
       templates on the global `CMS` object immediately after the bundle.
     -->
+    <!-- Save hooks need Immutable.js even when the editor is offline. -->
+    <script type="importmap">{"imports":{"__IMMUTABLE_MODULE_URL__":"./immutable.es.js"}}</script>
     <script src="./sveltia-cms.js"></script>
     <script src="./preview.js"></script>
   </body>

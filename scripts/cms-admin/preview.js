@@ -216,6 +216,16 @@
   if (typeof cms.registerEventListener === "function") {
     try {
       cms.registerEventListener({
+        name: "preSave",
+        handler: ({ entry }) => {
+          if (get(entry, ["collection"]) !== "projects") return;
+          const slug = get(entry, ["slug"]);
+          if (get(entry, ["data", "id"]) !== slug) {
+            throw new Error(`项目 ID 必须与文件名一致，请使用「${slug}」。`);
+          }
+        },
+      });
+      cms.registerEventListener({
         name: "postSave",
         handler: () => {
           // Wait for the CMS to finish writing the entry, then reload every

@@ -84,7 +84,7 @@ test.describe("CodeBlock copy (S3)", () => {
     await expect(btn).toBeVisible();
     await btn.click();
     const clip = await page.evaluate(() => navigator.clipboard.readText());
-    expect(clip).toBe(await pre.locator("code").textContent());
+    expect(clip.replaceAll("\r\n", "\n")).toBe(await pre.locator("code").textContent());
     await expect(btn).toHaveText("Copied");
     await expect(btn).toHaveText("Copy", { timeout: 4000 });
   });

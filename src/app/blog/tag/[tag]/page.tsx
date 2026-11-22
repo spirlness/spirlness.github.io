@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getAllTags, getPostsByTag, postHref } from "@/lib/posts";
 import { notFound } from "next/navigation";
+import { EMPTY_STATIC_PARAM } from "@/lib/content-id";
 import { siteProfile } from "@/content/site";
 import { buildPageMetadata } from "@/lib/metadata";
 import { ArrowLeft } from "lucide-react";
@@ -11,7 +12,9 @@ import { PostCard } from "@/components/blog/PostCard";
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return getAllTags().map(({ tag }) => ({ tag }));
+  const tags = getAllTags();
+  if (!tags.length) return [{ tag: EMPTY_STATIC_PARAM }];
+  return tags.map(({ tag }) => ({ tag }));
 }
 
 export async function generateMetadata({
@@ -33,6 +36,7 @@ export default async function TagPage({
   params: Promise<{ tag: string }>;
 }) {
   const { tag } = await params;
+  if (tag === EMPTY_STATIC_PARAM) notFound();
   const posts = getPostsByTag(tag);
   if (posts.length === 0) {
     notFound();

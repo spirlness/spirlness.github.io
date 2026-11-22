@@ -121,7 +121,7 @@ function resolvePublicFile(url) {
 function assetExists(url) {
   if (EXPORTED_ROOT_FILES.has(pathnameOf(url))) return true;
   const resolved = resolvePublicFile(url);
-  return Boolean(resolved && fs.existsSync(resolved));
+  return Boolean(resolved && fs.statSync(resolved, { throwIfNoEntry: false })?.isFile());
 }
 
 /** Parse the MDX body once and check h1 + collect citation keys from text. */
@@ -382,14 +382,9 @@ function validate({ changedOnly = false, verbose = true } = {}) {
         errors.push(`${label}: ${problem}`);
       }
     }
-    if (localAbsolute(project.data.thumbnail)) {
-      for (const problem of checkFieldLink(
-        project.data.thumbnail,
-        `${project.label} thumbnail`,
-        projectPaths
-      )) {
-        errors.push(problem);
-      }
+    const thumbnail = localAbsolute(project.data.thumbnail);
+    if (thumbnail && !assetExists(thumbnail)) {
+      errors.push(`${project.label} thumbnail: missing asset under public/: ${thumbnail}`);
     }
     for (const [name, href] of Object.entries(project.data.links ?? {})) {
       if (!href) continue;

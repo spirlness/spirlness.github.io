@@ -1,8 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test("article contents work by keyboard at mobile, tablet and desktop widths", async ({ page }) => {
-  for (const width of [320, 390, 768, 1399, 1400, 1440]) {
+for (const width of [320, 390, 768, 1399, 1400, 1440]) {
+  test(`article contents work by keyboard at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/blog/how-this-site-is-built/");
     const toggle = page.getByRole("button", { name: "Contents", exact: true });
@@ -40,8 +40,8 @@ test("article contents work by keyboard at mobile, tablet and desktop widths", a
       await expect(toc).toBeVisible();
       // Desktop keeps native fragment-focus behavior; only the disclosure state is controlled.
     }
-  }
-});
+  });
+}
 
 test("toc selection collapses on touch or click, including the current hash", async ({ page, isMobile }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -50,7 +50,8 @@ test("toc selection collapses on touch or click, including the current hash", as
   const toc = page.getByRole("navigation", { name: "Table of contents" });
   // The second selection exercises an unchanged hash and still must move focus.
   for (let selection = 0; selection < 2; selection++) {
-    await toggle.click();
+    if (isMobile) await toggle.tap();
+    else await toggle.click();
     const link = toc.getByRole("link", { name: "内容即文件", exact: true });
     if (isMobile) await link.tap();
     else await link.click();
@@ -96,7 +97,8 @@ test("code copying is discoverable on touch and announces success", async ({ pag
     await page.keyboard.press("Enter");
   }
   await expect(wrapper.getByRole("status")).toHaveText("Code copied to clipboard");
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(await pre.locator("code").textContent());
+  const copied = await page.evaluate(() => navigator.clipboard.readText());
+  expect(copied.replaceAll("\r\n", "\n")).toBe(await pre.locator("code").textContent());
 });
 
 test("copy failures explain recovery and remain retryable", async ({ page }) => {

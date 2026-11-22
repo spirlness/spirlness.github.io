@@ -158,7 +158,7 @@ function createProjectFields() {
       label: "ID（文件名）",
       widget: "string",
       pattern: [slugPattern, "只能使用 A-Z、a-z、0-9 和连字符"],
-      hint: "必须与 JSON 文件名一致：content/projects/<id>.json。",
+      hint: "必须与 JSON 文件名一致。新建时使用小写字母、数字和单个连字符；已有项目保留原 ID。",
     },
     { name: "title", label: "标题", widget: "string" },
     { name: "description", label: "简介", widget: "text" },

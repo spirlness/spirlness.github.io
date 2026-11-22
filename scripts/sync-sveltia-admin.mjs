@@ -117,14 +117,21 @@ async function vendorBundle(packageDir, version) {
   }
 }
 
-async function copyAdminTemplates() {
+async function copyAdminTemplates(packageDir, immutableVersionRange) {
   const indexSource = path.join(templateDir, "index.html");
   if (!fs.existsSync(indexSource)) fail(`missing admin template: ${indexSource}`);
   const indexHtml = await fsp.readFile(indexSource, "utf8");
   if (!indexHtml.includes("./sveltia-cms.js")) {
     fail("scripts/cms-admin/index.html must load ./sveltia-cms.js");
   }
-  await fsp.copyFile(indexSource, path.join(adminDir, "index.html"));
+  const cmsRequire = createRequire(path.join(packageDir, "package.json"));
+  const immutableDir = path.dirname(cmsRequire.resolve("immutable/package.json"));
+  await fsp.copyFile(path.join(immutableDir, "dist", "immutable.es.js"), path.join(adminDir, "immutable.es.js"));
+  await fsp.copyFile(path.join(immutableDir, "LICENSE"), path.join(adminDir, "LICENSE.immutable.txt"));
+  // Mirror Sveltia’s getUnpkgURL so its preSave hook also runs offline.
+  const version = immutableVersionRange.replace(/^\D/, "");
+  const moduleUrl = `https://unpkg.com/immutable@${version}/dist/immutable.es.js`;
+  await fsp.writeFile(path.join(adminDir, "index.html"), indexHtml.replace("__IMMUTABLE_MODULE_URL__", moduleUrl));
 
   const previewSource = path.join(templateDir, "preview.js");
   const previewTarget = path.join(adminDir, "preview.js");
@@ -229,7 +236,7 @@ function validateConfig() {
 async function main() {
   const entry = require.resolve("@sveltia/cms");
   const packageDir = path.dirname(path.dirname(entry)); // <pkg>/npm/index.js -> <pkg>
-  const { version } = JSON.parse(
+  const { version, dependencies } = JSON.parse(
     await fsp.readFile(path.join(packageDir, "package.json"), "utf8")
   );
 
@@ -237,7 +244,7 @@ async function main() {
   await vendorBundle(packageDir, version);
   await copyChunks(path.join(packageDir, "dist"));
   await copyLocales(packageDir);
-  await copyAdminTemplates();
+  await copyAdminTemplates(packageDir, dependencies.immutable);
   validateConfig();
 
   console.log(
