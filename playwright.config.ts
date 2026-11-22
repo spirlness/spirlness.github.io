@@ -30,7 +30,7 @@ export default defineConfig({
     },
     {
       name: "chromium-desktop",
-      grepInvert: /@mobile-only\b/,
+      grepInvert: /@mobile-only\b|@webkit\b/,
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 1440, height: 900 },
