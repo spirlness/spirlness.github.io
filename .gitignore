@@ -52,3 +52,6 @@ next-env.d.ts
 # local tooling artifacts
 .mimosa/
 .omo/
+
+# local GUI test screenshots
+/gui-test-screenshots/
