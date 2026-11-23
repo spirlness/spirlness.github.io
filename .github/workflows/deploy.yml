@@ -10,9 +10,9 @@ permissions:
   pages: write
   id-token: write
 
-# Build jobs use per-job groups so a newer push cancels superseded work.
-# The deploy job keeps its own serial "pages" group: cancelling a Pages
-# deployment mid-publish is unsafe, so only the build side is interruptible.
+# First attempts supersede builds on the same ref. A re-run uses a separate
+# group so it cannot cancel a newer push. The v2 prefix also isolates these
+# builds from re-runs that still use the old workflow definition.
 jobs:
   quality:
     runs-on: ubuntu-latest
@@ -20,7 +20,7 @@ jobs:
     permissions:
       contents: read
     concurrency:
-      group: deploy-quality-${{ github.ref }}
+      group: deploy-quality-v2-${{ github.run_attempt == 1 && github.ref || github.run_id }}
       cancel-in-progress: true
     steps:
       - name: Checkout
@@ -72,7 +72,7 @@ jobs:
       id-token: write
       actions: write
     concurrency:
-      group: deploy-e2e-${{ github.ref }}
+      group: deploy-e2e-v2-${{ github.run_attempt == 1 && github.ref || github.run_id }}
       cancel-in-progress: true
     steps:
       - name: Checkout
@@ -109,41 +109,8 @@ jobs:
           # abandons entries saved under the older keys.
           key: ${{ runner.os }}-nextjs-v3-${{ steps.node-runtime.outputs.version }}-${{ hashFiles('**/package-lock.json', 'package.json', 'src/**', 'content/**', 'public/**', 'next.config.*', 'postcss.config.*', 'tsconfig*.json') }}
 
-      # Playwright's browser installer does not need node_modules, so a
-      # version-pinned npx copy runs beside npm ci; the build then overlaps
-      # whatever is left of the browser install. The build is the only step
-      # that produces out/.
       - name: Install dependencies, browsers, and build
-        shell: bash
-        run: |
-          set -uo pipefail
-          PW_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test'].version")
-          if [ -z "$PW_VERSION" ] || [ "$PW_VERSION" = "undefined" ]; then
-            echo "Cannot resolve @playwright/test from package-lock.json"
-            exit 1
-          fi
-          npm ci --prefer-offline --no-audit --no-fund > "$RUNNER_TEMP/npm-ci.log" 2>&1 &
-          ci_pid=$!
-          npx --yes "playwright@$PW_VERSION" install --with-deps chromium webkit > "$RUNNER_TEMP/playwright-install.log" 2>&1 &
-          pw_pid=$!
-          : > "$RUNNER_TEMP/build.log"
-          status=0
-          wait "$ci_pid" || status=$?
-          build_pid=
-          if [ "$status" -eq 0 ]; then
-            npm run build > "$RUNNER_TEMP/build.log" 2>&1 &
-            build_pid=$!
-          fi
-          wait "$pw_pid" || status=$?
-          if [ -n "$build_pid" ]; then
-            wait "$build_pid" || status=$?
-          fi
-          for log in npm-ci playwright-install build; do
-            echo "::group::$log"
-            cat "$RUNNER_TEMP/$log.log"
-            echo "::endgroup::"
-          done
-          exit "$status"
+        run: bash scripts/build-with-playwright.sh
 
       - name: Verify static export
         run: npm run export:check
@@ -184,6 +151,7 @@ jobs:
           path: ./out
 
   deploy:
+    if: github.ref == 'refs/heads/master'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -191,12 +159,30 @@ jobs:
     needs: [quality, e2e]
     timeout-minutes: 10
     permissions:
+      contents: read
       pages: write
       id-token: write
     concurrency:
       group: "pages"
       cancel-in-progress: false
+      # A stale re-run must not replace a newer deployment waiting for the lock.
+      queue: max
     steps:
+      - name: Check current master commit
+        id: master
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          head_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/master" --jq '.object.sha')
+          if [[ "$GITHUB_SHA" == "$head_sha" ]]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Skipping Pages publish for $GITHUB_SHA because master is now $head_sha."
+            echo "current=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Deploy to GitHub Pages
+        if: steps.master.outputs.current == 'true'
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5

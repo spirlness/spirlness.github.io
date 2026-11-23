@@ -78,41 +78,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-npm-
 
-      # Playwright's browser installer does not need node_modules, so a
-      # version-pinned npx copy runs beside npm ci; the build then overlaps
-      # whatever is left of the browser install. The build is the only step
-      # that produces out/.
       - name: Install dependencies, browsers, and build
-        shell: bash
-        run: |
-          set -uo pipefail
-          PW_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test'].version")
-          if [ -z "$PW_VERSION" ] || [ "$PW_VERSION" = "undefined" ]; then
-            echo "Cannot resolve @playwright/test from package-lock.json"
-            exit 1
-          fi
-          npm ci --prefer-offline --no-audit --no-fund > "$RUNNER_TEMP/npm-ci.log" 2>&1 &
-          ci_pid=$!
-          npx --yes "playwright@$PW_VERSION" install --with-deps chromium webkit > "$RUNNER_TEMP/playwright-install.log" 2>&1 &
-          pw_pid=$!
-          : > "$RUNNER_TEMP/build.log"
-          status=0
-          wait "$ci_pid" || status=$?
-          build_pid=
-          if [ "$status" -eq 0 ]; then
-            npm run build > "$RUNNER_TEMP/build.log" 2>&1 &
-            build_pid=$!
-          fi
-          wait "$pw_pid" || status=$?
-          if [ -n "$build_pid" ]; then
-            wait "$build_pid" || status=$?
-          fi
-          for log in npm-ci playwright-install build; do
-            echo "::group::$log"
-            cat "$RUNNER_TEMP/$log.log"
-            echo "::endgroup::"
-          done
-          exit "$status"
+        run: bash scripts/build-with-playwright.sh
 
       - name: Compare particle matrices and WebGL pixels
         run: npm run benchmark:particles -- --browser

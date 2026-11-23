@@ -1,8 +1,14 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-for (const width of [320, 390, 768, 1399, 1400, 1440]) {
-  const tag = [390, 768, 1399, 1400].includes(width) ? "@webkit" : [];
+for (const [width, tag] of [
+  [320, undefined],
+  [390, "@webkit-only"],
+  [768, "@webkit-only"],
+  [1399, "@webkit"],
+  [1400, "@webkit"],
+  [1440, undefined],
+] as const) {
   test(`article contents work by keyboard at ${width}px`, { tag }, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/blog/how-this-site-is-built/");

@@ -60,7 +60,7 @@ npm run test:e2e
 
 `npm run test:e2e` builds `out/` and serves it locally. Desktop Chromium runs the general suite, including exported HTTP metadata. Mobile Chromium covers touch, narrow layouts and accessibility on representative routes. WebKit covers selected table-of-contents breakpoints, code blocks and WebGL behavior. CI runs three workers: four oversubscribes the 4-vCPU runner once the web server and software-rendered WebGL tests are counted, and measured slower.
 
-Tests tagged `@mobile` also run in mobile Chromium. Use `@mobile-only` for mobile-specific scenarios and `@webkit` to move a test to the WebKit project instead of duplicating it in desktop Chromium. Tags can be combined. Run a single project with `npm run test:e2e -- --project chromium-mobile` or inspect the selection with `npm run test:e2e -- --list`. Failures save screenshots and retry traces in `playwright-report/` and `test-results/`.
+Tests tagged `@mobile` also run in mobile Chromium. Use `@mobile-only` for mobile-specific scenarios, `@webkit` to add WebKit coverage alongside desktop Chromium, and `@webkit-only` to run a scenario in WebKit alone. Tags can be combined. Run a single project with `npm run test:e2e -- --project chromium-mobile` or inspect the selection with `npm run test:e2e -- --list`. Failures save screenshots and retry traces in `playwright-report/` and `test-results/`.
 
 Video checks use a small synthetic fixture from `tests/fixtures/`, rendered with the production media component and served through Playwright routes. They check card navigation and detail playback without adding sample projects or assets to the deployment. Unit tests also verify the actual project pages pass the correct media-control options.
 
@@ -124,7 +124,7 @@ Deployment behavior:
   - `out/opengraph-image.png`
 - The same read-only check runs locally with `npm run export:check` after building. It also verifies published posts, projects and tag routes, and checks that draft pages, draft-only uploads, empty-route placeholders, the CMS admin and Sveltia-named assets are absent.
 - It uploads `out/` as a GitHub Pages artifact, and the `deploy` job publishes it.
-- A newer push cancels superseded build jobs, but never an in-progress Pages deployment.
+- A newer push can cancel superseded build jobs. Re-runs use separate build queues. Pages deployments run serially and publish only when the tested commit still matches the head of `master`.
 
 A lint failure or a failing test stops the deploy before anything is published.
 

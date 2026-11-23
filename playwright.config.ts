@@ -25,12 +25,12 @@ export default defineConfig({
   projects: [
     {
       name: "webkit-mobile",
-      grep: /@webkit\b/,
+      grep: /@webkit(?:-only)?\b/,
       use: { ...devices["iPhone 13"], permissions: [] },
     },
     {
       name: "chromium-desktop",
-      grepInvert: /@mobile-only\b|@webkit\b/,
+      grepInvert: /@mobile-only\b|@webkit-only\b/,
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 1440, height: 900 },
