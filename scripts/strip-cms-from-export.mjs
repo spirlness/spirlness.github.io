@@ -3,10 +3,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+const sveltiaAssetNames = new Set(["sveltia-cms.js", "sveltia-cms.js.map", "license.sveltia.txt"]);
+
 function findSveltiaAsset(directory) {
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
     const target = path.join(directory, entry.name);
-    if (/sveltia/i.test(entry.name)) return target;
+    if (!entry.isDirectory() && sveltiaAssetNames.has(entry.name.toLowerCase())) return target;
     if (entry.isDirectory()) {
       const match = findSveltiaAsset(target);
       if (match) return match;

@@ -209,6 +209,12 @@
     }
   }
 
+  // Let Sveltia handle transliteration and spacing. Its ASCII slugs also
+  // allow underscores and tildes, so normalize those before it chooses a path.
+  cms.registerStringTransformation?.("site_slug", (value) =>
+    String(value ?? "").replace(/[_~]+/g, "-")
+  );
+
   for (const collection of ["posts", "projects", "updates"]) {
     registerTemplate(collection);
   }
@@ -218,8 +224,13 @@
       cms.registerEventListener({
         name: "preSave",
         handler: ({ entry }) => {
-          if (get(entry, ["collection"]) !== "projects") return;
+          const collection = get(entry, ["collection"]);
+          if (collection !== "posts" && collection !== "projects") return;
           const slug = get(entry, ["slug"]);
+          if (typeof slug !== "string" || !/^[A-Za-z0-9-]+$/.test(slug)) {
+            throw new Error("文件名只能使用字母、数字和连字符。");
+          }
+          if (collection === "posts") return;
           if (get(entry, ["data", "id"]) !== slug) {
             throw new Error(`项目 ID 必须与文件名一致，请使用「${slug}」。`);
           }

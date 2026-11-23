@@ -180,11 +180,12 @@ function checkTargets(tree, label, knownPaths) {
 }
 
 function checkFieldLink(href, label, knownPaths) {
-  if (!localAbsolute(href)) return [];
-  const pathname = pathnameOf(normalizeInternalHref(href));
+  const target = localAbsolute(href);
+  if (!target) return [];
+  const pathname = pathnameOf(normalizeInternalHref(target));
   if (knownPaths.has(pathname)) return [];
   if (isAssetPath(pathname)) {
-    return assetExists(href) ? [] : [`${label}: missing asset under public/: ${href}`];
+    return assetExists(target) ? [] : [`${label}: missing asset under public/: ${href}`];
   }
   return [`${label}: unknown internal link: ${href}`];
 }
@@ -215,7 +216,8 @@ function loadEntries(targets) {
   }
 
   for (const file of listFiles(projectsDir, ".json")) {
-    if (targets && !targets.has(file)) continue;
+    const body = path.join(projectsDir, `${path.basename(file, ".json")}.mdx`);
+    if (targets && !targets.has(file) && !targets.has(body)) continue;
     const label = relative(file);
     try {
       const raw = fs.readFileSync(file, "utf8");
@@ -294,20 +296,18 @@ function loadCitationKeys() {
 function changedContentFiles() {
   const files = new Set();
   const run = (args) => spawnSync("git", args, { cwd: repoRoot, encoding: "utf8" });
-  const tracked = run(["diff", "--name-only", "HEAD", "--", "content"]);
+  const tracked = run(["diff", "--name-only", "-z", "HEAD", "--", "content"]);
   if (tracked.status !== 0) return null;
   const untracked = run([
     "ls-files",
     "--others",
     "--exclude-standard",
+    "-z",
     "--",
     "content",
   ]);
   if (untracked.status !== 0) return null;
-  for (const line of `${tracked.stdout}\n${untracked.stdout}`
-    .split(/\r?\n/)
-    .map((entry) => entry.trim())
-    .filter(Boolean)) {
+  for (const line of `${tracked.stdout}${untracked.stdout}`.split("\0").filter(Boolean)) {
     files.add(path.resolve(repoRoot, line));
   }
   return files;

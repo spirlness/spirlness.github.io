@@ -32,6 +32,12 @@ function parsedConfig(): any {
 }
 
 describe("generated Sveltia config", () => {
+  it("normalizes post filenames and disables JSON-only project deletion", () => {
+    const config = parsedConfig();
+    expect(collection(config, "posts").slug).toBe("{{slug | site_slug}}");
+    expect(collection(config, "projects").delete).toBe(false);
+  });
+
   it("emits the smoke-validated output options", () => {
     const yaml = generateConfigYaml();
     expect(yaml).toContain("omit_empty_optional_fields: true");

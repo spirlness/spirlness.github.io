@@ -5,7 +5,8 @@ import remarkMdx from "remark-mdx";
 import remarkParse from "remark-parse";
 import { unified } from "unified";
 import { visit } from "unist-util-visit";
-import { isSafeHref } from "./links";
+import { siteProfile } from "../content/site";
+import { isSafeHref, isSafeHttpUrl } from "./links";
 import { isSafeMediaUrl, parseSrcSet } from "./media-srcset";
 
 /**
@@ -28,6 +29,7 @@ const URL_ATTRIBUTES = new Set(["href", "src", "poster", "srcSet", "srcset"]);
 
 /** A `scheme:` prefix, e.g. `https:`, `mailto:`, `data:`. */
 const URL_SCHEME = /^[a-z][a-z0-9+.-]*:/i;
+const siteOrigin = new URL(siteProfile.url).origin;
 
 export interface LocalTargets {
   /**
@@ -48,9 +50,12 @@ export interface LocalTargets {
   relative: string[];
 }
 
-/** Site-absolute only: `//host/x` is external, `#anchor` and relative are out of scope. */
+/** Root-relative and same-origin HTTP(S) destinations use the same checks. */
 export function localAbsolute(url: string): string | undefined {
-  return url.startsWith("/") && !url.startsWith("//") ? url : undefined;
+  if (url.startsWith("/") && !url.startsWith("//")) return url;
+  if (!isSafeHttpUrl(url)) return undefined;
+  const target = new URL(url);
+  if (target.origin === siteOrigin) return target.pathname + target.search + target.hash;
 }
 
 export function pathnameOf(url: string): string {

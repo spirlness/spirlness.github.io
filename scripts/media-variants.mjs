@@ -7,7 +7,7 @@
  * source at quality 80. Widths are capped at the source width (no upscaling),
  * so a 900px source yields `-640.webp` and a 900px-wide `-1280.webp`/`-1920.webp`.
  *
- * Output is deterministic (fixed encoder settings, metadata stripped, atomic
+ * Output is deterministic (fixed encoder settings, generated ownership tag, atomic
  * temp-file rename) and idempotent (an existing variant newer than its source
  * is left untouched; re-running produces no rewrite).
  *
@@ -18,8 +18,8 @@
  *   node scripts/media-variants.mjs --watch dir1    # watch given dirs
  *
  * Only raster sources with .jpg/.jpeg/.png/.webp extensions are read; svg,
- * avif, hdr, gif and anything else are skipped, as are already-generated
- * `-<width>.webp` variants (so a scan never emits variants of variants).
+ * avif, hdr, gif and anything else are skipped. An ownership tag identifies
+ * generated variants, even when an uploaded original has a similar name.
  */
 import fs from "node:fs";
 import fsp from "node:fs/promises";
@@ -29,8 +29,8 @@ import sharp from "sharp";
 const WIDTHS = [640, 1280, 1920];
 const QUALITY = 80;
 const SOURCE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp"]);
-/** Generated variants end with a configured width; never treat them as sources. */
 const VARIANT_NAME = /-(640|1280|1920)\.webp$/i;
+const VARIANT_NAMESPACE = "https://spirlness.github.io/ns/webp-variant/1";
 const DEFAULT_DIRS = ["public/posts", "public/projects"];
 const WATCH_DEBOUNCE_MS = 200;
 const WATCH_POLL_MS = 2000;
@@ -58,22 +58,39 @@ function parseArgs(argv) {
 }
 
 /** Recursively collect raster sources; missing directories are reported by the caller. */
-async function listSources(directory) {
+async function listRasterFiles(directory) {
   const sources = [];
   const entries = await fsp.readdir(directory, { withFileTypes: true });
   for (const entry of entries) {
     const entryPath = path.join(directory, entry.name);
     if (entry.isDirectory()) {
       if (entry.name.startsWith(".") || entry.name === "node_modules") continue;
-      sources.push(...(await listSources(entryPath)));
+      sources.push(...(await listRasterFiles(entryPath)));
       continue;
     }
     if (!entry.isFile()) continue;
-    if (VARIANT_NAME.test(entry.name)) continue;
     if (!SOURCE_EXTENSIONS.has(path.extname(entry.name).toLowerCase())) continue;
     sources.push(entryPath);
   }
   return sources.sort((a, b) => a.localeCompare(b));
+}
+
+function ownerTag(sourcePath) {
+  return `<rdf:Description xmlns:spirl="${VARIANT_NAMESPACE}" spirl:source="${encodeURIComponent(path.basename(sourcePath))}"/>`;
+}
+
+async function readVariantTag(file) {
+  if (!VARIANT_NAME.test(file)) return;
+  const stat = await fsp.lstat(file).catch((error) => {
+    if (error.code !== "ENOENT") throw error;
+  });
+  if (!stat?.isFile()) return;
+  // Give Sharp a buffer so Windows can replace the file after reading its tag.
+  const contents = await fsp.readFile(file);
+  const metadata = await sharp(contents).metadata().catch(() => undefined);
+  return metadata?.xmpAsString?.split("\n").find((line) =>
+    line.startsWith(`<rdf:Description xmlns:spirl="${VARIANT_NAMESPACE}" spirl:source="`)
+  );
 }
 
 async function isUpToDate(sourcePath, outputPath) {
@@ -94,15 +111,31 @@ async function isUpToDate(sourcePath, outputPath) {
  * so a crash can never leave a half-written variant that the mtime check would
  * later accept.
  */
-async function writeVariant(sourcePath, width, outputPath) {
+async function writeVariant(sourcePath, width, outputPath, owner, exists) {
   const tempPath = `${outputPath}.${process.pid}.${Math.random().toString(36).slice(2)}.tmp`;
   try {
     const info = await sharp(sourcePath, { failOn: "error" })
       .rotate() // honour EXIF orientation before measuring/capping width
       .resize({ width, withoutEnlargement: true }) // width-capped, never upscale
+      .withXmp([
+        '<x:xmpmeta xmlns:x="adobe:ns:meta/">',
+        '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">',
+        owner,
+        "</rdf:RDF>",
+        "</x:xmpmeta>",
+      ].join("\n"))
       .webp({ quality: QUALITY })
       .toFile(tempPath);
-    await fsp.rename(tempPath, outputPath);
+    if (exists) {
+      if (await readVariantTag(outputPath) !== owner) {
+        throw new Error(`Variant destination changed during generation: ${outputPath}`);
+      }
+      await fsp.rename(tempPath, outputPath);
+    } else {
+      // A concurrent upload may have claimed the previously empty destination.
+      // Creating the hard link fails rather than replacing that file.
+      await fsp.link(tempPath, outputPath);
+    }
     return { width: info.width, height: info.height, size: info.size };
   } finally {
     await fsp.rm(tempPath, { force: true });
@@ -111,14 +144,19 @@ async function writeVariant(sourcePath, width, outputPath) {
 
 async function processSource(sourcePath, { force }) {
   const parsed = path.parse(sourcePath);
+  const owner = ownerTag(sourcePath);
   const results = [];
   for (const width of WIDTHS) {
     const outputPath = path.join(parsed.dir, `${parsed.name}-${width}.webp`);
-    if (!force && (await isUpToDate(sourcePath, outputPath))) {
+    const exists = fs.existsSync(outputPath);
+    if (exists && await readVariantTag(outputPath) !== owner) {
+      throw new Error(`Variant filename collision: ${outputPath} is not owned by ${sourcePath}.`);
+    }
+    if (exists && !force && (await isUpToDate(sourcePath, outputPath))) {
       results.push({ outputPath, status: "unchanged" });
       continue;
     }
-    const info = await writeVariant(sourcePath, width, outputPath);
+    const info = await writeVariant(sourcePath, width, outputPath, owner, exists);
     results.push({ outputPath, status: "written", ...info });
   }
   return results;
@@ -142,7 +180,15 @@ async function scan(dirs, { force, log, quietWhenIdle = false }) {
       log(`skip (not a directory): ${dir}`);
       continue;
     }
-    const paths = await listSources(dir);
+    const files = await listRasterFiles(dir);
+    const variants = new Map();
+    const paths = [];
+    for (const file of files) {
+      const owner = await readVariantTag(file);
+      if (owner) variants.set(file, owner);
+      else paths.push(file);
+    }
+    const occupied = new Map(files.map((file) => [file.toLowerCase(), file]));
     const owners = new Map();
     for (const source of paths) {
       const { dir: parent, name } = path.parse(source);
@@ -150,6 +196,13 @@ async function scan(dirs, { force, log, quietWhenIdle = false }) {
       const owner = owners.get(stem);
       if (owner) throw new Error(`Variant filename collision: ${owner} and ${source}. Rename one source.`);
       owners.set(stem, source);
+      for (const width of WIDTHS) {
+        const destination = path.join(parent, `${name}-${width}.webp`);
+        const existing = occupied.get(destination.toLowerCase());
+        if (existing && (existing !== destination || variants.get(existing) !== ownerTag(source))) {
+          throw new Error(`Variant filename collision: ${existing} is not owned by ${source}. Move or rename the conflicting file.`);
+        }
+      }
     }
     for (const sourcePath of paths) {
       sources += 1;

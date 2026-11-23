@@ -74,7 +74,7 @@ This serves `out/` with `serve` (see the `start` script in `package.json`). Use 
 
 ## Local CMS
 
-`npm run cms` starts a local authoring stack: it regenerates `public/admin/config.yml` from the zod schemas, vendors the Sveltia CMS bundle into `public/admin/`, starts the sharp media watcher and the fast content validator, and runs `next dev`. Open `http://localhost:3000/admin/index.html` (override the port with `npm run cms -- --port 3100`).
+`npm run cms` starts a local authoring stack: it regenerates `public/admin/config.yml` from the zod schemas, vendors the Sveltia CMS bundle into `public/admin/`, starts the sharp media watcher and the fast content validator, and runs `next dev`. Open `http://localhost:3000/admin/index.html` (override the port with `npm run cms -- --port 3100`). The dev server binds to `127.0.0.1` by default. Pass `--hostname` explicitly to change its bind address. Chromium requires a secure context for local repository access.
 
 First run:
 
@@ -85,6 +85,8 @@ First run:
 
 The CMS writes straight to the working tree on Save — nothing is committed automatically, there is no editorial workflow, and undo is git's job, so review changes with `git status` / `git diff` before committing. The editor's Preview pane embeds the real dev-server page for the current entry and reloads it after each save. `public/admin/` is generated and gitignored; the admin is Chromium-only because local mode uses the File System Access API.
 
+The CMS disables project deletion because a single project can span a JSON file and a same-name MDX body. To remove a project, delete both files together in Git and review any references or shared media before committing. Post filenames are generated from titles. Underscores and tildes become hyphens, and the save hook checks the final slug.
+
 Drafts:
 
 - Posts set `draft: true` in the frontmatter; projects set `"draft": true` in their JSON. Both default to visible, non-draft entries.
@@ -93,7 +95,7 @@ Drafts:
 Media:
 
 - Uploads through the CMS land in `public/posts/<slug>/` for posts and `public/projects/<id>/` for projects; reference them with site-absolute paths such as `/posts/<slug>/figure.png`.
-- Sharp writes `-640.webp`, `-1280.webp` and `-1920.webp` variants (quality 80, no upscaling) next to each jpg/jpeg/png/webp source; SVG and HDR files are skipped. The variants are committed artifacts. Give raster sources in the same folder distinct basenames. The generator reports conflicting filenames before writing variants in that folder.
+- Sharp writes `-640.webp`, `-1280.webp` and `-1920.webp` variants (quality 80, no upscaling) next to each jpg/jpeg/png/webp source; SVG and HDR files are skipped. The variants are committed artifacts. Give raster sources in the same folder distinct basenames. The generator marks its WebP outputs with their source filename and refuses to overwrite an unmarked file, including with `--force`. If an older, unmarked variant conflicts, verify its origin and move it aside before regenerating. Existing variant URLs and filenames are preserved.
 - `npm run cms` watches both media folders; `npm run media:variants` runs the same idempotent pass once (and `prebuild` runs it automatically before `npm run build`).
 
 Validation and production hygiene:
@@ -122,7 +124,7 @@ Deployment behavior:
   - `out/robots.txt`
   - `out/feed.xml`
   - `out/opengraph-image.png`
-- The same read-only check runs locally with `npm run export:check` after building. It also verifies published posts, projects and tag routes, and checks that draft pages, draft-only uploads, empty-route placeholders, the CMS admin and Sveltia-named assets are absent.
+- The same read-only check runs locally with `npm run export:check` after building. It also verifies published posts, projects and tag routes, and checks that draft pages, draft-only uploads, empty-route placeholders, the CMS admin and known Sveltia bundle files are absent.
 - It uploads `out/` as a GitHub Pages artifact, and the `deploy` job publishes it.
 - A newer push can cancel superseded build jobs. Re-runs use separate build queues. Pages deployments run serially and publish only when the tested commit still matches the head of `master`.
 

@@ -344,12 +344,15 @@ describe("content integrity", () => {
     await expect(checkContentIntegrity()).rejects.toThrow(message);
   });
 
-  it("rejects a published post linking to a draft route", async () => {
+  it.each([
+    "/blog/hidden/",
+    "https://spirlness.github.io/blog/hidden/",
+  ])("rejects a published post linking to the draft route %s", async (href) => {
     const { addPost, checkContentIntegrity } = await fixture("test");
     addPost("hidden", { date: "2026-01-01", draft: true });
     addPost("published", {
       date: "2026-02-01",
-      body: "See [the draft](/blog/hidden/).",
+      body: `See [the draft](${href}).`,
     });
 
     await expect(checkContentIntegrity()).rejects.toThrow(

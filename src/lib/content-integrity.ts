@@ -184,8 +184,9 @@ export async function checkContentIntegrity(): Promise<{
   for (const project of projects) {
     const origin = `project "${project.id}"`;
     const paths = project.draft === true ? knownPaths : publishedPaths;
-    if (project.thumbnail.startsWith("/")) {
-      assertAssetResolves(project.thumbnail, `${origin} thumbnail`);
+    const thumbnail = localAbsolute(project.thumbnail);
+    if (thumbnail) {
+      assertAssetResolves(thumbnail, `${origin} thumbnail`);
     }
 
     const mdxPath = path.join(projectDirectory, `${project.id}.mdx`);

@@ -51,9 +51,12 @@ it("checks the complete export and cleans CMS and draft artifacts only in clean 
     expect(fs.existsSync(path.join(fixture, "out/posts/wip/shared file.webp"))).toBe(true);
     expect(fs.existsSync(path.join(fixture, "out/projects/wip/figure.svg"))).toBe(true);
     expect(fs.existsSync(path.join(fixture, "out/blog/__empty__"))).toBe(false);
+    write("out/blog/sveltia-guide/index.html");
+    write("out/blog/tag/sveltia/index.html");
+    write("out/posts/guide/sveltia-editor.webp");
     const verify = check();
     expect(verify.status, verify.stderr).toBe(0);
-    write("out/_next/static/Sveltia.js");
+    write("out/_next/static/Sveltia-CMS.js");
     expectRejection("Sveltia asset found in export");
   } finally {
     fs.rmSync(fixture, { recursive: true, force: true });

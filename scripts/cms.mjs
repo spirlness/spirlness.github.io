@@ -23,18 +23,21 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."
 const tsxCli = path.join(repoRoot, "node_modules", "tsx", "dist", "cli.mjs");
 const nextCli = path.join(repoRoot, "node_modules", "next", "dist", "bin", "next");
 const DEFAULT_PORT = 3000;
+const DEFAULT_HOST = "127.0.0.1";
 
 function usage() {
   return [
-    "Usage: node scripts/cms.mjs [--port <number>]",
+    "Usage: node scripts/cms.mjs [--port <number>] [--hostname <host>]",
     "",
     `  --port, -p   dev-server port (default ${DEFAULT_PORT})`,
+    `  --hostname   dev-server bind address (default ${DEFAULT_HOST})`,
     "  --help, -h   show this help",
   ].join("\n");
 }
 
 function parseArgs(argv) {
   let port = DEFAULT_PORT;
+  let hostname = DEFAULT_HOST;
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--help" || arg === "-h") return { help: true, port };
@@ -47,12 +50,17 @@ function parseArgs(argv) {
       port = Number(arg.slice("--port=".length));
       continue;
     }
+    if (arg === "--hostname" || arg.startsWith("--hostname=")) {
+      hostname = arg === "--hostname" ? argv[++index] : arg.slice("--hostname=".length);
+      if (!hostname || hostname.startsWith("-")) throw new Error("Missing hostname");
+      continue;
+    }
     throw new Error(`Unknown argument: ${arg}`);
   }
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error(`Invalid port: ${port}`);
   }
-  return { help: false, port };
+  return { help: false, port, hostname };
 }
 
 function runStep(executable, args, label) {
@@ -100,15 +108,15 @@ function startChild(name, args) {
   prefixStream(child.stdout, name);
   prefixStream(child.stderr, name);
   child.on("error", (error) => {
+    children.delete(name);
     console.error(`[${name}] failed to start: ${error.message}`);
+    shutdown(1);
   });
   child.on("exit", (code, signal) => {
     children.delete(name);
     if (shuttingDown) return;
     console.log(`[${name}] exited (${signal ?? code ?? "unknown"}).`);
-    if (name === "next") {
-      shutdown(code ?? 1);
-    }
+    shutdown(name === "next" ? (code ?? 1) : (code || 1));
   });
   children.set(name, child);
   return child;
@@ -137,6 +145,7 @@ function killTree(child) {
 function shutdown(code = 0) {
   if (shuttingDown) return;
   shuttingDown = true;
+  process.exitCode = code;
   console.log("[cms] shutting down (dev server, media watcher, validator)...");
   for (const child of children.values()) killTree(child);
   if (process.platform !== "win32") {
@@ -186,13 +195,16 @@ function main() {
   );
 
   const port = String(options.port);
+  const { hostname } = options;
+  const localHost = [DEFAULT_HOST, "0.0.0.0", "::"].includes(hostname) ? "localhost" : hostname;
+  const url = `http://${localHost.includes(":") ? `[${localHost}]` : localHost}:${port}`;
   startChild("media", ["scripts/media-variants.mjs", "--watch"]);
   startChild("validate", [tsxCli, "scripts/validate-content-fast.mjs", "--watch"]);
-  startChild("next", [nextCli, "dev", "--port", port]);
+  startChild("next", [nextCli, "dev", "--port", port, "--hostname", hostname]);
 
   console.log("");
-  console.log(`[cms] CMS:       http://localhost:${port}/admin/index.html`);
-  console.log(`[cms] site:      http://localhost:${port}/`);
+  console.log(`[cms] CMS:       ${url}/admin/index.html`);
+  console.log(`[cms] site:      ${url}/`);
   console.log("[cms] Ctrl-C stops the dev server, media watcher and validator.");
   console.log("");
 
